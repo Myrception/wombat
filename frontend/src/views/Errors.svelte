@@ -1,11 +1,19 @@
 <script>
   import Button from "../controls/Button.svelte";
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  import { onDestroy } from 'svelte';
 
   let errors = [];
 
-  wails.Events.On("wombat:error", err => {
+  // Set up event listener with cleanup
+  const unsubscribe = EventsOn("wombat:error", err => {
     errors = [...errors, err];
-  })
+  });
+
+  // Clean up on component destroy
+  onDestroy(() => {
+    unsubscribe();
+  });
 
   const onOKClicked = () => {
     errors.shift();

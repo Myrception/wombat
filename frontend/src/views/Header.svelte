@@ -1,20 +1,25 @@
 <script>
-  import { getContext } from "svelte";
-
+import { getContext, onDestroy } from "svelte";
   import Button from "../controls/Button.svelte";
   import WorkspaceOptions from "./WorkspaceOptions.svelte";
   import WorkspaceSwitcher from "./WorkspaceSwitcher.svelte";
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
 
   let addr = "";
-  wails.Events.On("wombat:client_connected", data => addr = data);
-
   let status = "";
-  wails.Events.On("wombat:client_state_changed", data => status = data.toLowerCase());
-
-  wails.Events.On("wombat:client_connect_started", data => {
+  
+  const unsubscribe1 = EventsOn("wombat:client_connected", data => addr = data);
+  const unsubscribe2 = EventsOn("wombat:client_state_changed", data => status = data.toLowerCase());
+  const unsubscribe3 = EventsOn("wombat:client_connect_started", data => {
     addr = data;
     status = "connecting";
-  })
+  });
+
+ onDestroy(() => {
+    unsubscribe1();
+    unsubscribe2();
+    unsubscribe3();
+  });
 
   const { open } = getContext('modal');
   const onWorkspaceClicked = () => open(WorkspaceOptions);

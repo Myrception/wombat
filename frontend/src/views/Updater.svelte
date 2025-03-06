@@ -1,21 +1,30 @@
 <script>
+  import { onDestroy } from "svelte";
   import Button from "../controls/Button.svelte";
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
   let visible = false;
   let oldVersion = "";
   let newVersion = "";
   let releaseURL = "";
 
-  wails.Events.On("wombat:update_available", ({old_version, new_version, url}) => {
+  // Set up event listener with cleanup
+  const unsubscribeUpdate = EventsOn("wombat:update_available", ({old_version, new_version, url}) => {
     oldVersion = old_version;
     newVersion = new_version;
     releaseURL = url;
     visible = true;
   });
 
+  // Clean up on component destroy
+  onDestroy(() => {
+    unsubscribeUpdate();
+  });
+
   const onCloseClicked = () => visible = false;
   const onDownloadClicked = async () => {
-    await wails.Browser.OpenURL(releaseURL)
+    await BrowserOpenURL(releaseURL);
     visible = false;
   }
 </script>

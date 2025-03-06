@@ -1,4 +1,5 @@
 <script>
+  import { onDestroy } from "svelte";
   import Tab from "../controls/Tab.svelte";
   import Tabs from "../controls/Tabs.svelte";
   import TabList from "../controls/TabList.svelte";
@@ -7,7 +8,8 @@
   import Response from "./Response.svelte";
   import HeadersTrailers from "./HeadersTrailers.svelte";
   import Statistics from "./Statistics.svelte";
-
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  
   let headers = {};
   let trailers = {};
   let rpc = {};
@@ -21,7 +23,8 @@
 
   const respModel = monaco.editor.createModel("", "javascript");
 
-  wails.Events.On("wombat:rpc_started", data => {
+  // Set up event listeners with unsubscribe functions
+  const unsubscribeRPC = EventsOn("wombat:rpc_started", data => {
     headers = {};
     trailers = {};
     rpc = {};
@@ -33,7 +36,7 @@
     inCount = 0;
 
     respModel.setValue("");
-  })
+  });
 
   const append = (payload = "", type = "") => {
     let isEmpty = false;
@@ -68,39 +71,65 @@
     respModel.deltaDecorations([], decors);
   }
 
-  wails.Events.On("wombat:in_header_received", data => headers = data)
-  wails.Events.On("wombat:in_trailer_received", data => trailers = data)
-
-  wails.Events.On("wombat:out_payload_received", data => {
+  const unsubscribeHeader = EventsOn("wombat:in_header_received", data => headers = data);
+  const unsubscribeTrailer = EventsOn("wombat:in_trailer_received", data => trailers = data);
+  const unsubscribeOutPayload = EventsOn("wombat:out_payload_received", data => {
     append(data, "out-payload");
-  })
-
-  wails.Events.On("wombat:in_payload_received", data => {
+  });
+  
+  const unsubscribeInPayload = EventsOn("wombat:in_payload_received", data => {
     append(data, "in-payload");
-  })
-
-  wails.Events.On("wombat:error_received", data => {
+  });
+  
+  const unsubscribeError = EventsOn("wombat:error_received", data => {
     append(data, "error");
-  })
-
-  wails.Events.On("wombat:rpc_ended", data => {
+  });
+  
+  const unsubscribeRPCEnded = EventsOn("wombat:rpc_ended", data => {
     rpc = data;
     inflight = false;
-  })
+  });
 
   const addStat = (type, data) => {
     data.type = type;
     stats = [...stats, data];
   }
-  wails.Events.On("wombat:stat_begin", data => addStat("begin", data));
-  wails.Events.On("wombat:stat_out_header", data => addStat("outHeader", data));
-  wails.Events.On("wombat:stat_out_payload", data => { addStat("outPayload", data); outCount = outCount + 1; });
-  wails.Events.On("wombat:stat_out_trailer", data => addStat("outTrailer", data));
-  wails.Events.On("wombat:stat_in_header", data => addStat("inHeader", data));
-  wails.Events.On("wombat:stat_in_payload", data => { addStat("inPayload", data); inCount = inCount + 1; });
-  wails.Events.On("wombat:stat_in_trailer", data => addStat("inTrailer", data));
-  wails.Events.On("wombat:stat_end", data => addStat("end", data));
+  
+  const unsubscribeBegin = EventsOn("wombat:stat_begin", data => addStat("begin", data));
+  const unsubscribeOutHeader = EventsOn("wombat:stat_out_header", data => addStat("outHeader", data));
+  const unsubscribeOutPayload2 = EventsOn("wombat:stat_out_payload", data => { 
+    addStat("outPayload", data); 
+    outCount = outCount + 1; 
+  });
+  
+  const unsubscribeOutTrailer = EventsOn("wombat:stat_out_trailer", data => addStat("outTrailer", data));
+  const unsubscribeInHeader = EventsOn("wombat:stat_in_header", data => addStat("inHeader", data));
+  const unsubscribeInPayload2 = EventsOn("wombat:stat_in_payload", data => { 
+    addStat("inPayload", data); 
+    inCount = inCount + 1; 
+  });
+  
+  const unsubscribeInTrailer = EventsOn("wombat:stat_in_trailer", data => addStat("inTrailer", data));
+  const unsubscribeEnd = EventsOn("wombat:stat_end", data => addStat("end", data));
 
+  // Clean up all subscriptions on component destroy
+  onDestroy(() => {
+    unsubscribeRPC();
+    unsubscribeHeader();
+    unsubscribeTrailer();
+    unsubscribeOutPayload();
+    unsubscribeInPayload();
+    unsubscribeError();
+    unsubscribeRPCEnded();
+    unsubscribeBegin();
+    unsubscribeOutHeader();
+    unsubscribeOutPayload2();
+    unsubscribeOutTrailer();
+    unsubscribeInHeader();
+    unsubscribeInPayload2();
+    unsubscribeInTrailer();
+    unsubscribeEnd();
+  });
 </script>
 
 <style>
