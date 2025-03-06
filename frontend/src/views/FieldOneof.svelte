@@ -1,10 +1,13 @@
 <script>
+  import { getFieldRenderer } from './FieldContext';
   import InputLabel from "../controls/InputLabel.svelte";
   import Dropdown from "../controls/Dropdown.svelte";
-  import MessageField from "./MessageField.svelte";
 
   export let field = {};
   export let state;
+
+  // Get MessageField component from context
+  const MessageFieldComponent = getFieldRenderer();
 
   let items;
   let selectedValue = undefined;
@@ -50,6 +53,5 @@
   on:clear={onSelectClear}
   on:select={onSelectChanged} />
 {#if selectedValue }
-  <MessageField field={field.oneof.find(x => x.name === selectedValue)} {state} oneof />
+  <svelte:component this={MessageFieldComponent} field={field.oneof.find(x => x.name === selectedValue)} {state} oneof />
 {/if}
-

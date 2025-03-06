@@ -2,51 +2,63 @@ package app
 
 import (
 	"bytes"
+	"context"
+	"embed"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
-	"github.com/wailsapp/wails"
-	"github.com/wailsapp/wails/cmd"
+	"github.com/wailsapp/wails/v2"
+	wails_options "github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
 	"wombat/internal/server"
 )
 
 var (
-	appname = "Wombat"
+	appName = "Wombat"
 	semver  = "0.0.0-dev"
 )
 
 // Run is the main function to run the application
-func Run(js string, css string) int {
-	appData, err := appDataLocation(appname)
+func Run(js string, css string, assetsFS embed.FS) int {
+	appData, err := appDataLocation(appName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to open add data directory: %v\n", err)
 		return 1
 	}
 	defer crashlog(appData)
 
-	if wails.BuildMode != cmd.BuildModeProd {
+	assets := &assetserver.Options{
+		Assets: assetsFS,
+	}
+
+	if os.Getenv("WAILS_ENV") != "production" {
 		go server.Serve()
 	}
 
-	cfg := &wails.AppConfig{
-		Width:     1200,
-		Height:    820,
-		Resizable: true,
-		Title:     appname,
-		JS:        js,
-		CSS:       css,
-		Colour:    "#2e3440",
+	opts := &wails_options.App{
+		Title:       appName,
+		Width:       1200,
+		Height:      820,
+		AssetServer: assets,
+		BackgroundColour: &wails_options.RGBA{
+			R: 46, // From hex #2e3440
+			G: 52,
+			B: 64,
+			A: 255,
+		},
+		OnStartup: func(ctx context.Context) {
+			// Startup logic if needed
+		},
+		Bind: []interface{}{
+			&api{appData: appData},
+		},
 	}
 
-	app := wails.CreateApp(cfg)
-	app.Bind(&api{appData: appData})
-
-	if err := app.Run(); err != nil && err != http.ErrServerClosed {
+	err = wails.Run(opts)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "app: error running app: %v\n", err)
 		return 1
 	}
@@ -54,18 +66,20 @@ func Run(js string, css string) int {
 }
 
 func crashlog(appData string) {
-	if wails.BuildMode != cmd.BuildModeProd {
-		return
-	}
-	if r := recover(); r != nil {
-		if _, err := os.Stat(appData); os.IsNotExist(err) {
-			os.MkdirAll(appData, 0700)
+	if os.Getenv("WAILS_ENV") == "production" {
+		if r := recover(); r != nil {
+			if _, err := os.Stat(appData); os.IsNotExist(err) {
+				os.MkdirAll(appData, 0700)
+			}
+
+			var b bytes.Buffer
+			b.WriteString(fmt.Sprintf("%+v\n\n", r))
+			buf := make([]byte, 1<<20)
+			s := runtime.Stack(buf, true)
+			b.Write(buf[0:s])
+
+			crashLogPath := filepath.Join(appData, "crash.log")
+			os.WriteFile(crashLogPath, b.Bytes(), 0644)
 		}
-		var b bytes.Buffer
-		b.WriteString(fmt.Sprintf("%+v\n\n", r))
-		buf := make([]byte, 1<<20)
-		s := runtime.Stack(buf, true)
-		b.Write(buf[0:s])
-		ioutil.WriteFile(filepath.Join(appData, "crash.log"), b.Bytes(), 0644)
 	}
 }

@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/protobuf/proto"
 )
@@ -36,11 +39,12 @@ func (t *transportCreds) ClientHandshake(ctx context.Context, addr string, in ne
 func (c *client) connect(o options, h stats.Handler) error {
 	errc := make(chan error, 1)
 	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // Set appropriate timeout
+		defer cancel()
+
 		opts := []grpc.DialOption{
-			grpc.WithBlock(),
-			grpc.FailOnNonTempDialError(true),
 			grpc.WithStatsHandler(h),
-			grpc.WithUserAgent(fmt.Sprintf("%s/%s", appname, semver)),
+			grpc.WithUserAgent(fmt.Sprintf("%s/%s", appName, semver)),
 		}
 
 		if !o.Plaintext {
@@ -61,27 +65,43 @@ func (c *client) connect(o options, h stats.Handler) error {
 			if err != nil {
 				tlsCfg.RootCAs = x509.NewCertPool()
 			}
+
 			if o.Rootca != "" {
 				tlsCfg.RootCAs.AppendCertsFromPEM([]byte(o.Rootca))
 			}
+
 			creds := &transportCreds{
 				credentials.NewTLS(&tlsCfg),
 				errc,
 			}
 			opts = append(opts, grpc.WithTransportCredentials(creds))
-		}
-
-		if o.Plaintext {
-			opts = append(opts, grpc.WithInsecure())
+		} else {
+			opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		}
 
 		var err error
-		c.conn, err = grpc.Dial(o.Addr, opts...)
+		// Use DialContext with a timeout context instead of WithBlock option
+		c.conn, err = grpc.NewClient(o.Addr, opts...)
+		//c.conn, err = grpc.DialContext(ctx, o.Addr, opts...)
 		if err != nil {
 			errc <- err
-
 			return
 		}
+
+		// Wait for connection to be READY
+		state := c.conn.GetState()
+		for state != connectivity.Ready {
+			if !c.conn.WaitForStateChange(ctx, state) {
+				errc <- ctx.Err()
+				return
+			}
+			state = c.conn.GetState()
+			if state == connectivity.TransientFailure || state == connectivity.Shutdown {
+				errc <- fmt.Errorf("connection in state: %s", state.String())
+				return
+			}
+		}
+
 		close(errc)
 	}()
 

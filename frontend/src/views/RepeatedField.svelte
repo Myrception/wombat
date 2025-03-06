@@ -1,11 +1,14 @@
 <script>
+  import { getFieldRenderer } from './FieldContext';
   import InputLabel from "../controls/InputLabel.svelte";
   import CrossButton from "../controls/CrossButton.svelte";
-  import MessageField from "./MessageField.svelte";
 
   export let field;
   export let state;
 
+  // Get MessageField component from context
+  const MessageFieldComponent = getFieldRenderer();
+  
   let hint = '';
 
   const clone = target => {
@@ -19,7 +22,6 @@
     return target;
   }
 
-
   $: {
     if (!state[field.name]) {
       state[field.name] = []
@@ -30,7 +32,6 @@
     }
   }
 
-
   const onAddButtonClicked = () => {
     state[field.name] = [...state[field.name], null]
   }
@@ -39,7 +40,6 @@
     state[field.name].splice(idx,1);
     state[field.name] = state[field.name];
   }
-
 </script>
 
 <style>
@@ -72,6 +72,6 @@
 <div class="fields">
   <div class="msg-border" />
   {#each state[field.name] || [] as _, i}
-    <MessageField on:remove={() => onRemove(i)} field={field} state={state[field.name]} idx={i} />
+    <svelte:component this={MessageFieldComponent} on:remove={() => onRemove(i)} field={field} state={state[field.name]} idx={i} />
   {/each}
 </div>

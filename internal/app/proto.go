@@ -3,12 +3,13 @@ package app
 import (
 	"context"
 	"errors"
+	"os"
+	"os/exec"
 
 	"github.com/jhump/protoreflect/desc"
-	"github.com/jhump/protoreflect/desc/protoparse"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"google.golang.org/grpc"
-	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -21,8 +22,7 @@ func protoFilesFromReflectionAPI(ctx context.Context, conn *grpc.ClientConn) (*p
 		return nil, errors.New("app: no connection to a grpc server available")
 	}
 
-	stub := rpb.NewServerReflectionClient(conn)
-	client := grpcreflect.NewClient(ctx, stub)
+	client := grpcreflect.NewClientAuto(ctx, conn)
 	defer client.Reset()
 
 	services, err := client.ListServices()
@@ -38,55 +38,83 @@ func protoFilesFromReflectionAPI(ctx context.Context, conn *grpc.ClientConn) (*p
 		if err != nil {
 			return nil, err
 		}
-		fdset.File = append(fdset.File, walkFileDescriptors(seen, fd)...)
+
+		// Add file descriptor and its dependencies to the set
+		collectFileDescriptors(seen, fdset, fd)
 	}
 
 	return protodesc.NewFiles(fdset)
 }
 
+// protoFilesFromDisk uses protoc to compile proto files into a descriptor set
 func protoFilesFromDisk(importPaths, filenames []string) (*protoregistry.Files, error) {
 	if len(filenames) == 0 {
 		return nil, errors.New("app: no *.proto files found")
 	}
 
-	f, err := protoparse.ResolveFilenames(importPaths, filenames...)
+	// Create temporary file for the descriptor set
+	tempFile, err := os.CreateTemp("", "descriptor_set_*.pb")
+	if err != nil {
+		return nil, err
+	}
+	tempFilePath := tempFile.Name()
+	tempFile.Close()
+	defer os.Remove(tempFilePath)
+
+	// Build protoc command with import paths and output
+	args := []string{"--descriptor_set_out=" + tempFilePath, "--include_imports"}
+
+	// Add import paths
+	for _, importPath := range importPaths {
+		args = append(args, "--proto_path="+importPath)
+	}
+
+	// Add filenames
+	args = append(args, filenames...)
+
+	// Run protoc
+	cmd := exec.Command("protoc", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, errors.New("app: protoc execution failed: " + string(output))
+	}
+
+	// Read the generated descriptor set
+	descSetBytes, err := os.ReadFile(tempFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	parser := protoparse.Parser{
-		ImportPaths:      importPaths,
-		InferImportPaths: len(importPaths) == 0,
-	}
-
-	fds, err := parser.ParseFiles(f...)
-	if err != nil {
-		return nil, err
-	}
-
+	// Parse the descriptor set
 	fdset := &descriptorpb.FileDescriptorSet{}
-	seen := make(map[string]struct{})
-
-	for _, fd := range fds {
-		fdset.File = append(fdset.File, walkFileDescriptors(seen, fd)...)
+	if err := proto.Unmarshal(descSetBytes, fdset); err != nil {
+		return nil, err
 	}
 
 	return protodesc.NewFiles(fdset)
 }
 
-func walkFileDescriptors(seen map[string]struct{}, fd *desc.FileDescriptor) []*descriptorpb.FileDescriptorProto {
-	fds := []*descriptorpb.FileDescriptorProto{}
-
-	if _, ok := seen[fd.GetName()]; ok {
-		return fds
+// collectFileDescriptors adds file descriptors to the set
+func collectFileDescriptors(seen map[string]struct{}, fdset *descriptorpb.FileDescriptorSet, fd *desc.FileDescriptor) {
+	if fd == nil {
+		return
 	}
-	seen[fd.GetName()] = struct{}{}
-	fds = append(fds, fd.AsFileDescriptorProto())
 
+	fdProto := fd.AsFileDescriptorProto()
+	if fdProto == nil || fdProto.GetName() == "" {
+		return
+	}
+
+	if _, ok := seen[fdProto.GetName()]; ok {
+		return
+	}
+
+	seen[fdProto.GetName()] = struct{}{}
+	fdset.File = append(fdset.File, fdProto)
+
+	// Process dependencies
 	for _, dep := range fd.GetDependencies() {
-		deps := walkFileDescriptors(seen, dep)
-		fds = append(fds, deps...)
+		collectFileDescriptors(seen, fdset, dep)
 	}
-
-	return fds
 }
+

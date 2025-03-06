@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -14,12 +15,9 @@ import (
 	"sync"
 
 	"github.com/gofrs/uuid"
-	protoV1 "github.com/golang/protobuf/proto"
+
 	"github.com/mitchellh/mapstructure"
-	"github.com/wailsapp/wails"
-	"github.com/wailsapp/wails/cmd"
-	"github.com/wailsapp/wails/lib/logger"
-	_ "google.golang.org/genproto/googleapis/rpc/errdetails" // needed to register message types in init()
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
@@ -27,8 +25,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/protoadapt"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/runtime/protoiface"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -42,8 +42,7 @@ const (
 )
 
 type api struct {
-	runtime          *wails.Runtime
-	logger           *logger.CustomLogger
+	ctx              context.Context
 	client           *client
 	store            *store
 	protofiles       *protoregistry.Files
@@ -61,72 +60,88 @@ type statsHandler struct {
 }
 
 type storeLogger struct {
-	*logger.CustomLogger
+	ctx     context.Context
+	log     *slog.Logger
+	logFunc func(string, ...interface{})
 }
 
-func (s storeLogger) Warningf(message string, args ...interface{}) {
-	s.Warnf(message, args...)
+// Create a new storeLogger
+func newStoreLogger(ctx context.Context) *storeLogger {
+	return &storeLogger{
+		ctx: ctx,
+		log: slog.Default(),
+	}
 }
 
-// WailsInit is the init fuction for the wails runtime
-func (a *api) WailsInit(runtime *wails.Runtime) error {
-	a.runtime = runtime
-	a.logger = runtime.Log.New("API")
+// Debugf implements badger.Logger interface
+func (s *storeLogger) Debugf(format string, args ...interface{}) {
+	// Use slog's Debug level
+	s.log.Debug(format, args...)
+}
+
+// Infof implements badger.Logger interface
+func (s *storeLogger) Infof(format string, args ...interface{}) {
+	// Use slog's Info level
+	s.log.Info(format, args...)
+}
+
+// Warningf implements badger.Logger interface
+func (s *storeLogger) Warningf(format string, args ...interface{}) {
+	// Use slog's Warn level and also send to Wails runtime
+	s.log.Warn(format, args...)
+}
+
+// Errorf implements badger.Logger interface
+func (s *storeLogger) Errorf(format string, args ...interface{}) {
+	// Use slog's Error level and also send to Wails runtime
+	s.log.Error(format, args...)
+}
+
+// Startup is the initialization function for the Wails v2 runtime
+func (a *api) Startup(ctx context.Context) error {
+	a.ctx = ctx
 
 	var err error
-
-	a.store, err = newStore(a.appData, storeLogger{runtime.Log.New("DB")})
+	a.store, err = newStore(a.appData, newStoreLogger(ctx))
 	if err != nil {
 		return fmt.Errorf("app: failed to create database: %v", err)
 	}
 	a.state = a.getCurrentState()
 
-	ready := "wails:ready"
-	if wails.BuildMode == cmd.BuildModeBridge {
-		ready = "wails:loaded"
-	}
-
-	a.runtime.Events.On(ready, a.wailsReady)
-
-	return nil
-}
-
-func (a *api) wailsReady(data ...interface{}) {
-	a.runtime.Events.Emit(eventInit, initData{semver, wails.BuildMode})
-
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
-		a.logger.Errorf("%v", err)
-		return
+		runtime.LogError(ctx, err.Error())
+		return err
 	}
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
-		a.logger.Errorf("%v", err)
-		return
+		runtime.LogError(ctx, err.Error())
 	}
 
 	if err := a.Connect(opts, hds, false); err != nil {
-		a.logger.Errorf("%v", err)
+		runtime.LogError(ctx, err.Error())
 	}
 
 	go a.checkForUpdate()
+
+	return nil
 }
 
 func (a *api) checkForUpdate() {
 	r, err := checkForUpdate()
 	if err != nil {
 		if err == noUpdate {
-			a.logger.Info(err.Error())
+			runtime.LogInfo(a.ctx, err.Error())
 			return
 		}
-		a.logger.Warnf("failed to check for updates: %v", err)
+		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to check for updates: %v", err))
 		return
 	}
-	a.runtime.Events.Emit(eventUpdateAvailable, r)
+	runtime.EventsEmit(a.ctx, eventUpdateAvailable, r)
 }
 
-// WailsShutdown is the shutdown function that is called when wails shuts down
-func (a *api) WailsShutdown() {
+// Shutdown is called when the application is closing
+func (a *api) Shutdown(ctx context.Context) {
 	a.store.close()
 	if a.cancelMonitoring != nil {
 		a.cancelMonitoring()
@@ -140,7 +155,7 @@ func (a *api) WailsShutdown() {
 }
 
 func (a *api) emitError(title, msg string) {
-	a.runtime.Events.Emit(eventError, errorMsg{title, msg})
+	runtime.EventsEmit(a.ctx, eventError, errorMsg{title, msg})
 }
 
 func (a *api) getCurrentState() *workspaceState {
@@ -149,14 +164,14 @@ func (a *api) getCurrentState() *workspaceState {
 	}
 	val, err := a.store.get([]byte(defaultStateKey))
 	if err != nil && err != errKeyNotFound {
-		a.logger.Errorf("failed to get current state from store: %v", err)
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to get current state from store: %v", err))
 	}
 	if len(val) == 0 {
 		return rtn
 	}
 	dec := gob.NewDecoder(bytes.NewBuffer(val))
 	if err := dec.Decode(rtn); err != nil {
-		a.logger.Errorf("failed to decode state: %v", err)
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to decode state: %v", err))
 	}
 	return rtn
 }
@@ -187,6 +202,20 @@ func (a *api) GetWorkspaceOptions() (*options, error) {
 	}
 
 	return wo, nil
+}
+
+// WailsShutdown is the shutdown function that is called when wails shuts down
+func (a *api) WailsShutdown() {
+	a.store.close()
+	if a.cancelMonitoring != nil {
+		a.cancelMonitoring()
+	}
+	if a.cancelInFlight != nil {
+		a.cancelInFlight()
+	}
+	if a.client != nil {
+		a.client.close()
+	}
 }
 
 // GetReflectMetadata gets the reflection metadata from the store by addr
@@ -252,9 +281,8 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 
 	defer func() {
 		if rerr != nil {
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			a.emitError("Workspace Error", rerr.Error())
-
 		}
 	}()
 
@@ -266,7 +294,7 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
-		a.logger.Warnf("failed to get reflection metadata: %v", err)
+		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to get reflection metadata: %v", err))
 	}
 
 	// Ignoring error as Connect will already emit errors to the frontend
@@ -282,7 +310,6 @@ func (a *api) DeleteWorkspace(id string) error {
 	if a.state.CurrentID == id {
 		a.SelectWorkspace(defaultWorkspaceKey)
 	}
-	// TODO: should we inform the user of deletion?
 	return nil
 }
 
@@ -297,19 +324,22 @@ func (a *api) GetRawMessageState(method string) (string, error) {
 	return string(val), err
 }
 
-//FindProtoFiles opens a directory dialog to search for proto files
+// FindProtoFiles opens a directory dialog to search for proto files
 func (a *api) FindProtoFiles() (files []string, rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Not found"
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()
 
-	dir := a.SelectDirectory()
-
-	// TODO(rogchap): we need to add a circuit breaker to not walk the whole file system
+	dir, err := a.SelectDirectory()
+	if err != nil {
+		const errTitle = "Not found"
+		runtime.LogError(a.ctx, err.Error())
+		a.emitError(errTitle, err.Error())
+	}
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if filepath.Ext(path) == ".proto" {
 			files = append(files, path)
@@ -324,13 +354,11 @@ func (a *api) FindProtoFiles() (files []string, rerr error) {
 	return files, nil
 }
 
-//SelectDirectory opens a directory dialog and returns the path of the selected directory
-func (a *api) SelectDirectory() string {
-	if wails.BuildMode == cmd.BuildModeBridge {
-		f, _ := filepath.Abs(filepath.Join(".", "internal", "server"))
-		return f
-	}
-	return a.runtime.Dialog.SelectDirectory()
+// SelectDirectory opens a directory dialog and returns the path of the selected directory
+func (a *api) SelectDirectory() (string, error) {
+	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select Proto Files Directory",
+	})
 }
 
 // Connect will attempt to connect a grpc server and parse any proto files
@@ -338,8 +366,8 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Connection error"
-			a.logger.Errorf(rerr.Error())
-			a.runtime.Events.Emit(eventClientStateChanged, connectivity.Shutdown.String())
+			runtime.LogError(a.ctx, rerr.Error())
+			runtime.EventsEmit(a.ctx, eventClientStateChanged, connectivity.Shutdown.String())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()
@@ -350,9 +378,9 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	}
 
 	// reset all things
-	a.runtime.Events.Emit(eventClientConnectStarted, opts.Addr)
-	a.runtime.Events.Emit(eventServicesSelectChanged)
-	a.runtime.Events.Emit(eventMethodInputChanged)
+	runtime.EventsEmit(a.ctx, eventClientConnectStarted, opts.Addr)
+	runtime.EventsEmit(a.ctx, eventServicesSelectChanged)
+	runtime.EventsEmit(a.ctx, eventMethodInputChanged)
 
 	if a.client != nil {
 		if err := a.client.close(); err != nil {
@@ -370,7 +398,7 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 
 	var hds headers
 	if err := mapstructure.Decode(rawHeaders, &hds); err != nil {
-		a.logger.Errorf("unable to decode reflection metadata headers: %v", err)
+		runtime.LogError(a.ctx, fmt.Sprintf("unable to decode reflection metadata headers: %v", err))
 	}
 
 	if err := a.client.connect(opts, statsHandler{a}); err != nil {
@@ -384,7 +412,7 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}
 
-	a.runtime.Events.Emit(eventClientConnected, opts.Addr)
+	runtime.EventsEmit(a.ctx, eventClientConnected, opts.Addr)
 
 	go a.loadProtoFiles(opts, hds, false)
 
@@ -413,11 +441,12 @@ func (a *api) changeWorkspace(id string) {
 	a.store.set([]byte(defaultStateKey), val.Bytes())
 }
 
+// Noch nicht geändert
 func (a *api) loadProtoFiles(opts options, reflectHeaders headers, silent bool) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to load RPC schema"
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			if !silent {
 				a.emitError(errTitle, rerr.Error())
 			}
@@ -501,7 +530,7 @@ func (a *api) emitServicesSelect(method string, data string, metadata headers) e
 	if method != "" && targetMd == nil {
 		return fmt.Errorf("method %q not found. ", method)
 	}
-	a.runtime.Events.Emit(eventServicesSelectChanged, ss, method, data, metadata)
+	runtime.EventsEmit(a.ctx, eventServicesSelectChanged, ss, method, data, metadata)
 	return nil
 }
 
@@ -533,7 +562,8 @@ func (a *api) setMetadata(key string, hds headers) {
 func (a *api) setMessage(method string, rawJSON []byte) {
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
-		a.logger.Errorf("failed to set message, no workspace options: %v", err)
+		runtime.LogError(a.ctx,
+			fmt.Errorf("failed to set message, no workspace options: %v", err).Error())
 		return
 	}
 
@@ -545,7 +575,7 @@ func (a *api) monitorStateChanges(ctx context.Context) {
 		if r := recover(); r != nil {
 			// this will panic if we are waiting for a state change and the client (and it's connection)
 			// get GC'd without this context being canceled
-			a.logger.Errorf("panic monitoring state changes: %v", r)
+			runtime.LogError(a.ctx, fmt.Errorf("panic monitoring state changes: %v", r).Error())
 		}
 	}()
 	for {
@@ -553,9 +583,9 @@ func (a *api) monitorStateChanges(ctx context.Context) {
 			continue
 		}
 		state := a.client.conn.GetState()
-		a.runtime.Events.Emit(eventClientStateChanged, state.String())
+		runtime.EventsEmit(a.ctx, eventClientStateChanged, state.String())
 		if ok := a.client.conn.WaitForStateChange(ctx, state); !ok {
-			a.logger.Debug("ending monitoring of state changes")
+			runtime.LogDebug(a.ctx, fmt.Errorf("ending monitoring of state changes").Error())
 			return
 		}
 	}
@@ -581,9 +611,9 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to select method"
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			a.emitError(errTitle, rerr.Error())
-			a.runtime.Events.Emit(eventMethodInputChanged)
+			runtime.EventsEmit(a.ctx, eventMethodInputChanged)
 		}
 	}()
 
@@ -604,9 +634,9 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 
 	var hs headers
 	if err := mapstructure.Decode(metadata, &hs); err != nil {
-		a.runtime.Events.Emit(eventMethodInputChanged, m, initState)
+		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState)
 	} else {
-		a.runtime.Events.Emit(eventMethodInputChanged, m, initState, hs)
+		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState, hs)
 	}
 	return nil
 }
@@ -731,7 +761,7 @@ func (a *api) RetryConnection() {
 		a.client.conn.ResetConnectBackoff()
 		stateChanged := make(chan bool)
 		waitForStateChange := func(data ...interface{}) { stateChanged <- true }
-		a.runtime.Events.Once(eventClientStateChanged, waitForStateChange)
+		runtime.EventsOnce(a.ctx, eventClientStateChanged, waitForStateChange)
 		// Wait for at least one retry to complete before continuing
 		<-stateChanged
 	}
@@ -741,7 +771,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Unable to send request"
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()
@@ -794,7 +824,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 
 	ctx, a.cancelInFlight = context.WithCancel(ctx)
 
-	a.runtime.Events.Emit(eventRPCStarted, rpcStart{
+	runtime.EventsEmit(a.ctx, eventRPCStarted, rpcStart{
 		ClientStream: md.IsStreamingClient(),
 		ServerStream: md.IsStreamingServer(),
 	})
@@ -910,32 +940,32 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 
 	switch s := stat.(type) {
 	case *stats.Begin:
-		a.runtime.Events.Emit(eventStatBegin, s)
+		runtime.EventsEmit(a.ctx, eventStatBegin, s)
 	case *stats.OutHeader:
-		a.runtime.Events.Emit(eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
+		runtime.EventsEmit(a.ctx, eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
 	case *stats.OutPayload:
 		if p, err := formatPayload(s.Payload); err == nil {
 			s.Payload = p
 		}
-		a.runtime.Events.Emit(eventStatOutPayload, rpcStatOutPayload{s, fmt.Sprintf("%+v", s.Data)})
-		a.runtime.Events.Emit(eventOutPayloadReceived, s.Payload)
+		runtime.EventsEmit(a.ctx, eventStatOutPayload, rpcStatOutPayload{s, fmt.Sprintf("%+v", s.Payload)})
+		runtime.EventsEmit(a.ctx, eventOutPayloadReceived, s.Payload)
 	case *stats.OutTrailer:
-		a.runtime.Events.Emit(eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		runtime.EventsEmit(a.ctx, eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
 	case *stats.InHeader:
-		a.runtime.Events.Emit(eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
-		a.runtime.Events.Emit(eventInHeaderReceived, s.Header)
+		runtime.EventsEmit(a.ctx, eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
+		runtime.EventsEmit(a.ctx, eventInHeaderReceived, s.Header)
 	case *stats.InPayload:
 		txt, err := formatPayload(s.Payload)
 		if err != nil {
-			a.logger.Errorf("failed to marshal in payload to proto text: %v", err)
+			runtime.LogError(a.ctx, fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
 			return
 		}
 		s.Payload = txt
-		a.runtime.Events.Emit(eventStatInPayload, rpcStatInPayload{s, fmt.Sprintf("%+v", s.Data)})
-		a.runtime.Events.Emit(eventInPayloadReceived, txt)
+		runtime.EventsEmit(a.ctx, eventStatInPayload, rpcStatInPayload{s, fmt.Sprintf("%+v", s.Payload)})
+		runtime.EventsEmit(a.ctx, eventInPayloadReceived, txt)
 	case *stats.InTrailer:
-		a.runtime.Events.Emit(eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
-		a.runtime.Events.Emit(eventInTrailerReceived, s.Trailer)
+		runtime.EventsEmit(a.ctx, eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		runtime.EventsEmit(a.ctx, eventInTrailerReceived, s.Trailer)
 	case *stats.End:
 
 		errProtoStr := ""
@@ -944,19 +974,19 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 			var err error
 			errProtoStr, err = formatPayload(stus.Proto())
 			if err != nil {
-				a.logger.Errorf("failed to marshal status error to proto text: %v", err)
+				runtime.LogError(a.ctx, fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
 			}
 			if errProtoStr != "" {
-				a.runtime.Events.Emit(eventErrorReceived, errProtoStr)
+				runtime.EventsEmit(a.ctx, eventErrorReceived, errProtoStr)
 			}
 		}
-		a.runtime.Events.Emit(eventStatEnd, rpcStatEnd{s, errProtoStr})
+		runtime.EventsEmit(a.ctx, eventStatEnd, rpcStatEnd{s, errProtoStr})
 
 		var end rpcEnd
 		end.StatusCode = int32(stus.Code())
 		end.Status = stus.Code().String()
 		end.Duration = s.EndTime.Sub(s.BeginTime).String()
-		a.runtime.Events.Emit(eventRPCEnded, end)
+		runtime.EventsEmit(a.ctx, eventRPCEnded, end)
 	}
 }
 
@@ -964,11 +994,12 @@ func formatPayload(payload interface{}) (string, error) {
 	msg, ok := payload.(proto.Message)
 	if !ok {
 		// check to see if we are dealing with a APIv1 message
-		msgV1, ok := payload.(protoV1.Message)
+		//msgV1, ok := payload.(protoV1.Message)
+		msgV1, ok := payload.(protoiface.MessageV1)
 		if !ok {
 			return "", fmt.Errorf("payload is not a proto message: %T", payload)
 		}
-		msg = protoV1.MessageV2(msgV1)
+		msg = protoadapt.MessageV2Of(msgV1)
 	}
 
 	marshaler := prototext.MarshalOptions{
@@ -979,7 +1010,6 @@ func formatPayload(payload interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return string(b), nil
 }
 
@@ -1051,7 +1081,7 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to import command"
-			a.logger.Errorf(rerr.Error())
+			runtime.LogError(a.ctx, rerr.Error())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()

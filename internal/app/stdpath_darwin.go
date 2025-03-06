@@ -3,9 +3,6 @@ package app
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/wailsapp/wails"
-	"github.com/wailsapp/wails/cmd"
 )
 
 func appDataLocation(name string) (string, error) {
@@ -14,7 +11,7 @@ func appDataLocation(name string) (string, error) {
 		return "", err
 	}
 	p := filepath.Join(homeDir, "Library", "Application Support", name)
-	if wails.BuildMode == cmd.BuildModeBridge {
+	if os.Getenv("WAILS_DEV_MODE") == "true" {
 		p = ".data"
 	}
 	if _, err := os.Stat(p); os.IsNotExist(err) {

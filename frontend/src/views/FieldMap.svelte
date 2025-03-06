@@ -1,13 +1,15 @@
 <script>
+  import { getFieldRenderer } from './FieldContext';
   import { beforeUpdate } from "svelte";
   import InputLabel from "../controls/InputLabel.svelte";
   import CrossButton from "../controls/CrossButton.svelte";
   import TextField from "../controls/TextField.svelte";
-  import MessageField from "./MessageField.svelte";
 
   export let field;
   export let state;
   export let mapItems;
+
+  const MessageFieldComponent = getFieldRenderer();
 
   // (rogchap) Map fields are very very complex, because the UI needs to maintain 
   // a list of key value pairs, but needs to be converted to a JS map ie { key: value }
@@ -148,7 +150,7 @@
   <div class="msg-border" />
   {#each mapItems[field.full_name] as item, i}
     <TextField on:remove={() => onRemove(i)} removeable label="key" labelColor="var(--accent-color3)" hint={field.map_key.kind} value={item.key} on:input={e => onKeyChanged(e,i)} />
-    <MessageField field={field.map_value} state={item.ref !== undefined ? item.ref : state[field.name]} key={item.key} />
+    <svelte:component this={MessageFieldComponent} field={field.map_value} state={item.ref !== undefined ? item.ref : state[field.name]} key={item.key} />
   {/each}
 </div>
 {/if}

@@ -4,6 +4,10 @@
   import Content from "./Content.svelte";
   import Errors from "./Errors.svelte";
   import Updater from "./Updater.svelte";
+  import { setFieldRenderer } from './FieldContext';
+  import MessageField from './MessageField.svelte';
+
+  setFieldRenderer(MessageField);
 
   const modalSettings = {
     key: 'modal',

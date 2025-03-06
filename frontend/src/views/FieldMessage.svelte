@@ -1,5 +1,5 @@
 <script>
-  import MessageField from "./MessageField.svelte";
+  import { getFieldRenderer } from './FieldContext';
   import InputLabel from "../controls/InputLabel.svelte";
   import Checkbox from "../controls/Checkbox.svelte";
 
@@ -10,6 +10,8 @@
   export let idx;
   export let oneof = false;
 
+  // Get MessageField component from context
+  const MessageFieldComponent = getFieldRenderer();
 
   let val, labelColor, removeable;
   $: {
@@ -59,8 +61,7 @@
   <div class="fields">
     <div class="msg-border" />
     {#each message.fields as field }
-      <MessageField {field} state={state[val]} />
+      <svelte:component this={MessageFieldComponent} {field} state={state[val]} />
     {/each}
   </div>
 {/if}
-

@@ -1,1 +1,19 @@
-{"email":"rogchap@gmail.com","name":"Roger Chapman"}
+{
+  "name": "Wombat",
+  "outputfilename": "wombat",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Roger Chapman",
+    "email": "rogchap@gmail.com"
+  },
+  "info": {
+    "companyName": "",
+    "productName": "Wombat",
+    "productVersion": "0.0.0-dev",
+    "copyright": "",
+    "comments": "Cross platform gRPC client"
+  }
+}
