@@ -19,6 +19,7 @@ import (
 var (
 	appName = "Wombat"
 	semver  = "0.0.0-dev"
+	appCtx  context.Context
 )
 
 // Run is the main function to run the application
@@ -51,6 +52,7 @@ func Run(js string, css string, assetsFS embed.FS) int {
 		},
 		OnStartup: func(ctx context.Context) {
 			// Startup logic if needed
+			appCtx = ctx
 		},
 		Bind: []interface{}{
 			&api{appData: appData},

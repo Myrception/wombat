@@ -21,6 +21,8 @@ export function GetRawMessageState(arg1:string):Promise<string>;
 
 export function GetReflectMetadata(arg1:string):Promise<app.headers>;
 
+export function GetWindowInfo():Promise<Record<string, any>>;
+
 export function GetWorkspaceOptions():Promise<app.options>;
 
 export function ImportCommand(arg1:string,arg2:string):Promise<void>;

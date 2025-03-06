@@ -38,6 +38,10 @@ export function GetReflectMetadata(arg1) {
   return window['go']['app']['api']['GetReflectMetadata'](arg1);
 }
 
+export function GetWindowInfo() {
+  return window['go']['app']['api']['GetWindowInfo']();
+}
+
 export function GetWorkspaceOptions() {
   return window['go']['app']['api']['GetWorkspaceOptions']();
 }

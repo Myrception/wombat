@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -1097,4 +1098,22 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 	}
 
 	return nil
+}
+
+func (a *api) GetWindowInfo() map[string]interface{} {
+	width, _ := runtime.WindowGetSize(appCtx)
+	height, _ := runtime.WindowGetSize(appCtx)
+	x, y := runtime.WindowGetPosition(appCtx)
+
+	// Detect the operating system using Go's standard library
+	os := goruntime.GOOS // "windows", "darwin" (macOS), "linux", etc.
+	isWindows := os == "windows"
+
+	return map[string]interface{}{
+		"width":     width,
+		"height":    height,
+		"x":         x,
+		"y":         y,
+		"isWindows": isWindows, // Add the platform information
+	}
 }

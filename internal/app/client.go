@@ -80,9 +80,7 @@ func (c *client) connect(o options, h stats.Handler) error {
 		}
 
 		var err error
-		// Use DialContext with a timeout context instead of WithBlock option
 		c.conn, err = grpc.NewClient(o.Addr, opts...)
-		//c.conn, err = grpc.DialContext(ctx, o.Addr, opts...)
 		if err != nil {
 			errc <- err
 			return

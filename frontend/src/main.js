@@ -1,15 +1,15 @@
 import "./monaco";
 import App from './views/App.svelte';
-import { WindowGetInfo } from '@wailsjs/runtime/runtime';
+import { GetWindowInfo } from '../wailsjs/go/app/api';
 
 let app;
 
 // Initialize the app directly - no more Wails.Init
 document.addEventListener("DOMContentLoaded", () => {
     // Check platform - Wails v2 has built-in platform detection
-    WindowGetInfo().then(info => {
-        window.isWin = info.platform === "windows";
-        
+    GetWindowInfo().then(info => {
+        window.isWin = info.isWindows;
+        console.log("Windows Info:", info); 
         // Initialize your Svelte app
         app = new App({
             target: document.body,
