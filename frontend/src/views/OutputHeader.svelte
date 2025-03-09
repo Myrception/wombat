@@ -3,6 +3,8 @@
   import Status from "./Status.svelte";
   import RequestType from "./RequestType.svelte";
 
+  import { Cancel, CloseSend } from '../../wailsjs/go/app/api';
+
   export let rpc = {};
   export let inflight = false;
   export let client_stream = false;
@@ -10,8 +12,8 @@
   export let outCount = 0;
   export let inCount = 0;
 
-  const onCancelClicked = () => backend.api.Cancel()
-  const onCloseClicked = () => backend.api.CloseSend()
+  const onCancelClicked = () => Cancel()
+  const onCloseClicked = () => CloseSend()
 </script>
 <style>
   .output-header {

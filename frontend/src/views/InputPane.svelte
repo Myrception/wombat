@@ -68,6 +68,7 @@
   });
 
   const onSend = ({ detail: { method } }) => {
+    console.log(method, state, metadata);
     Send(method, JSON.stringify(state), metadata);
     // console.log(method, state, metadata);
   }

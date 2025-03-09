@@ -41,6 +41,4 @@ export function Send(arg1:string,arg2:Array<number>,arg3:any):Promise<void>;
 
 export function Shutdown(arg1:context.Context):Promise<void>;
 
-export function Startup(arg1:context.Context):Promise<void>;
-
 export function WailsShutdown():Promise<void>;

@@ -78,10 +78,6 @@ export function Shutdown(arg1) {
   return window['go']['app']['api']['Shutdown'](arg1);
 }
 
-export function Startup(arg1) {
-  return window['go']['app']['api']['Startup'](arg1);
-}
-
 export function WailsShutdown() {
   return window['go']['app']['api']['WailsShutdown']();
 }

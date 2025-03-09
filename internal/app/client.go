@@ -86,20 +86,24 @@ func (c *client) connect(o options, h stats.Handler) error {
 			return
 		}
 
+		c.conn.Connect()
+
 		// Wait for connection to be READY
 		state := c.conn.GetState()
+		fmt.Printf("Initial connection state: %s\n", state.String())
 		for state != connectivity.Ready {
 			if !c.conn.WaitForStateChange(ctx, state) {
+				fmt.Printf("Context timed out while in state: %s\n", state.String())
 				errc <- ctx.Err()
 				return
 			}
 			state = c.conn.GetState()
+			fmt.Printf("Connection state changed to: %s\n", state.String())
 			if state == connectivity.TransientFailure || state == connectivity.Shutdown {
 				errc <- fmt.Errorf("connection in state: %s", state.String())
 				return
 			}
 		}
-
 		close(errc)
 	}()
 

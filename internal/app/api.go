@@ -14,11 +14,13 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gofrs/uuid"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
@@ -443,14 +445,13 @@ func (a *api) changeWorkspace(id string) {
 	a.store.set([]byte(defaultStateKey), val.Bytes())
 }
 
-// Noch nicht geändert
 func (a *api) loadProtoFiles(opts options, reflectHeaders headers, silent bool) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to load RPC schema"
 			runtime.LogError(a.ctx, rerr.Error())
 			if !silent {
-				a.emitError(errTitle, rerr.Error())
+				runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
 			}
 		}
 	}()
@@ -530,8 +531,10 @@ func (a *api) emitServicesSelect(method string, data string, metadata headers) e
 	})
 
 	if method != "" && targetMd == nil {
-		return fmt.Errorf("method %q not found. ", method)
+		return fmt.Errorf("method %q not found", method)
 	}
+
+	// Use Wails v2 EventsEmit to send the services select data to the frontend
 	runtime.EventsEmit(a.ctx, eventServicesSelectChanged, ss, method, data, metadata)
 	return nil
 }
@@ -543,8 +546,14 @@ func (a *api) setWorkspaceOptions(opts options) {
 
 	var val bytes.Buffer
 	enc := gob.NewEncoder(&val)
-	enc.Encode(opts)
-	a.store.set([]byte(opts.ID), val.Bytes())
+	if err := enc.Encode(opts); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to encode workspace options: %v", err))
+		return
+	}
+
+	if err := a.store.set([]byte(opts.ID), val.Bytes()); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to store workspace options: %v", err))
+	}
 }
 
 func (a *api) setMetadata(key string, hds headers) {
@@ -555,54 +564,77 @@ func (a *api) setMetadata(key string, hds headers) {
 		}
 		toSet = append(toSet, h)
 	}
+
 	var val bytes.Buffer
 	enc := gob.NewEncoder(&val)
-	enc.Encode(toSet)
-	a.store.set([]byte(key), val.Bytes())
+	if err := enc.Encode(toSet); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to encode metadata: %v", err))
+		return
+	}
+
+	if err := a.store.set([]byte(key), val.Bytes()); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to store metadata: %v", err))
+	}
 }
 
 func (a *api) setMessage(method string, rawJSON []byte) {
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
-		runtime.LogError(a.ctx,
-			fmt.Errorf("failed to set message, no workspace options: %v", err).Error())
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to set message, no workspace options: %v", err))
 		return
 	}
 
-	a.store.set([]byte(messageKeyPrefix+hash(opts.Addr, method)), rawJSON)
+	if err := a.store.set([]byte(messageKeyPrefix+hash(opts.Addr, method)), rawJSON); err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to store message: %v", err))
+	}
 }
 
 func (a *api) monitorStateChanges(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			// this will panic if we are waiting for a state change and the client (and it's connection)
+			// This will panic if we are waiting for a state change and the client (and its connection)
 			// get GC'd without this context being canceled
-			runtime.LogError(a.ctx, fmt.Errorf("panic monitoring state changes: %v", r).Error())
+			runtime.LogError(a.ctx, fmt.Sprintf("panic monitoring state changes: %v", r))
 		}
 	}()
+
 	for {
-		if a.client == nil || a.client.conn == nil {
-			continue
-		}
-		state := a.client.conn.GetState()
-		runtime.EventsEmit(a.ctx, eventClientStateChanged, state.String())
-		if ok := a.client.conn.WaitForStateChange(ctx, state); !ok {
-			runtime.LogDebug(a.ctx, fmt.Errorf("ending monitoring of state changes").Error())
+		select {
+		case <-ctx.Done():
+			runtime.LogDebug(a.ctx, "ending monitoring of state changes")
 			return
+		default:
+			if a.client == nil || a.client.conn == nil {
+				// If client or connection is nil, wait a bit and check again
+				time.Sleep(500 * time.Millisecond)
+				continue
+			}
+
+			state := a.client.conn.GetState()
+			runtime.EventsEmit(a.ctx, eventClientStateChanged, state.String())
+
+			if ok := a.client.conn.WaitForStateChange(ctx, state); !ok {
+				runtime.LogDebug(a.ctx, "ending monitoring of state changes")
+				return
+			}
 		}
 	}
 }
 
 func (a *api) getMethodDesc(fullname string) (protoreflect.MethodDescriptor, error) {
+	if a.protofiles == nil {
+		return nil, fmt.Errorf("no proto files loaded")
+	}
+
 	name := strings.Replace(fullname[1:], "/", ".", 1)
 	desc, err := a.protofiles.FindDescriptorByName(protoreflect.FullName(name))
 	if err != nil {
-		return nil, fmt.Errorf("app: failed to find descriptor: %v", err)
+		return nil, fmt.Errorf("failed to find descriptor: %v", err)
 	}
 
 	methodDesc, ok := desc.(protoreflect.MethodDescriptor)
 	if !ok {
-		return nil, fmt.Errorf("app: descriptor was not a method: %T", desc)
+		return nil, fmt.Errorf("descriptor was not a method: %T", desc)
 	}
 
 	return methodDesc, nil
@@ -614,7 +646,7 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 		if rerr != nil {
 			const errTitle = "Failed to select method"
 			runtime.LogError(a.ctx, rerr.Error())
-			a.emitError(errTitle, rerr.Error())
+			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
 			runtime.EventsEmit(a.ctx, eventMethodInputChanged)
 		}
 	}()
@@ -636,6 +668,7 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 
 	var hs headers
 	if err := mapstructure.Decode(metadata, &hs); err != nil {
+		runtime.LogDebug(a.ctx, fmt.Sprintf("failed to decode metadata: %v", err))
 		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState)
 	} else {
 		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState, hs)
@@ -757,15 +790,38 @@ func fieldViewsFromDesc(fds protoreflect.FieldDescriptors, isOneof bool, cd *cyc
 }
 
 func (a *api) RetryConnection() {
+	if a.client == nil || a.client.conn == nil {
+		runtime.LogError(a.ctx, "cannot retry connection: client or connection is nil")
+		return
+	}
+
 	state := a.client.conn.GetState()
 	if state == connectivity.TransientFailure || state == connectivity.Shutdown {
 		// State is currently disconnected. Do a quick retry in case the server restarted recently.
+		runtime.LogInfo(a.ctx, "connection in failed state, attempting to reset connection backoff")
 		a.client.conn.ResetConnectBackoff()
-		stateChanged := make(chan bool)
-		waitForStateChange := func(data ...interface{}) { stateChanged <- true }
-		runtime.EventsOnce(a.ctx, eventClientStateChanged, waitForStateChange)
-		// Wait for at least one retry to complete before continuing
-		<-stateChanged
+
+		// Setup a one-time event handler to detect state change
+		stateChanged := make(chan bool, 1)
+		unsubscribe := runtime.EventsOn(a.ctx, eventClientStateChanged, func(data ...interface{}) {
+			select {
+			case stateChanged <- true:
+				// Signal sent
+			default:
+				// Channel already has a value, no need to send again
+			}
+		})
+
+		// Wait for at least one retry to complete or timeout after 5 seconds
+		select {
+		case <-stateChanged:
+			// State changed, continue
+		case <-time.After(5 * time.Second):
+			runtime.LogWarning(a.ctx, "retry connection timed out waiting for state change")
+		}
+
+		// Clean up event handler
+		unsubscribe()
 	}
 }
 
@@ -774,7 +830,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 		if rerr != nil {
 			const errTitle = "Unable to send request"
 			runtime.LogError(a.ctx, rerr.Error())
-			a.emitError(errTitle, rerr.Error())
+			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
 		}
 	}()
 
@@ -787,10 +843,13 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 
 	req := dynamicpb.NewMessage(md.Input())
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(rawJSON, req); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal request: %v", err)
 	}
 
+	fmt.Print("before")
+	// Store message for later use
 	go a.setMessage(method, rawJSON)
+	fmt.Print("after")
 
 	if a.inFlight && md.IsStreamingClient() {
 		a.streamReq <- req
@@ -808,7 +867,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
-		return err
+		return fmt.Errorf("failed to decode headers: %v", err)
 	}
 
 	opts, err := a.GetWorkspaceOptions()
@@ -834,13 +893,14 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 	if md.IsStreamingClient() && md.IsStreamingServer() {
 		stream, err := a.client.invokeBidiStream(ctx, method)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to invoke bidirectional stream: %v", err)
 		}
 
 		a.streamReq = make(chan proto.Message)
 		go func() {
 			for r := range a.streamReq {
 				if err := stream.SendMsg(r); err != nil {
+					runtime.LogError(a.ctx, fmt.Sprintf("failed to send message to stream: %v", err))
 					close(a.streamReq)
 					a.streamReq = nil
 				}
@@ -852,6 +912,9 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 		for {
 			resp := dynamicpb.NewMessage(md.Output())
 			if err := stream.RecvMsg(resp); err != nil {
+				if err != io.EOF {
+					runtime.LogDebug(a.ctx, fmt.Sprintf("stream receive ended with: %v", err))
+				}
 				break
 			}
 		}
@@ -862,7 +925,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 	if md.IsStreamingClient() {
 		stream, err := a.client.invokeClientStream(ctx, method)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to invoke client stream: %v", err)
 		}
 		a.streamReq = make(chan proto.Message, 1)
 		a.streamReq <- req
@@ -879,6 +942,7 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 					break wait
 				}
 				if err := stream.SendMsg(r); err != nil {
+					runtime.LogError(a.ctx, fmt.Sprintf("failed to send message to stream: %v", err))
 					close(a.streamReq)
 					a.streamReq = nil
 					break wait
@@ -888,10 +952,12 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 		stream.CloseSend()
 		resp := dynamicpb.NewMessage(md.Output())
 		if err := stream.RecvMsg(resp); err != nil {
-			return err
+			if err != io.EOF {
+				return fmt.Errorf("error receiving message: %v", err)
+			}
 		}
 		if err := stream.RecvMsg(nil); err != io.EOF {
-			return err
+			runtime.LogWarning(a.ctx, fmt.Sprintf("unexpected message received after EOF: %v", err))
 		}
 
 		return nil
@@ -900,11 +966,14 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 	if md.IsStreamingServer() {
 		stream, err := a.client.invokeServerStream(ctx, method, req)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to invoke server stream: %v", err)
 		}
 		for {
 			resp := dynamicpb.NewMessage(md.Output())
 			if err := stream.RecvMsg(resp); err != nil {
+				if err != io.EOF {
+					runtime.LogDebug(a.ctx, fmt.Sprintf("stream receive ended with: %v", err))
+				}
 				break
 			}
 		}
@@ -912,8 +981,11 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 		return nil
 	}
 
+	// Standard unary call
 	resp := dynamicpb.NewMessage(md.Output())
-	a.client.invoke(ctx, method, req, resp)
+	if err := a.client.invoke(ctx, method, req, resp); err != nil {
+		return fmt.Errorf("failed to invoke RPC: %v", err)
+	}
 	return nil
 }
 
@@ -1018,15 +1090,27 @@ func formatPayload(payload interface{}) (string, error) {
 // CloseSend will stop streaming client messages
 func (a *api) CloseSend() {
 	if a.streamReq != nil {
+		runtime.LogDebug(a.ctx, "closing stream request channel")
 		close(a.streamReq)
 		a.streamReq = nil
+	} else {
+		runtime.LogDebug(a.ctx, "streamReq already closed or nil")
 	}
 }
 
 // Cancel will attempt to cancel the current inflight request
 func (a *api) Cancel() {
 	if a.cancelInFlight != nil {
+		runtime.LogDebug(a.ctx, "cancelling in-flight request")
 		a.cancelInFlight()
+		// Signal to frontend that the request was cancelled
+		runtime.EventsEmit(a.ctx, eventRPCEnded, rpcEnd{
+			StatusCode: int32(codes.Canceled),
+			Status:     codes.Canceled.String(),
+			Duration:   "0s",
+		})
+	} else {
+		runtime.LogDebug(a.ctx, "no in-flight request to cancel")
 	}
 }
 
@@ -1040,8 +1124,12 @@ func (a *api) ExportCommands(method string, rawJSON []byte, rawHeaders interface
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
-		return nil
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to decode headers: %v", err))
+		return &commands{
+			Grpcurl: "Error: Failed to decode headers",
+		}
 	}
+
 	for _, h := range hs {
 		if len(h.Key) == 0 {
 			continue
@@ -1053,15 +1141,29 @@ func (a *api) ExportCommands(method string, rawJSON []byte, rawHeaders interface
 		sb.WriteString("' \\\n")
 	}
 
-	option, _ := a.GetWorkspaceOptions()
+	option, err := a.GetWorkspaceOptions()
+	if err != nil {
+		runtime.LogError(a.ctx, fmt.Sprintf("failed to get workspace options: %v", err))
+		return &commands{
+			Grpcurl: "Error: Failed to get workspace options",
+		}
+	}
+
 	if option.Plaintext {
 		sb.WriteString("    -plaintext \\\n")
 	}
 	if option.Insecure {
 		sb.WriteString("    -insecure \\\n")
 	}
-	if hds, err := a.GetReflectMetadata(option.Addr); err == nil {
+
+	hds, err := a.GetReflectMetadata(option.Addr)
+	if err != nil {
+		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to get reflection metadata: %v", err))
+	} else {
 		for _, h := range hds {
+			if h.Key == "" {
+				continue
+			}
 			sb.WriteString("    -reflect-header '")
 			sb.WriteString(h.Key)
 			sb.WriteString(":")
@@ -1069,6 +1171,7 @@ func (a *api) ExportCommands(method string, rawJSON []byte, rawHeaders interface
 			sb.WriteString("' \\\n")
 		}
 	}
+
 	sb.WriteString("    ")
 	sb.WriteString(option.Addr)
 	sb.WriteString(" ")
@@ -1084,7 +1187,7 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 		if rerr != nil {
 			const errTitle = "Failed to import command"
 			runtime.LogError(a.ctx, rerr.Error())
-			a.emitError(errTitle, rerr.Error())
+			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
 		}
 	}()
 
@@ -1092,13 +1195,14 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 	case "grpcurl":
 		args, err := parseGrpcurlCommand(command)
 		if err != nil {
-			return err
+			return fmt.Errorf("error parsing grpcurl command: %v", err)
 		}
 
+		runtime.LogInfo(a.ctx, fmt.Sprintf("importing grpcurl command for method: %s", args.Method))
 		return a.emitServicesSelect("/"+args.Method, args.Data, args.Metadata)
+	default:
+		return fmt.Errorf("unsupported command type: %s", kind)
 	}
-
-	return nil
 }
 
 func (a *api) GetWindowInfo() map[string]interface{} {
