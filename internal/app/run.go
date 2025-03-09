@@ -39,6 +39,10 @@ func Run(js string, css string, assetsFS embed.FS) int {
 		go server.Serve()
 	}
 
+	app := NewApp()
+
+	app.appData = appData
+
 	opts := &wails_options.App{
 		Title:       appName,
 		Width:       1200,
@@ -50,12 +54,9 @@ func Run(js string, css string, assetsFS embed.FS) int {
 			B: 64,
 			A: 255,
 		},
-		OnStartup: func(ctx context.Context) {
-			// Startup logic if needed
-			appCtx = ctx
-		},
+		OnStartup: app.Startup,
 		Bind: []interface{}{
-			&api{appData: appData},
+			app,
 		},
 	}
 

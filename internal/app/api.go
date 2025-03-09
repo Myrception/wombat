@@ -98,21 +98,24 @@ func (s *storeLogger) Errorf(format string, args ...interface{}) {
 	s.log.Error(format, args...)
 }
 
+func NewApp() *api {
+	return &api{}
+}
+
 // Startup is the initialization function for the Wails v2 runtime
-func (a *api) Startup(ctx context.Context) error {
+func (a *api) Startup(ctx context.Context) {
 	a.ctx = ctx
 
 	var err error
 	a.store, err = newStore(a.appData, newStoreLogger(ctx))
 	if err != nil {
-		return fmt.Errorf("app: failed to create database: %v", err)
+		fmt.Errorf("app: failed to create database: %v", err)
 	}
 	a.state = a.getCurrentState()
 
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
 		runtime.LogError(ctx, err.Error())
-		return err
 	}
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
@@ -124,8 +127,6 @@ func (a *api) Startup(ctx context.Context) error {
 	}
 
 	go a.checkForUpdate()
-
-	return nil
 }
 
 func (a *api) checkForUpdate() {
@@ -1101,9 +1102,9 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 }
 
 func (a *api) GetWindowInfo() map[string]interface{} {
-	width, _ := runtime.WindowGetSize(appCtx)
-	height, _ := runtime.WindowGetSize(appCtx)
-	x, y := runtime.WindowGetPosition(appCtx)
+	width, _ := runtime.WindowGetSize(a.ctx)
+	height, _ := runtime.WindowGetSize(a.ctx)
+	x, y := runtime.WindowGetPosition(a.ctx)
 
 	// Detect the operating system using Go's standard library
 	os := goruntime.GOOS // "windows", "darwin" (macOS), "linux", etc.
