@@ -826,7 +826,6 @@ func (a *api) RetryConnection() {
 }
 
 func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (rerr error) {
-	fmt.Print("Send")
 	rawJSON := []byte(stringJSON)
 	defer func() {
 		if rerr != nil {
@@ -1121,7 +1120,8 @@ func (a *api) Cancel() {
 }
 
 // Export commands for call
-func (a *api) ExportCommands(method string, rawJSON []byte, rawHeaders interface{}) *commands {
+func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interface{}) *commands {
+	rawJSON := []byte(stringJSON)
 	var sb strings.Builder
 	sb.WriteString("grpcurl ")
 	sb.WriteString("-d '")

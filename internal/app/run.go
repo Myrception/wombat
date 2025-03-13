@@ -47,6 +47,8 @@ func Run(js string, css string, assetsFS embed.FS) int {
 		Title:       appName,
 		Width:       1200,
 		Height:      820,
+		MaxWidth:    3840,
+		MaxHeight:   2560,
 		AssetServer: assets,
 		BackgroundColour: &wails_options.RGBA{
 			R: 46, // From hex #2e3440

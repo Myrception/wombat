@@ -11,7 +11,7 @@ export function Connect(arg1:any,arg2:any,arg3:boolean):Promise<void>;
 
 export function DeleteWorkspace(arg1:string):Promise<void>;
 
-export function ExportCommands(arg1:string,arg2:Array<number>,arg3:any):Promise<app.commands>;
+export function ExportCommands(arg1:string,arg2:string,arg3:any):Promise<app.commands>;
 
 export function FindProtoFiles():Promise<Array<string>>;
 
