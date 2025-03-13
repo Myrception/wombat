@@ -67,11 +67,14 @@
     unsubscribeClientConnect();
   });
 
-  const onSend = ({ detail: { method } }) => {
-    console.log(method, state, metadata);
-    Send(method, JSON.stringify(state), metadata);
-    // console.log(method, state, metadata);
+  const onSend = async ({ detail: { method } }) => {
+      try {
+  //console.log(method, state, metadata);
+  await Send(method, JSON.stringify(state), metadata);
+  } catch (error) {
+    console.error("Error sending request:", error);
   }
+} 
 
   const onSelected = ({ detail: { method } }) => methodSelected = method;
 

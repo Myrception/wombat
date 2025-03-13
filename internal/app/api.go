@@ -825,7 +825,9 @@ func (a *api) RetryConnection() {
 	}
 }
 
-func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr error) {
+func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (rerr error) {
+	fmt.Print("Send")
+	rawJSON := []byte(stringJSON)
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Unable to send request"
@@ -838,18 +840,22 @@ func (a *api) Send(method string, rawJSON []byte, rawHeaders interface{}) (rerr 
 
 	md, err := a.getMethodDesc(method)
 	if err != nil {
+		const errTitle = "getMethodDesc"
+		runtime.LogError(a.ctx, err.Error())
+		runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, err.Error()})
 		return err
 	}
 
 	req := dynamicpb.NewMessage(md.Input())
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(rawJSON, req); err != nil {
+		const errTitle = "unmarshal"
+		runtime.LogError(a.ctx, err.Error())
+		runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, err.Error()})
 		return fmt.Errorf("failed to unmarshal request: %v", err)
 	}
 
-	fmt.Print("before")
 	// Store message for later use
 	go a.setMessage(method, rawJSON)
-	fmt.Print("after")
 
 	if a.inFlight && md.IsStreamingClient() {
 		a.streamReq <- req
