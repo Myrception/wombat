@@ -11,11 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
             target: document.body,
         });
     });
-   
-    // Apply production-only behaviors
-    if (false) {
-        window.addEventListener('contextmenu', e => e.preventDefault());
-    }
 });
 
     let zoomLevel = 1.0;
