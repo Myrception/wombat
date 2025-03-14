@@ -39,7 +39,7 @@ func (t *transportCreds) ClientHandshake(ctx context.Context, addr string, in ne
 func (c *client) connect(o options, h stats.Handler) error {
 	errc := make(chan error, 1)
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // Set appropriate timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		opts := []grpc.DialOption{

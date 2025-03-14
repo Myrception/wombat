@@ -290,6 +290,15 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 		}
 	}()
 
+	if a.client != nil {
+		if a.cancelMonitoring != nil {
+			a.cancelMonitoring()
+			time.Sleep(100 * time.Millisecond)
+		}
+		a.client.close()
+		a.client = nil
+	}
+
 	a.changeWorkspace(id)
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
@@ -613,8 +622,13 @@ func (a *api) monitorStateChanges(ctx context.Context) {
 			state := a.client.conn.GetState()
 			runtime.EventsEmit(a.ctx, eventClientStateChanged, state.String())
 
-			if ok := a.client.conn.WaitForStateChange(ctx, state); !ok {
+			timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			ok := a.client.conn.WaitForStateChange(timeoutCtx, state)
+			cancel()
+
+			if !ok {
 				runtime.LogDebug(a.ctx, "ending monitoring of state changes")
+				time.Sleep(500 * time.Millisecond)
 				return
 			}
 		}
