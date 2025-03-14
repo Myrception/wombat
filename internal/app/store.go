@@ -1,9 +1,10 @@
 package app
 
 import (
+	"errors"
 	"path/filepath"
 
-	badger "github.com/dgraph-io/badger/v2"
+	badger "github.com/dgraph-io/badger/v4"
 )
 
 var errKeyNotFound = badger.ErrKeyNotFound
@@ -22,7 +23,10 @@ func newStore(path string, l dblogger) (*store, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if db == nil {
+		return nil,
+			errors.New("Cant open db. Check db if there is an old db version")
+	}
 	return &store{db}, nil
 }
 
@@ -75,3 +79,4 @@ func (s *store) close() {
 	}
 	s.db.Close()
 }
+
