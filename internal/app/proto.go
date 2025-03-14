@@ -6,9 +6,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/jhump/protoreflect/desc"
-	"github.com/jhump/protoreflect/grpcreflect"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -22,28 +21,122 @@ func protoFilesFromReflectionAPI(ctx context.Context, conn *grpc.ClientConn) (*p
 		return nil, errors.New("app: no connection to a grpc server available")
 	}
 
-	client := grpcreflect.NewClientAuto(ctx, conn)
-	defer client.Reset()
+	// Create reflection client
+	client := grpc_reflection_v1.NewServerReflectionClient(conn)
+	stream, err := client.ServerReflectionInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer stream.CloseSend()
 
-	services, err := client.ListServices()
+	// Get list of all services
+	err = stream.Send(&grpc_reflection_v1.ServerReflectionRequest{
+		MessageRequest: &grpc_reflection_v1.ServerReflectionRequest_ListServices{
+			ListServices: "",
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 
+	resp, err := stream.Recv()
+	if err != nil {
+		return nil, err
+	}
+
+	listResp := resp.GetListServicesResponse()
+	if listResp == nil {
+		return nil, errors.New("app: invalid reflection response")
+	}
+
+	// Process each service to get its file descriptor
 	seen := make(map[string]struct{})
 	fdset := &descriptorpb.FileDescriptorSet{}
 
-	for _, srv := range services {
-		fd, err := client.FileContainingSymbol(srv)
+	for _, service := range listResp.Service {
+		// Request file descriptor for this service
+		err = stream.Send(&grpc_reflection_v1.ServerReflectionRequest{
+			MessageRequest: &grpc_reflection_v1.ServerReflectionRequest_FileContainingSymbol{
+				FileContainingSymbol: service.Name,
+			},
+		})
 		if err != nil {
 			return nil, err
 		}
 
-		// Add file descriptor and its dependencies to the set
-		collectFileDescriptors(seen, fdset, fd)
+		resp, err = stream.Recv()
+		if err != nil {
+			return nil, err
+		}
+
+		fdResp := resp.GetFileDescriptorResponse()
+		if fdResp == nil {
+			return nil, errors.New("app: invalid file descriptor response")
+		}
+
+		// Process the file descriptor and its dependencies
+		for _, fdBytes := range fdResp.FileDescriptorProto {
+			fd := &descriptorpb.FileDescriptorProto{}
+			if err := proto.Unmarshal(fdBytes, fd); err != nil {
+				return nil, err
+			}
+			addFileDescriptor(seen, fdset, fd, stream, ctx)
+		}
 	}
 
 	return protodesc.NewFiles(fdset)
+}
+
+// addFileDescriptor adds a file descriptor and its dependencies to the set
+func addFileDescriptor(seen map[string]struct{}, fdset *descriptorpb.FileDescriptorSet, fd *descriptorpb.FileDescriptorProto, stream grpc_reflection_v1.ServerReflection_ServerReflectionInfoClient, ctx context.Context) error {
+	if fd == nil || fd.GetName() == "" {
+		return nil
+	}
+
+	if _, ok := seen[fd.GetName()]; ok {
+		return nil
+	}
+
+	seen[fd.GetName()] = struct{}{}
+	fdset.File = append(fdset.File, fd)
+
+	// Fetch dependencies recursively
+	for _, dep := range fd.GetDependency() {
+		if _, ok := seen[dep]; ok {
+			continue
+		}
+
+		err := stream.Send(&grpc_reflection_v1.ServerReflectionRequest{
+			MessageRequest: &grpc_reflection_v1.ServerReflectionRequest_FileByFilename{
+				FileByFilename: dep,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		resp, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+
+		fdResp := resp.GetFileDescriptorResponse()
+		if fdResp == nil {
+			return errors.New("app: invalid file descriptor response for dependency")
+		}
+
+		for _, depBytes := range fdResp.FileDescriptorProto {
+			depFd := &descriptorpb.FileDescriptorProto{}
+			if err := proto.Unmarshal(depBytes, depFd); err != nil {
+				return err
+			}
+			if err := addFileDescriptor(seen, fdset, depFd, stream, ctx); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // protoFilesFromDisk uses protoc to compile proto files into a descriptor set
@@ -92,29 +185,5 @@ func protoFilesFromDisk(importPaths, filenames []string) (*protoregistry.Files, 
 	}
 
 	return protodesc.NewFiles(fdset)
-}
-
-// collectFileDescriptors adds file descriptors to the set
-func collectFileDescriptors(seen map[string]struct{}, fdset *descriptorpb.FileDescriptorSet, fd *desc.FileDescriptor) {
-	if fd == nil {
-		return
-	}
-
-	fdProto := fd.AsFileDescriptorProto()
-	if fdProto == nil || fdProto.GetName() == "" {
-		return
-	}
-
-	if _, ok := seen[fdProto.GetName()]; ok {
-		return
-	}
-
-	seen[fdProto.GetName()] = struct{}{}
-	fdset.File = append(fdset.File, fdProto)
-
-	// Process dependencies
-	for _, dep := range fd.GetDependencies() {
-		collectFileDescriptors(seen, fdset, dep)
-	}
 }
 
