@@ -21,7 +21,7 @@
 <style>
   .method-input {
     padding: var(--padding);
-    overflow: scroll;
+    overflow: auto;
     height: calc(100% - 106px);
   }
   h2 {
@@ -30,7 +30,9 @@
   }
   .fields {
     margin-left: var(--padding);
+    display: flex;
     flex-flow: column;
+    width: calc(100% - 2 * var(--padding));
   }
   .edit {
     position: absolute;

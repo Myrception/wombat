@@ -55,11 +55,10 @@
     />
   </footer>
 </div>
-
 <style>
   .code-edit-panel {
-    width: calc(var(--padding) + 800px);
-    height: 650px;
+    width: min(90vw, 800px);
+    height: min(90vh, 650px);
     display: flex;
     flex-flow: column;
   }

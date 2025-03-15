@@ -40,7 +40,8 @@
 <style>
   .calendar {
     padding: var(--padding);
-    width: calc(40px * 7);
+    width: min-content;
+    max-width: 100%;
   }
 
   .row {
@@ -50,12 +51,13 @@
 
   .cell {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: clamp(30px, 5.5vw, 40px);
+    height: clamp(30px, 5.5vw, 40px);
     display: flex;
     justify-content: center;
     align-items: center;
   }
+
   .hoverable:hover {
     background-color: var(--bg-color2);
   }

@@ -41,6 +41,8 @@
 <style>
   .response {
     height: calc(100% - 82px);
+    width: 100%;
+    overflow: hidden;
   }
 
   .response :global(.monaco-editor .cursors-layer > .cursor) {
@@ -49,6 +51,7 @@
 
   .container {
     height: 100%;
+    width: 100%;
     user-select: text;
     -webkit-user-select: text;
   }

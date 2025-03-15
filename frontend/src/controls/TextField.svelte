@@ -4,7 +4,7 @@
   export let label = undefined;
   export let hint = "";
   export let placeholder = "";
-  export let width = "400px";
+  export let width = "100%";
   export let style = "";
   export let value = "";
   export let labelColor = undefined;
@@ -14,6 +14,7 @@
 <style>
   .text-field {
     margin-bottom: var(--padding);
+    width: 100%;
   }
   input {
     box-sizing: border-box;
@@ -33,7 +34,7 @@
   }
 </style>
 
-<div class="text-field" style="width:{width};{style}">
+<div class="text-field" style="{style}">
   {#if label}
     <InputLabel on:remove {removeable} {label} {hint} color={labelColor} />
   {/if}

@@ -4,7 +4,7 @@
 	export let type = "horizontal";
 	export let pos = 50;
 	export let fixed = false;
-	export let min = 400;
+    export let min = 0;
 	// export let min1 = min;
 	// export let min2 = min;
 	const refs = {};
@@ -17,10 +17,13 @@
 	function setPos(event) {
 		const { top, bottom, left, right } = refs.container.getBoundingClientRect();
 		const extents = type === 'vertical' ? [top, bottom] : [left, right];
+        const totalSize = extents[1] - extents[0];
+        const minSize = Math.min(min, totalSize * 0.2);
+
 		const px = clamp(
 			type === 'vertical' ? event.clientY : event.clientX,
-			extents[0] + min,
-			extents[1] - min
+			extents[0] + minSize,
+			extents[1] - minSize
 		);
 		pos = 100 * (px - extents[0]) / (extents[1] - extents[0]);
 		dispatch('change');
@@ -54,6 +57,7 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
+        overflow: hidden;
 	}
 	.pane {
 		position: relative;

@@ -9,12 +9,17 @@
 <style>
   .headers-trailers {
     height: calc(100% - 106px);
+    width: 100%;
+    overflow: hidden;
   }
   section {
     padding: var(--padding);
+    overflow: auto;
+    height: 100%;
   }
   h2 {
     font-size: var(--font-size);
+    margin-top: 0;
   }
 </style>
 

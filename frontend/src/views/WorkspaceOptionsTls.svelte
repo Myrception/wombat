@@ -9,11 +9,21 @@
   .workspace-options-tls {
     flex-flow: column;
     padding: var(--padding) 0;
+    width: 100%;
   }
   .client-certs {
     display: flex;
-    width: calc(var(--padding) + 800px);
-    justify-content: space-between;
+    flex-direction: column;
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .client-certs {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    .client-certs > * {
+      width: calc(50% - var(--padding) / 2);
+    }
   }
 </style>
 

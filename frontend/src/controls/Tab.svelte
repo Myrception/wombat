@@ -14,12 +14,15 @@
     border: none;
     border-radius: 0;
     margin: -1px;
-    min-width: 100px;
+    min-width: clamp(60px, 15vw, 100px);
     padding: var(--padding);
     color: var(--text-color2);
     font-size: var(--font-size);
     justify-content: center;
     outline: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .selected {

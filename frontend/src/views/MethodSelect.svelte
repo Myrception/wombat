@@ -79,9 +79,12 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: var(--border);
+    flex-wrap: wrap;
+    padding: 0 var(--padding);
   }
   .spacer {
     flex-grow: 1;
+    min-width: var(--padding);
   }
 </style>
 

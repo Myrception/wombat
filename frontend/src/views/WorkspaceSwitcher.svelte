@@ -41,9 +41,9 @@
   .panel {
     border: var(--border);
     background-color: var(--bg-color);
-    width: 400px;
-    height: 300px;
-    margin-top: 64px;
+    width: min(400px, 90vw);
+    height: min(300px, 80vh);
+    margin-top: min(64px, 10vh);
     padding: var(--padding);
     display: flex;
     flex-flow: column;

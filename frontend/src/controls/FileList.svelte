@@ -17,9 +17,9 @@
   .file-list {
     border: var(--border);
     background-color: var(--bg-input-color);
-    width: 400px;
-    height: 150px;
-    overflow: scroll;
+    width: 100%;
+    height: min(150px, 20vh);
+    overflow: auto;
   }
   .list {
     margin: calc(var(--padding) * 0.5);
@@ -32,7 +32,7 @@
   }
   .btns {
     display: flex;
-    width: 402px;
+    width: 100%;
     margin-top: calc(var(--padding) * 0.5);
   }
   .spacer {

@@ -62,9 +62,9 @@
     --green-color: #a3be8c;
     --purple-color: #b48ead;
 
-    --padding: 12px;
+    --padding: min(12px, 2vw);
     --border: 1px solid #3b4252;
-    --font-size: 10pt;
+    --font-size: clamp(10pt, 1vw, 12pt);
   }
 
   :global(html,body) {

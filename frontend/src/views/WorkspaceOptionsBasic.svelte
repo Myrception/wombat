@@ -28,12 +28,21 @@
   .workspace-options-basic {
     flex-flow: column;
     padding: var(--padding) 0;
+    width: 100%;
   }
   .protos {
     display: flex;
+    flex-direction: column; 
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .protos {
+      flex-direction: row;
+    }
   }
   .spacer {
     width: var(--padding);
+    height: var(--padding);
   }
 </style>
 

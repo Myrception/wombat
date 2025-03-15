@@ -6,11 +6,14 @@
   .stats {
     padding: var(--padding);
     height: calc(100% - 106px);
-    overflow: scroll;
+    overflow: auto;
+    width: calc(100% - 2 * var(--padding));
     user-select: text;
     -webkit-user-select: text;
     color: var(--text-color3);
     cursor: text;
+  }
+  .stats > div {
     white-space: nowrap;
   }
   .out {

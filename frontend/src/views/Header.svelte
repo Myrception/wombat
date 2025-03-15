@@ -30,11 +30,12 @@ import { getContext, onDestroy } from "svelte";
 
 <style>
   .header {
-    height: 40px;
+    height: auto;
+    min-height: 40px;
     padding: var(--padding);
     border-bottom: var(--border);
     display: flex;
-    flex-flow: row;
+    flex-flow: row wrap;
     align-items: center;
     justify-content: space-between;
   }
@@ -48,6 +49,7 @@ import { getContext, onDestroy } from "svelte";
   .workspace-select {
     display: flex;
     margin-left: calc(var(--padding) + 20px);
+    max-width: 40%;
   }
 
   h1 {
@@ -92,6 +94,15 @@ import { getContext, onDestroy } from "svelte";
     margin-left: var(--padding);
   }
 
+  @media (max-width: 480px) {
+    .workspace-select {
+      margin-left: var(--padding);
+    }
+    
+    .hitem {
+      min-width: 120px;
+    }
+  }
 
 </style>
 

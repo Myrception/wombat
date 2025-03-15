@@ -46,12 +46,14 @@
   .msg-label {
     display: flex;
     align-items: center;
-    min-width: 400px;
+    min-width: auto;
+    width: 100%;
     margin-bottom: var(--padding);
   }
   .fields {
     padding-left: var(--padding);
     position: relative;
+    width: calc(100% - var(--padding));
   }
 
   .msg-border {

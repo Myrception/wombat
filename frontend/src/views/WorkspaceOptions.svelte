@@ -38,10 +38,11 @@
 
 <style>
   .workspace-options {
-    width: calc(var(--padding) + 800px);
-    height: 604px;
+    width: min(800px, 90vw);
+    height: min(604px, 80vh);
     display: flex;
     flex-flow: column;
+    overflow: auto;
   }
   h1 {
     width: 100%;

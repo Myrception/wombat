@@ -18,7 +18,7 @@
   button {
     border: 0;
     margin: 0;
-    min-width: 100px;
+    min-width: clamp(60px, 10vw, 100px);
     align-items: center;
     justify-content: center;
     padding: var(--padding);

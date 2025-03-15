@@ -23,7 +23,8 @@
   }
   .dropdown {
     display: block;
-    width: 400px;
+    width: 100%;
+    max-width: 100%;
     margin-bottom: var(--padding);
     --height: 40px;
     --background: var(--bg-input-color);
@@ -48,7 +49,7 @@
 
   .frameless {
     width: auto;
-    min-width: 150px;
+    min-width: min(150px, 30%);
     --border: none;
     --background: var(--bg-color);
     color: var(--primary-color);

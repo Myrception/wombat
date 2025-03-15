@@ -27,7 +27,8 @@
   .msg-label {
     display: flex;
     align-items: center;
-    min-width: 400px;
+    min-width: auto;
+    width: 100%;
     margin-bottom: var(--padding);
   }
 </style>

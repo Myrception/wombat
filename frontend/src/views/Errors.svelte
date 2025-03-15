@@ -37,8 +37,10 @@
   .error-box {
     border: var(--border);
     background-color: var(--bg-color);
-    width: 450px;
+    width: min(450px, 90vw);
     padding: var(--padding);
+    max-height: 80vh;
+    overflow: auto;
   }
 
   header {

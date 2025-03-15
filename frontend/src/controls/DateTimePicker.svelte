@@ -58,6 +58,7 @@
   .picker {
     border: var(--border);
     width: min-content;
+    max-width: 100%;
     background-color: var(--bg-color);
   }
   .header{
@@ -70,8 +71,8 @@
     border: 0;
     background-color: var(--bg-color);
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: clamp(20px, 3vw, 24px);
+    height: clamp(20px, 3vw, 24px);
   }
 </style>
 

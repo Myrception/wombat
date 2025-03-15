@@ -39,6 +39,8 @@
     background-color: var(--bg-color2);
     border: var(--border);
     z-index: 10;
+    max-width: min(300px, 90vw);
+    overflow: hidden;
   }
 
   .dismiss {

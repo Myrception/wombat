@@ -28,9 +28,11 @@
     display: flex;
     align-items: center;
     margin-bottom: var(--padding);
+    width: 100%;
   }
   .spacer {
     width: var(--padding);
+    flex-shrink: 0;
   }
   .remove {
     width: calc(var(--padding) + 16px);

@@ -4,7 +4,7 @@
   export let label = undefined;
   export let hint = "";
   export let value = "";
-  export let width = "400px";
+  export let width = "100%";
   export let labelColor = undefined;
   export let removeable = false;
   const dispatch = createEventDispatcher();
@@ -15,13 +15,14 @@
   .text-area {
     flex-flow: column;
     margin-bottom: var(--padding);
+    width: 100%;
   }
   textarea {
     width: 100%;
     box-sizing: border-box;
     background-color: var(--bg-input-color);
     border: var(--border);
-    height: 150px;
+    height: min(150px, 20vh);
     outline: none;
     color: var(--text-color);
     padding: var(--padding);
