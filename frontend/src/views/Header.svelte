@@ -120,7 +120,6 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
-    margin-left: auto;
   }
   
   /* Responsive styles */

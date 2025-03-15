@@ -27,27 +27,29 @@
 </script>
 
 <style>
-  .overlay {
-    position: fixed;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 999;
-    background-color: #22222377;
-    display: flex;
-    justify-content: center;
-  }
-  .panel {
-    border: var(--border);
-    background-color: var(--bg-color);
-    width: min(400px, 90vw);
-    height: min(300px, 80vh);
-    margin-top: min(64px, 10vh);
-    padding: var(--padding);
-    display: flex;
-    flex-flow: column;
-  }
+.overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background-color: #22222377;
+}
+
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: var(--border);
+  background-color: var(--bg-color);
+  width: min(400px, 90vw);
+  height: min(300px, 80vh);
+  padding: var(--padding);
+  display: flex;
+  flex-flow: column;
+}
   h1 {
     width: 100%;
     padding: 0 12px 12px 12px;
