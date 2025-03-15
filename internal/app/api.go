@@ -111,7 +111,9 @@ func (a *api) Startup(ctx context.Context) {
 	var err error
 	a.store, err = newStore(a.appData, newStoreLogger(ctx))
 	if err != nil {
-		fmt.Errorf("app: failed to create database: %v", err)
+		runtime.LogError(ctx,
+			fmt.Errorf("app: failed to create database: %v", err).Error())
+		runtime.LogInfof(ctx, "appData: %s", a.appData)
 	}
 	a.state = a.getCurrentState()
 
