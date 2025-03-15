@@ -1,12 +1,38 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
 
   export let model;
 
   let Response;
+  let editor;
+  
+  // Subscribe to zoom change events
+  const unsubscribeZoom = EventsOn("wombat:zoom_changed", (newZoomLevel) => {
+    updateEditorFontSize(newZoomLevel);
+  });
+  
+  // Clean up on component destroy
+  onDestroy(() => {
+    unsubscribeZoom();
+  });
+  
+  function updateEditorFontSize(zoomLevel) {
+    if (editor) {
+      // Scale font size inversely with zoom to maintain relative size
+      const fontSize = Math.max(12, Math.floor(14 / zoomLevel));
+      editor.updateOptions({ fontSize: fontSize });
+    }
+  }
 
   onMount(() => {
-    monaco.editor.create(Response, {
+    // Get the current zoom level
+    const currentZoom = window.appZoom ? window.appZoom.getZoomLevel() : 1.0;
+    
+    // Scale font size inversely with zoom to maintain relative size
+    const fontSize = Math.max(12, Math.floor(14 / currentZoom));
+    
+    editor = monaco.editor.create(Response, {
       model: model,
       readOnly: true,
       minimap: { enabled: false },
@@ -23,6 +49,7 @@
       hideCursorInOverviewRuler: true,
       overviewRulerBorder: false,
       lineNumbers: "off",
+      fontSize: fontSize, // Set font size based on zoom level
       padding: {
         top: 12,
         bottom: 12,
@@ -32,17 +59,12 @@
       },
     });
   });
-
-
-
-
 </script>
 
 <style>
   .response {
     height: calc(100% - 82px);
     width: 100%;
-    overflow: hidden;
   }
 
   .response :global(.monaco-editor .cursors-layer > .cursor) {
@@ -55,7 +77,6 @@
     user-select: text;
     -webkit-user-select: text;
   }
-
 </style>
 
 <div class="response">

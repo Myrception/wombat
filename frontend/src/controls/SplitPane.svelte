@@ -1,5 +1,5 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
 	const dispatch = createEventDispatcher();
 	export let type = "horizontal";
 	export let pos = 50;
@@ -9,6 +9,8 @@
 	// export let min2 = min;
 	const refs = {};
 	let dragging = false;
+    let containerWidth = 0;
+	let containerHeight = 0;
 
     function clamp(num, min, max) {
         return num < min ? min : num > max ? max : num;
@@ -48,6 +50,24 @@
 			}
 		};
 	}
+
+    onMount(() => {
+	  const observer = new ResizeObserver(() => {
+	    if (refs.container) {
+	      containerWidth = refs.container.offsetWidth;
+	      containerHeight = refs.container.offsetHeight;
+	    }
+	  });
+	  
+	  if (refs.container) {
+	    observer.observe(refs.container);
+	  }
+	  
+	  return () => {
+	    observer.disconnect();
+	  };
+	});
+
 	$: side = type === 'horizontal' ? 'left' : 'top';
 	$: dimension = type === 'horizontal' ? 'width' : 'height';
 </script>
@@ -64,7 +84,7 @@
 		float: left;
 		width: 100%;
 		height: 100%;
-    overflow: hidden;
+        overflow: hidden;
 	}
 	.mousecatcher {
 		position: absolute;

@@ -1,8 +1,9 @@
 <script>
-import { getContext, onDestroy } from "svelte";
+  import { getContext, onDestroy } from "svelte";
   import Button from "../controls/Button.svelte";
   import WorkspaceOptions from "./WorkspaceOptions.svelte";
   import WorkspaceSwitcher from "./WorkspaceSwitcher.svelte";
+  import ZoomControls from "./ZoomControls.svelte"; // Import the new zoom controls
   import { EventsOn } from '../../wailsjs/runtime/runtime';
 
   let addr = "";
@@ -29,15 +30,19 @@ import { getContext, onDestroy } from "svelte";
 </script>
 
 <style>
-  .header {
+.header {
     height: auto;
     min-height: 40px;
-    padding: var(--padding);
+    max-height: 80px;
+    padding: calc(var(--padding) * 0.5);
     border-bottom: var(--border);
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: row nowrap;
     align-items: center;
     justify-content: space-between;
+    overflow: visible;
+    position: relative;
+    z-index: 10;
   }
 
   .connection {
@@ -48,14 +53,20 @@ import { getContext, onDestroy } from "svelte";
 
   .workspace-select {
     display: flex;
-    margin-left: calc(var(--padding) + 20px);
-    max-width: 40%;
+    margin-left: calc(var(--padding) * 0.5);
+    overflow: hidden;
+    flex-shrink: 1;
+    max-width: 50%;
   }
 
   h1 {
     font-size: calc(var(--font-size) + 2px);
     margin: 0;
-    color: var(--primary-color)
+    color: var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px; 
   }
 
   h3 {
@@ -93,17 +104,39 @@ import { getContext, onDestroy } from "svelte";
   .dropdown-indicator {
     margin-left: var(--padding);
   }
-
-  @media (max-width: 480px) {
-    .workspace-select {
-      margin-left: var(--padding);
-    }
-    
-    .hitem {
-      min-width: 120px;
-    }
+  :global(.header .button) {
+    min-width: auto !important;
+    padding: calc(var(--padding) * 0.5) var(--padding) !important;
   }
 
+  .hitem {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    margin-right: var(--padding);
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .header {
+      flex-wrap: wrap;
+    }
+    
+    .hitem, .workspace-select, .right-section {
+      margin: 4px 0;
+    }
+    
+    h1 {
+      max-width: 200px;
+    }
+  }
 </style>
 
 <div class="header">
@@ -122,6 +155,7 @@ import { getContext, onDestroy } from "svelte";
       </svg>
     </Button>
   </div>
+  
   <div on:click={() => wkspSelectorVisible = true} class="workspace-select">
     <div class="connection">
       <h1>{addr}</h1>
@@ -135,7 +169,11 @@ import { getContext, onDestroy } from "svelte";
         0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z" />
     </svg>
   </div>
-  <div class="hitem" />
+  
+  <!-- Add the zoom controls to the right side -->
+  <div class="right-section">
+    <ZoomControls />
+  </div>
 </div>
 
 <WorkspaceSwitcher bind:visible={wkspSelectorVisible} />

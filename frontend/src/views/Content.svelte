@@ -8,8 +8,10 @@
   .content {
     flex: 1;
     min-height: 0;
+    height: 0;
     width: 100%;
     overflow: hidden;
+    position: relative;
   }
 
   section {

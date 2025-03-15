@@ -36,6 +36,8 @@
 
 <style>
   :root {
+    --app-scale: 1;
+
     --bg-color: #2e3440;
     --bg-color2: #434c5e;
     --bg-color3: #4c566a;
@@ -62,14 +64,14 @@
     --green-color: #a3be8c;
     --purple-color: #b48ead;
 
-    --padding: min(12px, 2vw);
+    --padding: calc(12px * var(--app-scale));
+    --font-size: calc(10pt * var(--app-scale));
     --border: 1px solid #3b4252;
-    --font-size: clamp(10pt, 1vw, 12pt);
   }
 
   :global(html,body) {
     margin: 0;
-    height: 100%;
+    height: 100vh;
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -82,17 +84,13 @@
     background-color: var(--bg-color);
     color: var(--text-color);
     cursor: default;
-
-    -ms-overflow-style: -ms-autohiding-scrollbar;
-  }
-  :global(::-ms-clear) {
-    display: none;
   }
 
   .app {
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-flow: column;
+    overflow: hidden;
   }
 </style>
 

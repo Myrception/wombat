@@ -24,4 +24,39 @@ monaco.editor.defineTheme("nord-dark", {
         "scrollbarSlider.hoverBackground" : "#434c5e",
         "scrollbarSlider.activeBackground" : "#4c566a",
     },
+    settings: {
+        fontSize: 14,
+        lineHeight: 1.5,
+    }
 });
+
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+    /* Improve scrollbar visibility on high-DPI displays */
+    ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--bg-color);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--bg-color3);
+        border-radius: 7px;
+        border: 3px solid var(--bg-color);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--accent-color3);
+    }
+    
+    /* Improve high contrast for text */
+    @media screen and (min-resolution: 2dppx) {
+        :root {
+            --text-color3: #d8dee9;
+        }
+    }
+</style>
+`);

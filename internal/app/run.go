@@ -23,7 +23,7 @@ var (
 )
 
 // Run is the main function to run the application
-func Run(js string, css string, assetsFS embed.FS) int {
+func Run(assetsFS embed.FS) int {
 	appData, err := appDataLocation(appName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to open add data directory: %v\n", err)
