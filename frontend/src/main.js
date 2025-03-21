@@ -134,7 +134,46 @@ function notifyComponentsOfZoom() {
     }, 50);
 }
 
+function adjustModalPositioning() {
+  // Find any open modals using the correct class name
+  const modalWindows = document.querySelectorAll('.window');
+  
+  if (modalWindows.length > 0) {
+    // Get the current zoom level
+    const currentZoom = parseFloat(document.body.dataset.zoomLevel || "1.0");
+    
+    modalWindows.forEach(modal => {
+      // Apply inverse scaling to counter the body transform
+      modal.style.position = 'fixed';
+      modal.style.top = '50%';
+      modal.style.left = '50%';
+      modal.style.transform = `translate(-50%, -50%) scale(${1/currentZoom})`;
+      
+      // Make sure z-index is high enough
+      modal.style.zIndex = '1000';
+      
+      // Ensure modal content is clickable
+      const content = modal.querySelector('.content');
+      if (content) {
+        content.style.position = 'relative';
+        content.style.zIndex = '1001';
+        content.style.pointerEvents = 'auto';
+      }
+      
+      // Make sure buttons are clickable
+      const buttons = modal.querySelectorAll('button');
+      if (buttons.length > 0) {
+        buttons.forEach(button => {
+          button.style.position = 'relative';
+          button.style.zIndex = '1002';
+          button.style.pointerEvents = 'auto';
+        });
+      }
+    });
+  }
+}
 
+// Modify the existing applyZoom function to call our new function
 function applyZoom() {
     // Direct transform approach - scales the entire UI consistently
     document.body.style.transform = `scale(${zoomLevel})`;
@@ -151,15 +190,32 @@ function applyZoom() {
     document.documentElement.style.setProperty('--app-scale', zoomLevel);
    
     adjustFixedPositionElements(zoomLevel);
+    
+    // Fix modal positioning with the new zoom level
+    adjustModalPositioning();
 
     // Notify components about zoom change
     EventsEmit("wombat:zoom_changed", zoomLevel);
-
+    
+    // Simple way to handle resize for editors and other components
     setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
     }, 50);
 }
 
+// Make the function available globally
+window.adjustModalPositioning = adjustModalPositioning;
+
+// Also trigger adjustment when modals are opened
+// This needs to be run after the modal is in the DOM
+document.addEventListener('DOMNodeInserted', (e) => {
+  if (e.target && (
+      e.target.classList?.contains('window') || 
+      e.target.querySelector?.('.window'))
+  ) {
+    setTimeout(adjustModalPositioning, 0);
+  }
+});
 
 function initializeZoomAttributes() {
     document.querySelectorAll('.needs-zoom').forEach((element, index) => {

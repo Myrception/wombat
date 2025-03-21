@@ -6,6 +6,11 @@
   import Updater from "./Updater.svelte";
   import { setFieldRenderer } from './FieldContext';
   import MessageField from './MessageField.svelte';
+  
+  // Function to get current zoom level
+  function getCurrentZoom() {
+    return parseFloat(document.body.dataset.zoomLevel || "1.0");
+  }
 
   setFieldRenderer(MessageField);
 
@@ -22,10 +27,17 @@
       border: "1px solid #3b4252",
       color: "#eceff4",
       width: "838px",
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: `translate(-50%, -50%) scale(${1/getCurrentZoom()})`,
+      zIndex: 1000,
     },
     styleContent: {
       padding: "12px",
       width: "100%",
+      position: "relative",
+      zIndex: 1001,
     },
     styleCloseButton: {
       borderRadius: 0,
@@ -121,9 +133,9 @@
   }
   
   /* Apply zoom transition for smooth scaling */
-  :global(body) {
+  /*:global(body) {
     transition: font-size 0.2s ease;
-  }
+  }*/
   
   :global(*) {
     transition: padding 0.2s ease, margin 0.2s ease, height 0.2s ease, width 0.2s ease;
@@ -135,23 +147,33 @@
     flex-flow: column;
     overflow: hidden;
   }
-
-  /* Add helper class for fixed-position elements that need special handling when zooming */
   :global(.fixed-position) {
     position: fixed;
     /* These elements will be adjusted by our JavaScript zoom handler */
   }
-  
   /* Add a transition for smoother zoom experience */
-  :global(body) {
+ /* :global(body) {
     transition: transform 0.2s ease;
   }
+*/
   
-  /* Make sure modals and dialogs appear correctly at all zoom levels */
-  :global(.modal), :global(.overlay) {
-    /* Add properties to ensure modals appear correctly at any zoom level */
+  :global(.window) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
   }
   
+  :global(.window button) {
+    position: relative;
+    z-index: 1002;
+    pointer-events: auto !important;
+  }
+  
+  :global(.window .content) {
+    position: relative;
+    z-index: 1001;
+    pointer-events: auto;
+  }
   /* Prevent unnecessary scrollbars from appearing */
   :global(html) {
     overflow: hidden;
@@ -166,4 +188,3 @@
   </ModalContext>
   <Updater />
 </main>
-

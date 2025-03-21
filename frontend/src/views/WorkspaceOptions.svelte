@@ -43,6 +43,7 @@
     display: flex;
     flex-flow: column;
     overflow: auto;
+    position: relative;
   }
   h1 {
     width: 100%;
@@ -65,10 +66,11 @@
     position: relative;
     z-index: 10;
   }
-  /* Add styles to ensure buttons are clickable */
-  :global(.workspace-options button) {
+  /* Ensure buttons are always clickable */
+  footer button {
     position: relative;
-    z-index: 100;
+    z-index: 20;
+    pointer-events: auto !important;
   }
 </style>
 

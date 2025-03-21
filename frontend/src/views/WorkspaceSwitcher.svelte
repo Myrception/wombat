@@ -23,6 +23,11 @@
     DeleteWorkspace(wksp.id);
     visible = false;
   }
+  
+  // Function to get current zoom level
+  function getCurrentZoom() {
+    return parseFloat(document.body.dataset.zoomLevel || "1.0");
+  }
 
 </script>
 
@@ -38,10 +43,10 @@
 }
 
 .panel {
-  position: absolute;
+  position: fixed; /* Changed from absolute to fixed */
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1); /* Add scale(1) as default */
   border: var(--border);
   background-color: var(--bg-color);
   width: min(400px, 90vw);
@@ -62,7 +67,7 @@
 
 {#if visible}
   <div class="overlay" on:click|self={() => visible = false}>
-    <div class="panel">
+    <div class="panel" style="transform: translate(-50%, -50%) scale({1/getCurrentZoom()});">
       <h1>Select Workspace</h1>
       <WorkspaceList on:select={onWorkspaceSelected} on:delete={onWorkspaceDeleted} {current} {workspaces} />
     </div>
