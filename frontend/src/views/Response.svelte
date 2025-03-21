@@ -19,18 +19,18 @@
   
   function updateEditorFontSize(zoomLevel) {
     if (editor) {
-      // Scale font size inversely with zoom to maintain relative size
-      const fontSize = Math.max(12, Math.floor(14 / zoomLevel));
+      // Scale font size proportionally with zoom
+      const fontSize = Math.max(12, Math.round(14 * zoomLevel));
       editor.updateOptions({ fontSize: fontSize });
     }
   }
 
   onMount(() => {
-    // Get the current zoom level
-    const currentZoom = window.appZoom ? window.appZoom.getZoomLevel() : 1.0;
+    // Get the current zoom level from the data attribute we set in main.js
+    const currentZoom = parseFloat(document.body.dataset.zoomLevel || "1.0");
     
-    // Scale font size inversely with zoom to maintain relative size
-    const fontSize = Math.max(12, Math.floor(14 / currentZoom));
+    // Set initial font size based on zoom
+    const fontSize = Math.max(12, Math.round(14 * currentZoom));
     
     editor = monaco.editor.create(Response, {
       model: model,
@@ -58,6 +58,15 @@
         useShadows: false,
       },
     });
+    
+    // Since Monaco editor is within the transformed body, we need to
+    // counteract the scaling so that the editor itself isn't double-scaled
+    if (Response.parentElement) {
+      Response.parentElement.style.transform = `scale(${1/currentZoom})`;
+      Response.parentElement.style.transformOrigin = 'top left';
+      Response.parentElement.style.width = `${100 * currentZoom}%`;
+      Response.parentElement.style.height = `${100 * currentZoom}%`;
+    }
   });
 </script>
 

@@ -66,7 +66,12 @@
 
     --padding: calc(12px * var(--app-scale));
     --font-size: calc(10pt * var(--app-scale));
-    --border: 1px solid #3b4252;
+    --border: calc(1px * var(--app-scale)) solid #3b4252;
+
+    --icon-size: calc(16px * var(--app-scale));
+    --input-height: calc(40px * var(--app-scale));
+    --btn-height: calc(40px * var(--app-scale));
+    --header-height: calc(40px * var(--app-scale));
   }
 
   :global(html,body) {
@@ -85,11 +90,70 @@
     color: var(--text-color);
     cursor: default;
   }
+  
+  :global(button),
+  :global(input),
+  :global(textarea),
+  :global(select) {
+    font-size: var(--font-size);
+  }
+  :global(.monaco-editor) {
+  font-size: var(--font-size) !important;
+  }
+  
+  :global(.header),
+  :global(.content),
+  :global(.footer),
+  :global(.workspace-options),
+  :global(.method-input),
+  :global(.response) {
+    padding: var(--padding);
+  }
+  :global(svg) {
+  transform-origin: center;
+  transform: scale(var(--app-scale));
+  }
+  
+  /* Ensure fixed dimensions scale with zoom */
+  :global([class*="fixed-"]) {
+    transform-origin: top left;
+    transform: scale(var(--app-scale));
+  }
+  
+  /* Apply zoom transition for smooth scaling */
+  :global(body) {
+    transition: font-size 0.2s ease;
+  }
+  
+  :global(*) {
+    transition: padding 0.2s ease, margin 0.2s ease, height 0.2s ease, width 0.2s ease;
+  }
 
   .app {
     height: 100vh;
     display: flex;
     flex-flow: column;
+    overflow: hidden;
+  }
+
+  /* Add helper class for fixed-position elements that need special handling when zooming */
+  :global(.fixed-position) {
+    position: fixed;
+    /* These elements will be adjusted by our JavaScript zoom handler */
+  }
+  
+  /* Add a transition for smoother zoom experience */
+  :global(body) {
+    transition: transform 0.2s ease;
+  }
+  
+  /* Make sure modals and dialogs appear correctly at all zoom levels */
+  :global(.modal), :global(.overlay) {
+    /* Add properties to ensure modals appear correctly at any zoom level */
+  }
+  
+  /* Prevent unnecessary scrollbars from appearing */
+  :global(html) {
     overflow: hidden;
   }
 </style>

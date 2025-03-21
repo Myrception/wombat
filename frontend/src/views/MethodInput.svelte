@@ -1,9 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import Button from "../controls/Button.svelte";
+  import Button from '../controls/Button.svelte';
   import MessageField from "./MessageField.svelte";
-
-  let methodSelected;
 
   export let methodInput = {
     full_name: "",
@@ -12,6 +10,8 @@
 
   export let state;
   export let mapItems;
+
+  let methodSelected;
 
   const dispatch = createEventDispatcher();
   const onEdit = () => dispatch("edit");
@@ -23,6 +23,8 @@
     padding: var(--padding);
     overflow: auto;
     height: calc(100% - 106px);
+    width: calc(100% - 2 * var(--padding));
+    position: relative;
   }
   h2 {
     font-size: var(--font-size);
@@ -33,11 +35,14 @@
     display: flex;
     flex-flow: column;
     width: calc(100% - 2 * var(--padding));
+    padding-bottom: 60px; /* Add space for the edit button */
   }
+  /* Remove absolute positioning for the edit button */
   .edit {
-    position: absolute;
-    bottom: var(--padding);
-    right: var(--padding);
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    /* Position at the bottom of the content, not absolutely positioned */
   }
 </style>
 

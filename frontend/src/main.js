@@ -60,19 +60,86 @@ function zoomOut() {
 }
 
 function resetZoom() {
-    // Use the initially calculated zoom level based on resolution instead of always 1.0
-    initializeZoom();
+    zoomLevel = 1.0; // Always reset to 1.0 for consistency
+    applyZoom();
+    saveZoomLevel();
     notifyZoomChange();
 }
 
-function applyZoom() {
-     // Apply zoom using CSS variables instead of transform to prevent layout issues
-    document.documentElement.style.setProperty('--app-scale', zoomLevel); 
-    // Update font sizes and other scalable properties
-    document.documentElement.style.fontSize = `${zoomLevel * 10}pt`;
+function adjustFixedPositionElements(zoomLevel) {
+  // Find all elements that might need position adjustment on zoom
+  const fixedElements = document.querySelectorAll('.fixed-position, [data-fixed-position]');
+  
+  fixedElements.forEach(element => {
+    const zoomFactor = 1 / zoomLevel;
     
+    // Apply inverse positioning to counteract the zoom effect
+    if (element.dataset.originalBottom === undefined) {
+      // Store original positions if not already stored
+      element.dataset.originalBottom = window.getComputedStyle(element).bottom;
+      element.dataset.originalRight = window.getComputedStyle(element).right;
+      element.dataset.originalTop = window.getComputedStyle(element).top;
+      element.dataset.originalLeft = window.getComputedStyle(element).left;
+    }
+    
+    // Apply adjusted positions
+    if (element.dataset.originalBottom && element.dataset.originalBottom !== 'auto') {
+      const originalBottom = parseFloat(element.dataset.originalBottom);
+      element.style.bottom = `${originalBottom * zoomFactor}px`;
+    }
+    
+    if (element.dataset.originalRight && element.dataset.originalRight !== 'auto') {
+      const originalRight = parseFloat(element.dataset.originalRight);
+      element.style.right = `${originalRight * zoomFactor}px`;
+    }
+    
+    if (element.dataset.originalTop && element.dataset.originalTop !== 'auto') {
+      const originalTop = parseFloat(element.dataset.originalTop);
+      element.style.top = `${originalTop * zoomFactor}px`;
+    }
+    
+    if (element.dataset.originalLeft && element.dataset.originalLeft !== 'auto') {
+      const originalLeft = parseFloat(element.dataset.originalLeft);
+      element.style.left = `${originalLeft * zoomFactor}px`;
+    }
+  });
+  
+  // Specific handling for Edit button which might not be caught by the selector above
+  const editBtn = document.querySelector('.edit');
+  if (editBtn) {
+    const zoomFactor = 1 / zoomLevel;
+    editBtn.style.bottom = `calc(var(--padding) * ${zoomFactor})`;
+    editBtn.style.right = `calc(var(--padding) * ${zoomFactor})`;
+  }
+}
+
+function applyZoom() {
+    // Direct transform approach - scales the entire UI consistently
+    document.body.style.transform = `scale(${zoomLevel})`;
+    document.body.style.transformOrigin = 'top left';
+    
+    // Adjust the body dimensions to account for the scaling
+    document.body.style.width = `${100 / zoomLevel}%`;
+    document.body.style.height = `${100 / zoomLevel}vh`;
+    
+    // Store the zoom level for components that need to know it
+    document.body.dataset.zoomLevel = zoomLevel;
+    
+    // Also set CSS variables for components that use them
+    document.documentElement.style.setProperty('--app-scale', zoomLevel);
+   
+    adjustFixedPositionElements(zoomLevel);
+
     // Notify components about zoom change
     EventsEmit("wombat:zoom_changed", zoomLevel);
+}
+
+function initializeZoomAttributes() {
+    document.querySelectorAll('.needs-zoom').forEach((element, index) => {
+        if (!element.hasAttribute('data-zoom-scale')) {
+            element.setAttribute('data-zoom-scale', '1');
+        }
+    });
 }
 
 function adjustContainerHeight() {
@@ -98,7 +165,6 @@ function loadZoomLevel() {
     const savedZoom = localStorage.getItem('wombat_zoom_level');
     if (savedZoom !== null) {
         zoomLevel = parseFloat(savedZoom);
-        applyZoom();
     }
 }
 
@@ -129,9 +195,10 @@ function updateSplitPaneDividers() {
 // Handle window resize to adjust container height
 window.addEventListener('resize', () => {
   adjustContainerHeight();
-  setTimeout(updateSplitPaneDividers, 100);
-  location.reload(); 
-  window.dispatchEvent(new CustomEvent('wombat:window-resized'));
+  setTimeout(() => {
+        updateSplitPaneDividers();
+        window.dispatchEvent(new CustomEvent('wombat:window-resized'));
+    }, 100);
 });
 
 window.updateSplitPaneDividers = updateSplitPaneDividers;
