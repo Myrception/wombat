@@ -32,7 +32,7 @@
     await Connect(options, reflectmd, true);
     close();
   }
-  const onCloseClicked = close;
+  const onCloseClicked = () => close();
 
 </script>
 
@@ -62,6 +62,13 @@
     border-top: var(--border);
     margin-top: calc(-1 * var(--padding));
     height: 52px;
+    position: relative;
+    z-index: 10;
+  }
+  /* Add styles to ensure buttons are clickable */
+  :global(.workspace-options button) {
+    position: relative;
+    z-index: 100;
   }
 </style>
 

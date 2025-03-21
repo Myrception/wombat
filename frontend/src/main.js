@@ -113,6 +113,28 @@ function adjustFixedPositionElements(zoomLevel) {
   }
 }
 
+function notifyComponentsOfZoom() {
+    // Create a custom event that will bubble through the DOM
+    // This allows components to detect zoom changes even if they aren't
+    // directly subscribed to the Wails event
+    const event = new CustomEvent('wombat:zoom-changed', { 
+        bubbles: true,
+        detail: { zoomLevel: zoomLevel }
+    });
+    document.body.dispatchEvent(event);
+    
+    // Also trigger the window resize event to force layout recalculations
+    // This helps components like Monaco editor and tab panels to adjust correctly
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new CustomEvent('wombat:window-resized'));
+        
+        // Force recalculation of split pane dividers which often break on zoom
+        updateSplitPaneDividers();
+    }, 50);
+}
+
+
 function applyZoom() {
     // Direct transform approach - scales the entire UI consistently
     document.body.style.transform = `scale(${zoomLevel})`;
@@ -132,7 +154,12 @@ function applyZoom() {
 
     // Notify components about zoom change
     EventsEmit("wombat:zoom_changed", zoomLevel);
+
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 50);
 }
+
 
 function initializeZoomAttributes() {
     document.querySelectorAll('.needs-zoom').forEach((element, index) => {

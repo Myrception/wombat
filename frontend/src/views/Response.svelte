@@ -15,6 +15,11 @@
   // Clean up on component destroy
   onDestroy(() => {
     unsubscribeZoom();
+    
+    // Cleanup editor
+    if (editor) {
+      editor.dispose();
+    }
   });
   
   function updateEditorFontSize(zoomLevel) {
@@ -22,6 +27,11 @@
       // Scale font size proportionally with zoom
       const fontSize = Math.max(12, Math.round(14 * zoomLevel));
       editor.updateOptions({ fontSize: fontSize });
+      
+      // Force layout refresh
+      setTimeout(() => {
+        if (editor) editor.layout();
+      }, 10);
     }
   }
 
@@ -59,14 +69,10 @@
       },
     });
     
-    // Since Monaco editor is within the transformed body, we need to
-    // counteract the scaling so that the editor itself isn't double-scaled
-    if (Response.parentElement) {
-      Response.parentElement.style.transform = `scale(${1/currentZoom})`;
-      Response.parentElement.style.transformOrigin = 'top left';
-      Response.parentElement.style.width = `${100 * currentZoom}%`;
-      Response.parentElement.style.height = `${100 * currentZoom}%`;
-    }
+    // Listen for window resize to adjust editor layout
+    window.addEventListener('resize', () => {
+      if (editor) editor.layout();
+    });
   });
 </script>
 
