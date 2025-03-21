@@ -67,8 +67,7 @@ function resetZoom() {
 
 function applyZoom() {
      // Apply zoom using CSS variables instead of transform to prevent layout issues
-    document.documentElement.style.setProperty('--app-scale', zoomLevel);
-    console.log(zoomLevel) 
+    document.documentElement.style.setProperty('--app-scale', zoomLevel); 
     // Update font sizes and other scalable properties
     document.documentElement.style.fontSize = `${zoomLevel * 10}pt`;
     
@@ -106,10 +105,36 @@ function loadZoomLevel() {
 // Try to load saved zoom level, if available
 loadZoomLevel();
 
+function updateSplitPaneDividers() {
+  // Find all split pane dividers
+  const dividers = document.querySelectorAll('.divider');
+  
+  // Force a reflow on each divider
+  dividers.forEach(divider => {
+    // Get the parent container dimensions
+    const container = divider.closest('.container');
+    if (container) {
+      // For horizontal dividers, ensure height matches container
+      if (divider.classList.contains('horizontal')) {
+        divider.style.height = container.offsetHeight + 'px';
+      }
+      // For vertical dividers, ensure width matches container
+      else if (divider.classList.contains('vertical')) {
+        divider.style.width = container.offsetWidth + 'px';
+      }
+    }
+  });
+}
+
 // Handle window resize to adjust container height
 window.addEventListener('resize', () => {
-    adjustContainerHeight();
+  adjustContainerHeight();
+  setTimeout(updateSplitPaneDividers, 100);
+  location.reload(); 
+  window.dispatchEvent(new CustomEvent('wombat:window-resized'));
 });
+
+window.updateSplitPaneDividers = updateSplitPaneDividers;
 
 // Keep the existing keyboard shortcuts
 document.addEventListener('keydown', (event) => {

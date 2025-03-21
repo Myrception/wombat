@@ -5,8 +5,6 @@
 	export let pos = 50;
 	export let fixed = false;
     export let min = 0;
-	// export let min1 = min;
-	// export let min2 = min;
 	const refs = {};
 	let dragging = false;
     let containerWidth = 0;
@@ -50,26 +48,55 @@
 			}
 		};
 	}
+    function updateDivider() {
+      if (!refs.divider || !refs.container) return;
+      
+      if (type === "horizontal") {
+        refs.divider.style.height = refs.container.offsetHeight + 'px';
+      } else {
+        refs.divider.style.width = refs.container.offsetWidth + 'px';
+      }
+    }
 
     onMount(() => {
 	  const observer = new ResizeObserver(() => {
 	    if (refs.container) {
 	      containerWidth = refs.container.offsetWidth;
 	      containerHeight = refs.container.offsetHeight;
+          updateDivider();
 	    }
 	  });
 	  
 	  if (refs.container) {
 	    observer.observe(refs.container);
 	  }
+
+	  const handleWindowResize = () => {
+	    if (refs.container) {
+	      // Force recalculation with slight delay
+	      setTimeout(updateDivider, 50);
+	    }
+	  };
 	  
+	  window.addEventListener('resize', handleWindowResize);
+	  window.addEventListener('wombat:window-resized', handleWindowResize);
+	  
+	  // Initial update
+	  updateDivider();
+
 	  return () => {
 	    observer.disconnect();
+        window.removeEventListener('resize', handleWindowResize);
+	    window.removeEventListener('wombat:window-resized', handleWindowResize);
 	  };
 	});
 
 	$: side = type === 'horizontal' ? 'left' : 'top';
 	$: dimension = type === 'horizontal' ? 'width' : 'height';
+    $: if (refs.divider && refs.container) {
+	  // Reactive statement to update divider when type or refs change
+	  updateDivider();
+	}
 </script>
 
 <style>
@@ -110,6 +137,7 @@
 		width: 4px;
 		height: 100%;
 		cursor: ew-resize;
+        top: 0;
 	}
 	.horizontal::after {
 		left: 8px;
