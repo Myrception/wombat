@@ -73,15 +73,13 @@
 
 	  const handleWindowResize = () => {
 	    if (refs.container) {
-	      // Force recalculation with slight delay
-	      setTimeout(updateDivider, 50);
+            updateDivider()
 	    }
 	  };
 	  
 	  window.addEventListener('resize', handleWindowResize);
 	  window.addEventListener('wombat:window-resized', handleWindowResize);
 	  
-	  // Initial update
 	  updateDivider();
 
 	  return () => {
@@ -94,7 +92,6 @@
 	$: side = type === 'horizontal' ? 'left' : 'top';
 	$: dimension = type === 'horizontal' ? 'width' : 'height';
     $: if (refs.divider && refs.container) {
-	  // Reactive statement to update divider when type or refs change
 	  updateDivider();
 	}
 </script>
@@ -138,6 +135,7 @@
 		height: 100%;
 		cursor: ew-resize;
         top: 0;
+        margin-left: -10px;
 	}
 	.horizontal::after {
 		left: 8px;
@@ -146,10 +144,11 @@
 		height: 100%;
 	}
 	.vertical {
-		padding: 8px 0;
-		width: 100%;
-		height: 0;
-		cursor: ns-resize;
+        padding: 8px 0;
+        width: 100%;
+        height: 4px;
+        cursor: ns-resize;
+        margin-top: -8px;
 	}
 	.vertical::after {
 		top: 8px;
@@ -182,7 +181,7 @@
 	</div>
 
 	{#if !fixed}
-		<div class="{type} divider" style="{side}: calc({pos}% - 10px)" use:drag={setPos}></div>
+        <div class="{type} divider" style="{side}: calc({pos}% - {type === 'horizontal' ? 0 : 8}px)" use:drag={setPos}></div>
 	{/if}
     <slot />
 </div>
