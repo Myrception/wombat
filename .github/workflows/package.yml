@@ -118,7 +118,8 @@ jobs:
     steps:
     - name: Get version tag
       id: version
-      run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
+        #run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
+      run: echo "::set-output name=tag::${GITHUB_REF/refs\/heads\//}"
 
     - name: Get changelog url
       id: changelog
