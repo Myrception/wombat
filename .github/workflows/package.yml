@@ -1,7 +1,7 @@
 on:
   push:
-    tags:
-    - v*
+    branches:
+      - github_workflow
 
 jobs:
   package:
