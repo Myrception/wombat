@@ -141,7 +141,6 @@
   
   :global(*) {
     transition: padding 0.2s ease, margin 0.2s ease, height 0.2s ease, width 0.2s ease;
-    box-sizing: border-box;
   }
 
   .app {
