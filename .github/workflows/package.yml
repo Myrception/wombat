@@ -69,7 +69,7 @@ jobs:
         ls
         rm -rf frontend/
         df -h
-        tar -zcvf Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz build/bin/wombat
+        tar -zcvf Wombat_debug_test_Linux_x86_64.tar.gz build/bin/wombat
 
     - name: Upload linux tar.gz
       if: matrix.platform == 'ubuntu-latest'
