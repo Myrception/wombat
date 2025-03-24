@@ -118,7 +118,7 @@ jobs:
 
     - name: Get changelog url
       id: changelog
-      run: echo "${{ steps.version.outputs.tag }}---$(date +'%Y-%m-%d')" | sed -e 's/\.//g' | awk '{print "::set-output name=url::https://github.com/rogchap/wombat/blob/master/CHANGELOG.md#" $1}'
+      run: echo "${{ steps.version.outputs.tag }}---$(date +'%Y-%m-%d')" | sed -e 's/\.//g' | awk '{print "::set-output name=url::https://github.com/myrception/wombat/blob/master/CHANGELOG.md#" $1}'
 
     - name: Create release
       id: create_release
