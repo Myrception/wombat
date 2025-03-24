@@ -1,5 +1,32 @@
 <script>
+  import { onMount, onDestroy } from "svelte";
+  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  
   export let stats;
+  
+  let container;
+  let zoomLevel = 1.0;
+  
+  // Subscribe to zoom changes
+  const unsubscribeZoom = EventsOn("wombat:zoom_changed", (newZoomLevel) => {
+    zoomLevel = newZoomLevel;
+  });
+  
+  // Clean up on component destroy
+  onDestroy(() => {
+    unsubscribeZoom();
+  });
+  
+  onMount(() => {
+    // Initialize zoom level from body data attribute
+    zoomLevel = parseFloat(document.body.dataset.zoomLevel || "1.0");
+  });
+  
+  // Reactive statement to update font size when zoom level changes
+  $: if (container && zoomLevel) {
+    const fontSize = Math.max(12, Math.round(14 * zoomLevel));
+    container.style.fontSize = `${fontSize}px`;
+  }
 </script>
 
 <style>
@@ -26,7 +53,7 @@
     height: var(--padding);
   }
   h3 {
-    font-size: var(--font-size);
+    font-size: inherit;
     margin: 0;
     padding: 0;
   }
@@ -35,7 +62,7 @@
   }
 </style>
 
-<div class="stats">
+<div class="stats" bind:this={container}>
   {#each stats as stat}
     <div class:out={stat.type.startsWith("out")} class:in={stat.type.startsWith("in")}>
     {#if stat.type === "begin"}
