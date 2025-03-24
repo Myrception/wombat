@@ -66,6 +66,7 @@ jobs:
         mkdir -p ~/.wails
         cp wails.json ~/.wails/
         wails build -f -ldflags "-X wombat/internal/app.semver=${{ steps.version.outputs.tag }}" -tags webkit2_41
+        rm -rf frontend/
         tar -zcvf Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz build/bin/wombat
 
     - name: Upload linux tar.gz
