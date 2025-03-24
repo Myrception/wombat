@@ -53,7 +53,7 @@ jobs:
 
     - name: Upload darwin disk image
       if: matrix.platform == 'macos-10.15'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Wombat_${{ steps.version.outputs.tag }}_Darwin_x86_64.dmg
         path: Wombat_${{ steps.version.outputs.tag }}_Darwin_x86_64.dmg
@@ -70,7 +70,7 @@ jobs:
 
     - name: Upload linux tar.gz
       if: matrix.platform == 'ubuntu-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz
         path: Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz
@@ -103,7 +103,7 @@ jobs:
 
     - name: Upload windows zip
       if: matrix.platform == 'windows-2019'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Wombat_${{ steps.versionw.outputs.tag }}_Windows_x86_64.zip
         path: Wombat_${{ steps.versionw.outputs.tag }}_Windows_x86_64.zip
