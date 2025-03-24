@@ -32,12 +32,14 @@
       left: "50%",
       transform: `translate(-50%, -50%) scale(${1/getCurrentZoom()})`,
       zIndex: 1000,
+      overflowX: "hidden",
     },
     styleContent: {
       padding: "12px",
       width: "100%",
       position: "relative",
       zIndex: 1001,
+      boxSizing: "border-box",
     },
     styleCloseButton: {
       borderRadius: 0,
@@ -123,7 +125,7 @@
   }
   :global(svg) {
   transform-origin: center;
-  transform: scale(var(--app-scale));
+  transform: scale(1);
   }
   
   /* Ensure fixed dimensions scale with zoom */
@@ -139,6 +141,7 @@
   
   :global(*) {
     transition: padding 0.2s ease, margin 0.2s ease, height 0.2s ease, width 0.2s ease;
+    box-sizing: border-box;
   }
 
   .app {
@@ -161,6 +164,8 @@
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
+    overflow-x: hidden !important;
+    max-width: 100% !important;
   }
   
   :global(.window button) {
@@ -173,6 +178,8 @@
     position: relative;
     z-index: 1001;
     pointer-events: auto;
+    overflow-x: hidden;
+    width: 100%;
   }
   /* Prevent unnecessary scrollbars from appearing */
   :global(html) {
