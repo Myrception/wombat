@@ -14,15 +14,14 @@ jobs:
     - name: Get version tag (unix)
       if: matrix.platform != 'windows-2019'
       id: version
-      #run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
-      run: echo "::set-output name=tag::${GITHUB_REF/refs\/heads\//}"
+      run: echo "tag=${GITHUB_REF/refs\/heads\//}" >> $GITHUB_OUTPUT
 
     - name: Get version tag (windows)
       if: matrix.platform == 'windows-2019'
       id: versionw
       run: |
         $tag = $env:GITHUB_REF -replace "refs/tags/", ""
-        echo "::set-output name=tag::$(echo $tag)"
+        echo "tag=$(echo $tag)" >> $GITHUB_OUTPUT
 
     - name: Install Go
       uses: actions/setup-go@v5
@@ -67,10 +66,8 @@ jobs:
         mkdir -p ~/.wails
         cp wails.json ~/.wails/
         wails build -f -ldflags "-X wombat/internal/app.semver=${{ steps.version.outputs.tag }}" -tags webkit2_41
-        ls
         rm -rf frontend/
-        df -h
-        tar -zcvf Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz build/bin/wombat
+        tar -C build/bin -zcvf Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz wombat
 
     - name: Upload linux tar.gz
       if: matrix.platform == 'ubuntu-latest'
@@ -118,12 +115,11 @@ jobs:
     steps:
     - name: Get version tag
       id: version
-        #run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
-      run: echo "::set-output name=tag::${GITHUB_REF/refs\/heads\//}"
+      run: echo "tag=${GITHUB_REF/refs\/heads\//}" >> $GITHUB_OUTPUT
 
     - name: Get changelog url
       id: changelog
-      run: echo "${{ steps.version.outputs.tag }}---$(date +'%Y-%m-%d')" | sed -e 's/\.//g' | awk '{print "::set-output name=url::https://github.com/myrception/wombat/blob/master/CHANGELOG.md#" $1}'
+      run: echo "${{ steps.version.outputs.tag }}---$(date +'%Y-%m-%d')" | sed -e 's/\.//g' | awk '{print "url=https://github.com/myrception/wombat/blob/master/CHANGELOG.md#" >> $GITHUB_OUTPUT $1}'
 
     - name: Create release
       id: create_release
