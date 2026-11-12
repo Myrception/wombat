@@ -1,47 +1,13 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  import { zoom, editorFontSize } from "../zoom";
 
   export let model;
 
   let Response;
   let editor;
-  
-  // Subscribe to zoom change events
-  const unsubscribeZoom = EventsOn("wombat:zoom_changed", (newZoomLevel) => {
-    updateEditorFontSize(newZoomLevel);
-  });
-  
-  // Clean up on component destroy
-  onDestroy(() => {
-    unsubscribeZoom();
-    
-    // Cleanup editor
-    if (editor) {
-      editor.dispose();
-    }
-  });
-  
-  function updateEditorFontSize(zoomLevel) {
-    if (editor) {
-      // Scale font size proportionally with zoom
-      const fontSize = Math.max(12, Math.round(14 * zoomLevel));
-      editor.updateOptions({ fontSize: fontSize });
-      
-      // Force layout refresh
-      setTimeout(() => {
-        if (editor) editor.layout();
-      }, 10);
-    }
-  }
 
   onMount(() => {
-    // Get the current zoom level from the data attribute we set in main.js
-    const currentZoom = parseFloat(document.body.dataset.zoomLevel || "1.0");
-    
-    // Set initial font size based on zoom
-    const fontSize = Math.max(12, Math.round(14 * currentZoom));
-    
     editor = monaco.editor.create(Response, {
       model: model,
       readOnly: true,
@@ -59,7 +25,7 @@
       hideCursorInOverviewRuler: true,
       overviewRulerBorder: false,
       lineNumbers: "off",
-      fontSize: fontSize, // Set font size based on zoom level
+      fontSize: editorFontSize(),
       padding: {
         top: 12,
         bottom: 12,
@@ -68,11 +34,16 @@
         useShadows: false,
       },
     });
-    
-    // Listen for window resize to adjust editor layout
-    window.addEventListener('resize', () => {
-      if (editor) editor.layout();
-    });
+  });
+
+  // The host cancels CSS zoom (Monaco can't handle it), so scale the font.
+  const unsubscribeZoom = zoom.subscribe((z) => {
+    if (editor) editor.updateOptions({ fontSize: editorFontSize(z) });
+  });
+
+  onDestroy(() => {
+    unsubscribeZoom();
+    if (editor) editor.dispose();
   });
 </script>
 
@@ -95,5 +66,5 @@
 </style>
 
 <div class="response">
-  <div bind:this={Response} class="container" />
+  <div bind:this={Response} class="container unzoomed" />
 </div>

@@ -78,14 +78,12 @@
 	  };
 	  
 	  window.addEventListener('resize', handleWindowResize);
-	  window.addEventListener('wombat:window-resized', handleWindowResize);
 	  
 	  updateDivider();
 
 	  return () => {
 	    observer.disconnect();
         window.removeEventListener('resize', handleWindowResize);
-	    window.removeEventListener('wombat:window-resized', handleWindowResize);
 	  };
 	});
 

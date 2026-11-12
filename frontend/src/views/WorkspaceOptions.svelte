@@ -38,8 +38,9 @@
 
 <style>
   .workspace-options {
-    width: min(800px, 90vw);
-    height: min(604px, 80vh);
+    /* Fill the modal; the global .workspace-options padding comes on top. */
+    width: calc(100% - 2 * var(--padding));
+    height: min(604px, calc(80vh / var(--zoom)));
     display: flex;
     flex-flow: column;
     overflow: auto;

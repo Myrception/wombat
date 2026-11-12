@@ -39,7 +39,7 @@
     background-color: var(--bg-color2);
     border: var(--border);
     z-index: 10;
-    max-width: min(300px, 90vw);
+    max-width: min(300px, calc(90vw / var(--zoom)));
     overflow: hidden;
   }
 

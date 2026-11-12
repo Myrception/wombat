@@ -3,6 +3,7 @@
 
   import Button from '../controls/Button.svelte';
   import { ImportCommand } from '../../wailsjs/go/app/api';
+  import { editorFontSize } from '../zoom';
 
   let EditorContainer;
   let Editor
@@ -14,6 +15,7 @@
     Editor = monaco.editor.create(EditorContainer, {
       model,
       minimap: { enabled: false },
+      fontSize: editorFontSize(),
       wordWrap: 'on',
       theme: 'nord-dark',
       links: false,
@@ -44,7 +46,7 @@
 
 <div class="code-edit-panel">
   <h1>Edit as GRPCURL</h1>
-  <div bind:this={EditorContainer} class="editor-container" />
+  <div bind:this={EditorContainer} class="editor-container unzoomed" />
   <div class="spacer" />
   <footer>
     <Button text="Close" on:click={close} />
@@ -57,8 +59,8 @@
 </div>
 <style>
   .code-edit-panel {
-    width: min(90vw, 800px);
-    height: min(90vh, 650px);
+    width: min(calc(90vw / var(--zoom)), 800px);
+    height: min(calc(90vh / var(--zoom)), 650px);
     display: flex;
     flex-flow: column;
   }

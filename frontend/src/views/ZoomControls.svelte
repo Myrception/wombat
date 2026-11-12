@@ -1,44 +1,5 @@
 <script>
-  import { onMount, onDestroy } from "svelte";
-  import { EventsOn } from '../../wailsjs/runtime/runtime';
-
-  let zoomLevel = 1.0;
-  let zoomPercent = "100%";
-  
-  // Subscribe to zoom change events
-  const unsubscribeZoom = EventsOn("wombat:zoom_changed", (newZoomLevel) => {
-    updateZoomDisplay(newZoomLevel);
-  });
-  
-  // Cleanup on destroy
-  onDestroy(() => {
-    unsubscribeZoom();
-  });
-  
-  // Initialize on mount
-  onMount(() => {
-    // Initialize from current app zoom level
-    if (window.appZoom) {
-      updateZoomDisplay(window.appZoom.getZoomLevel());
-    }
-  });
-  
-  function updateZoomDisplay(zoom) {
-    zoomLevel = zoom;
-    zoomPercent = Math.round(zoom * 100) + "%";
-  }
-  
-  function handleZoomIn() {
-    if (window.appZoom) window.appZoom.zoomIn();
-  }
-  
-  function handleZoomOut() {
-    if (window.appZoom) window.appZoom.zoomOut();
-  }
-  
-  function handleResetZoom() {
-    if (window.appZoom) window.appZoom.resetZoom();
-  }
+  import { zoom, zoomIn, zoomOut, resetZoom } from "../zoom";
 </script>
 
 <style>
@@ -79,23 +40,23 @@
 </style>
 
 <div class="zoom-controls">
-  <button on:click={handleZoomOut} title="Zoom out (Ctrl+-)">
+  <button on:click={zoomOut} title="Zoom out (Ctrl+-)">
     <svg width="16" height="16" viewBox="0 0 16 16">
       <path d="M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
     </svg>
   </button>
   
   <div class="zoom-level" title="Current zoom level">
-    {zoomPercent}
+    {Math.round($zoom * 100)}%
   </div>
   
-  <button on:click={handleZoomIn} title="Zoom in (Ctrl+=)">
+  <button on:click={zoomIn} title="Zoom in (Ctrl+=)">
     <svg width="16" height="16" viewBox="0 0 16 16">
       <path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
     </svg>
   </button>
   
-  <button on:click={handleResetZoom} title="Reset zoom (Ctrl+0)">
+  <button on:click={resetZoom} title="Reset zoom (Ctrl+0)">
     <svg width="16" height="16" viewBox="0 0 16 16">
       <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" />
       <path d="M5 8h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
