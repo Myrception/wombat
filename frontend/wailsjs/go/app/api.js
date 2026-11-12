@@ -26,6 +26,10 @@ export function FindProtoFiles() {
   return window['go']['app']['api']['FindProtoFiles']();
 }
 
+export function FrontendReady() {
+  return window['go']['app']['api']['FrontendReady']();
+}
+
 export function GetMetadata(arg1) {
   return window['go']['app']['api']['GetMetadata'](arg1);
 }
@@ -72,12 +76,4 @@ export function SelectWorkspace(arg1) {
 
 export function Send(arg1, arg2, arg3) {
   return window['go']['app']['api']['Send'](arg1, arg2, arg3);
-}
-
-export function Shutdown(arg1) {
-  return window['go']['app']['api']['Shutdown'](arg1);
-}
-
-export function WailsShutdown() {
-  return window['go']['app']['api']['WailsShutdown']();
 }

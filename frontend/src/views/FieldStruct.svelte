@@ -2,6 +2,7 @@
   import InputLabel from "../controls/InputLabel.svelte";
   import Checkbox from "../controls/Checkbox.svelte";
   import TextArea from "../controls/TextArea.svelte";
+  import { EventsEmit } from "../../wailsjs/runtime/runtime";
 
   export let field;
   export let state;
@@ -31,7 +32,7 @@
       state[val] = JSON.parse(event.target.value);
     } catch (e) {
       state[val] = null;
-      wails.Events.Emit("wombat:error", {
+      EventsEmit("wombat:error", {
         msg: String(e),
         title: "parse  " + field.name + " error",
       });

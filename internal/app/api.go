@@ -20,7 +20,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
@@ -45,17 +45,32 @@ const (
 )
 
 type api struct {
-	ctx              context.Context
+	ctx     context.Context
+	rt      wailsRuntime
+	appData string
+	store   *store
+
+	// startupErr is reported to the user once the frontend is ready.
+	startupErr error
+	readyOnce  sync.Once
+
+	// connectMu serialises Connect so two connection attempts (e.g. startup
+	// and a workspace switch) cannot interleave.
+	connectMu sync.Mutex
+
+	// mu guards the fields below. Wails invokes every bound method on its own
+	// goroutine, so all of these are accessed concurrently.
+	mu               sync.Mutex
+	gen              uint64 // incremented on every (re)connect
 	client           *client
-	store            *store
+	addr             string
 	protofiles       *protoregistry.Files
-	streamReq        chan proto.Message
 	cancelMonitoring context.CancelFunc
-	cancelInFlight   context.CancelFunc
-	mu               sync.Mutex // protect in-flight requests
-	inFlight         bool
-	appData          string
 	state            *workspaceState
+
+	// callMu guards call, the single in-flight RPC.
+	callMu sync.Mutex
+	call   *rpcCall
 }
 
 type statsHandler struct {
@@ -79,89 +94,146 @@ func newStoreLogger(ctx context.Context) *storeLogger {
 // Debugf implements badger.Logger interface
 func (s *storeLogger) Debugf(format string, args ...interface{}) {
 	// Use slog's Debug level
-	s.log.Debug(format, args...)
+	s.log.Debug(strings.TrimSpace(fmt.Sprintf(format, args...)))
 }
 
 // Infof implements badger.Logger interface
 func (s *storeLogger) Infof(format string, args ...interface{}) {
 	// Use slog's Info level
-	s.log.Info(format, args...)
+	s.log.Info(strings.TrimSpace(fmt.Sprintf(format, args...)))
 }
 
 // Warningf implements badger.Logger interface
 func (s *storeLogger) Warningf(format string, args ...interface{}) {
 	// Use slog's Warn level and also send to Wails runtime
-	s.log.Warn(format, args...)
+	s.log.Warn(strings.TrimSpace(fmt.Sprintf(format, args...)))
 }
 
 // Errorf implements badger.Logger interface
 func (s *storeLogger) Errorf(format string, args ...interface{}) {
 	// Use slog's Error level and also send to Wails runtime
-	s.log.Error(format, args...)
+	s.log.Error(strings.TrimSpace(fmt.Sprintf(format, args...)))
 }
 
 func NewApp() *api {
-	return &api{}
+	return &api{state: &workspaceState{CurrentID: defaultWorkspaceKey}}
 }
 
-// Startup is the initialization function for the Wails v2 runtime
+// Startup is the initialization function for the Wails v2 runtime.
+//
+// Note: on Linux this runs concurrently with the page load, so nothing here may
+// emit events the frontend depends on; those would be lost. The initial
+// connection is made in FrontendReady instead.
 func (a *api) Startup(ctx context.Context) {
 	a.ctx = ctx
+	a.rt = ctxRuntime{ctx}
 
 	var err error
 	a.store, err = newStore(a.appData, newStoreLogger(ctx))
 	if err != nil {
-		runtime.LogError(ctx,
-			fmt.Errorf("app: failed to create database: %v", err).Error())
-		runtime.LogInfof(ctx, "appData: %s", a.appData)
+		a.startupErr = fmt.Errorf("failed to open database in %s (is another Wombat instance running?): %v", a.appData, err)
+		a.rt.LogError(a.startupErr.Error())
 	}
-	a.state = a.getCurrentState()
 
+	st := a.getCurrentState()
+	a.mu.Lock()
+	a.state = st
+	a.mu.Unlock()
+}
+
+// FrontendReady must be called by the frontend once all components are mounted
+// and subscribed to events. The first call makes the initial connection; later
+// calls (e.g. after a webview reload) re-emit the current state.
+func (a *api) FrontendReady() {
+	first := false
+	a.readyOnce.Do(func() { first = true })
+	if !first {
+		a.emitCurrentState()
+		return
+	}
+
+	if a.startupErr != nil {
+		a.emitError("Database Error", a.startupErr.Error())
+	}
+	a.connectCurrentWorkspace()
+	go a.checkForUpdate()
+}
+
+func (a *api) connectCurrentWorkspace() {
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
-		runtime.LogError(ctx, err.Error())
+		a.rt.LogError(fmt.Sprintf("failed to load workspace options: %v", err))
+		return
+	}
+	if opts.Addr == "" {
+		// Fresh workspace, nothing to connect to yet.
+		return
 	}
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
-		runtime.LogError(ctx, err.Error())
+		a.rt.LogWarning(fmt.Sprintf("failed to get reflection metadata: %v", err))
 	}
+	// Connect reports its own errors to the frontend.
+	_ = a.Connect(opts, hds, false)
+}
 
-	if err := a.Connect(opts, hds, false); err != nil {
-		runtime.LogError(ctx, err.Error())
+// emitCurrentState re-sends the connection and services state to the frontend.
+func (a *api) emitCurrentState() {
+	a.mu.Lock()
+	cl, addr := a.client, a.addr
+	a.mu.Unlock()
+
+	if cl == nil {
+		a.rt.Emit(eventClientStateChanged, connectivity.Shutdown.String())
+		return
 	}
-
-	go a.checkForUpdate()
+	a.rt.Emit(eventClientConnectStarted, addr)
+	a.rt.Emit(eventClientConnected, addr)
+	a.rt.Emit(eventClientStateChanged, cl.conn.GetState().String())
+	if err := a.emitServicesSelect("", "", nil); err != nil {
+		a.rt.LogError(err.Error())
+	}
 }
 
 func (a *api) checkForUpdate() {
 	r, err := checkForUpdate()
 	if err != nil {
 		if err == noUpdate {
-			runtime.LogInfo(a.ctx, err.Error())
+			a.rt.LogInfo(err.Error())
 			return
 		}
-		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to check for updates: %v", err))
+		a.rt.LogWarning(fmt.Sprintf("failed to check for updates: %v", err))
 		return
 	}
-	runtime.EventsEmit(a.ctx, eventUpdateAvailable, r)
+	a.rt.Emit(eventUpdateAvailable, r)
 }
 
 // Shutdown is called when the application is closing
 func (a *api) Shutdown(ctx context.Context) {
+	a.resetConnection()
 	a.store.close()
-	if a.cancelMonitoring != nil {
-		a.cancelMonitoring()
-	}
-	if a.cancelInFlight != nil {
-		a.cancelInFlight()
-	}
-	if a.client != nil {
-		a.client.close()
-	}
+}
+
+func (a *api) getClient() *client {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.client
+}
+
+func (a *api) getProtofiles() *protoregistry.Files {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.protofiles
+}
+
+func (a *api) currentWorkspaceID() string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.state.CurrentID
 }
 
 func (a *api) emitError(title, msg string) {
-	runtime.EventsEmit(a.ctx, eventError, errorMsg{title, msg})
+	a.rt.Emit(eventError, errorMsg{title, msg})
 }
 
 func (a *api) getCurrentState() *workspaceState {
@@ -170,14 +242,14 @@ func (a *api) getCurrentState() *workspaceState {
 	}
 	val, err := a.store.get([]byte(defaultStateKey))
 	if err != nil && err != errKeyNotFound {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to get current state from store: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to get current state from store: %v", err))
 	}
 	if len(val) == 0 {
 		return rtn
 	}
 	dec := gob.NewDecoder(bytes.NewBuffer(val))
 	if err := dec.Decode(rtn); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to decode state: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to decode state: %v", err))
 	}
 	return rtn
 }
@@ -185,7 +257,7 @@ func (a *api) getCurrentState() *workspaceState {
 // GetWorkspaceOptions gets the workspace options from the store
 func (a *api) GetWorkspaceOptions() (*options, error) {
 	wo := &options{
-		ID: a.state.CurrentID,
+		ID: a.currentWorkspaceID(),
 	}
 
 	val, err := a.store.get([]byte(wo.ID))
@@ -210,23 +282,12 @@ func (a *api) GetWorkspaceOptions() (*options, error) {
 	return wo, nil
 }
 
-// WailsShutdown is the shutdown function that is called when wails shuts down
-func (a *api) WailsShutdown() {
-	a.store.close()
-	if a.cancelMonitoring != nil {
-		a.cancelMonitoring()
-	}
-	if a.cancelInFlight != nil {
-		a.cancelInFlight()
-	}
-	if a.client != nil {
-		a.client.close()
-	}
-}
-
 // GetReflectMetadata gets the reflection metadata from the store by addr
 func (a *api) GetReflectMetadata(addr string) (headers, error) {
 	val, err := a.store.get([]byte(reflectMetadataKeyPrefix + hash(addr)))
+	if err == errKeyNotFound {
+		return headers{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +301,9 @@ func (a *api) GetReflectMetadata(addr string) (headers, error) {
 // GetMetadata gets the metadata from the store by addr
 func (a *api) GetMetadata(addr string) (headers, error) {
 	val, err := a.store.get([]byte(metadataKeyPrefix + hash(addr)))
+	if err == errKeyNotFound {
+		return headers{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -281,26 +345,18 @@ func (a *api) ListWorkspaces() ([]options, error) {
 
 // SelectWorkspace changes the current workspace by ID
 func (a *api) SelectWorkspace(id string) (rerr error) {
-	if a.state.CurrentID == id {
+	if a.currentWorkspaceID() == id {
 		return nil
 	}
 
 	defer func() {
 		if rerr != nil {
-			runtime.LogError(a.ctx, rerr.Error())
+			a.rt.LogError(rerr.Error())
 			a.emitError("Workspace Error", rerr.Error())
 		}
 	}()
 
-	if a.client != nil {
-		if a.cancelMonitoring != nil {
-			a.cancelMonitoring()
-			time.Sleep(100 * time.Millisecond)
-		}
-		a.client.close()
-		a.client = nil
-	}
-
+	// Connect tears down the previous connection.
 	a.changeWorkspace(id)
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
@@ -309,7 +365,7 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
-		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to get reflection metadata: %v", err))
+		a.rt.LogWarning(fmt.Sprintf("failed to get reflection metadata: %v", err))
 	}
 
 	// Ignoring error as Connect will already emit errors to the frontend
@@ -321,8 +377,10 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 // DeleteWorkspace will remove a workspace from the store and switch to
 // the default workspace, if the deleted workspace is current.
 func (a *api) DeleteWorkspace(id string) error {
-	a.store.del([]byte(id))
-	if a.state.CurrentID == id {
+	if err := a.store.del([]byte(id)); err != nil {
+		return err
+	}
+	if a.currentWorkspaceID() == id {
 		a.SelectWorkspace(defaultWorkspaceKey)
 	}
 	return nil
@@ -344,7 +402,7 @@ func (a *api) FindProtoFiles() (files []string, rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Not found"
-			runtime.LogError(a.ctx, rerr.Error())
+			a.rt.LogError(rerr.Error())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()
@@ -352,7 +410,7 @@ func (a *api) FindProtoFiles() (files []string, rerr error) {
 	dir, err := a.SelectDirectory()
 	if err != nil {
 		const errTitle = "Not found"
-		runtime.LogError(a.ctx, err.Error())
+		a.rt.LogError(err.Error())
 		a.emitError(errTitle, err.Error())
 	}
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -378,11 +436,14 @@ func (a *api) SelectDirectory() (string, error) {
 
 // Connect will attempt to connect a grpc server and parse any proto files
 func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
+	a.connectMu.Lock()
+	defer a.connectMu.Unlock()
+
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Connection error"
-			runtime.LogError(a.ctx, rerr.Error())
-			runtime.EventsEmit(a.ctx, eventClientStateChanged, connectivity.Shutdown.String())
+			a.rt.LogError(rerr.Error())
+			a.rt.Emit(eventClientStateChanged, connectivity.Shutdown.String())
 			a.emitError(errTitle, rerr.Error())
 		}
 	}()
@@ -393,118 +454,145 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	}
 
 	// reset all things
-	runtime.EventsEmit(a.ctx, eventClientConnectStarted, opts.Addr)
-	runtime.EventsEmit(a.ctx, eventServicesSelectChanged)
-	runtime.EventsEmit(a.ctx, eventMethodInputChanged)
+	a.rt.Emit(eventClientConnectStarted, opts.Addr)
+	a.rt.Emit(eventServicesSelectChanged)
+	a.rt.Emit(eventMethodInputChanged)
 
-	if a.client != nil {
-		if err := a.client.close(); err != nil {
-			return fmt.Errorf("failed to close previous connection: %v", err)
-		}
-	}
-	a.client = &client{}
-
-	if a.cancelMonitoring != nil {
-		a.cancelMonitoring()
-	}
-	ctx := context.Background()
-	ctx, a.cancelMonitoring = context.WithCancel(ctx)
-	go a.monitorStateChanges(ctx)
+	gen := a.resetConnection()
 
 	var hds headers
 	if err := mapstructure.Decode(rawHeaders, &hds); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("unable to decode reflection metadata headers: %v", err))
+		a.rt.LogError(fmt.Sprintf("unable to decode reflection metadata headers: %v", err))
 	}
 
-	if err := a.client.connect(opts, statsHandler{a}); err != nil {
+	cl := &client{}
+	if err := cl.connect(opts, statsHandler{a}); err != nil {
 		// Still try to parse proto definitions. Will fail silently
 		// if using reflection services as there is no connection
 		// to a valid server.
-		a.cancelMonitoring()
-		a.client = nil
-		go a.loadProtoFiles(opts, hds, true)
-
+		go a.loadProtoFiles(gen, nil, opts, hds, true)
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}
 
-	runtime.EventsEmit(a.ctx, eventClientConnected, opts.Addr)
+	monCtx, cancelMon := context.WithCancel(context.Background())
+	a.mu.Lock()
+	a.client = cl
+	a.addr = opts.Addr
+	a.cancelMonitoring = cancelMon
+	a.mu.Unlock()
+	go a.monitorStateChanges(monCtx, cl)
 
-	go a.loadProtoFiles(opts, hds, false)
+	a.rt.Emit(eventClientConnected, opts.Addr)
 
-	if !save {
-		return nil
+	go a.loadProtoFiles(gen, cl, opts, hds, false)
+
+	if save {
+		if opts.ID == "" {
+			opts.ID = workspacePrefix + uuid.Must(uuid.NewV4()).String()
+			a.changeWorkspace(opts.ID)
+		}
+		a.setWorkspaceOptions(opts)
+		a.setMetadata(reflectMetadataKeyPrefix+hash(opts.Addr), hds)
 	}
-
-	if opts.ID == "" {
-		id := uuid.Must(uuid.NewV4())
-		opts.ID = workspacePrefix + id.String()
-		a.changeWorkspace(opts.ID)
-	}
-
-	go a.setWorkspaceOptions(opts)
-	go a.setMetadata(reflectMetadataKeyPrefix+hash(opts.Addr), hds)
-
 	return nil
 }
 
-func (a *api) changeWorkspace(id string) {
-	a.state.CurrentID = id
-	var val bytes.Buffer
-	enc := gob.NewEncoder(&val)
-	enc.Encode(a.state)
+// resetConnection cancels any in-flight call, stops state monitoring and closes
+// the current connection. It returns the new connection generation.
+func (a *api) resetConnection() uint64 {
+	a.cancelCall()
 
-	a.store.set([]byte(defaultStateKey), val.Bytes())
+	a.mu.Lock()
+	a.gen++
+	gen := a.gen
+	old, cancelMon := a.client, a.cancelMonitoring
+	a.client, a.cancelMonitoring, a.protofiles, a.addr = nil, nil, nil, ""
+	a.mu.Unlock()
+
+	if cancelMon != nil {
+		cancelMon()
+	}
+	if err := old.close(); err != nil {
+		a.rt.LogWarning(fmt.Sprintf("failed to close previous connection: %v", err))
+	}
+	return gen
 }
 
-func (a *api) loadProtoFiles(opts options, reflectHeaders headers, silent bool) (rerr error) {
+func (a *api) changeWorkspace(id string) {
+	a.mu.Lock()
+	a.state.CurrentID = id
+	st := *a.state
+	a.mu.Unlock()
+
+	var val bytes.Buffer
+	if err := gob.NewEncoder(&val).Encode(st); err != nil {
+		a.rt.LogError(fmt.Sprintf("failed to encode state: %v", err))
+		return
+	}
+	if err := a.store.set([]byte(defaultStateKey), val.Bytes()); err != nil {
+		a.rt.LogError(fmt.Sprintf("failed to store state: %v", err))
+	}
+}
+
+// loadProtoFiles loads the schema for connection generation gen. The result is
+// dropped if a newer connection was made in the meantime.
+func (a *api) loadProtoFiles(gen uint64, cl *client, opts options, reflectHeaders headers, silent bool) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to load RPC schema"
-			runtime.LogError(a.ctx, rerr.Error())
+			a.rt.LogError(rerr.Error())
 			if !silent {
-				runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
+				a.rt.Emit(eventError, errorMsg{errTitle, rerr.Error()})
 			}
 		}
 	}()
 
-	a.protofiles = nil
-
+	var files *protoregistry.Files
 	var err error
-	if opts.Reflect {
-		if a.client == nil {
-			return errors.New("unable to load proto files via reflection: client is <nil>")
+	switch {
+	case opts.Reflect:
+		if cl == nil {
+			return errors.New("unable to load proto files via reflection: not connected")
 		}
-		ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(nil))
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(nil))
 		for _, h := range reflectHeaders {
 			if h.Key == "" {
 				continue
 			}
 			ctx = metadata.AppendToOutgoingContext(ctx, h.Key, h.Val)
-			fmt.Printf("h.Val = %+v\n", h.Val)
 		}
-
 		ctx = context.WithValue(ctx, ctxInternalKey{}, struct{}{})
-		if a.protofiles, err = protoFilesFromReflectionAPI(ctx, a.client.conn); err != nil {
+		if files, err = protoFilesFromReflectionAPI(ctx, cl.conn); err != nil {
 			return fmt.Errorf("error getting proto files from reflection API: %v", err)
 		}
-	}
-	if !opts.Reflect && len(opts.Protos.Files) > 0 {
-		if a.protofiles, err = protoFilesFromDisk(opts.Protos.Roots, opts.Protos.Files); err != nil {
+	case len(opts.Protos.Files) > 0:
+		if files, err = protoFilesFromDisk(opts.Protos.Roots, opts.Protos.Files); err != nil {
 			return fmt.Errorf("error parsing proto files from disk: %v", err)
 		}
 	}
+
+	a.mu.Lock()
+	if a.gen != gen {
+		a.mu.Unlock()
+		return nil
+	}
+	a.protofiles = files
+	a.mu.Unlock()
 
 	return a.emitServicesSelect("", "", nil)
 }
 
 func (a *api) emitServicesSelect(method string, data string, metadata headers) error {
-	if a.protofiles == nil {
+	files := a.getProtofiles()
+	if files == nil {
 		return nil
 	}
 
 	var targetMd protoreflect.MethodDescriptor
 	var ss servicesSelect
-	a.protofiles.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+	files.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		sds := fd.Services()
 		for i := 0; i < sds.Len(); i++ {
 			var s serviceSelect
@@ -546,7 +634,7 @@ func (a *api) emitServicesSelect(method string, data string, metadata headers) e
 	}
 
 	// Use Wails v2 EventsEmit to send the services select data to the frontend
-	runtime.EventsEmit(a.ctx, eventServicesSelectChanged, ss, method, data, metadata)
+	a.rt.Emit(eventServicesSelectChanged, ss, method, data, metadata)
 	return nil
 }
 
@@ -558,12 +646,12 @@ func (a *api) setWorkspaceOptions(opts options) {
 	var val bytes.Buffer
 	enc := gob.NewEncoder(&val)
 	if err := enc.Encode(opts); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to encode workspace options: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to encode workspace options: %v", err))
 		return
 	}
 
 	if err := a.store.set([]byte(opts.ID), val.Bytes()); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to store workspace options: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to store workspace options: %v", err))
 	}
 }
 
@@ -579,71 +667,52 @@ func (a *api) setMetadata(key string, hds headers) {
 	var val bytes.Buffer
 	enc := gob.NewEncoder(&val)
 	if err := enc.Encode(toSet); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to encode metadata: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to encode metadata: %v", err))
 		return
 	}
 
 	if err := a.store.set([]byte(key), val.Bytes()); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to store metadata: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to store metadata: %v", err))
 	}
 }
 
 func (a *api) setMessage(method string, rawJSON []byte) {
 	opts, err := a.GetWorkspaceOptions()
 	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to set message, no workspace options: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to set message, no workspace options: %v", err))
 		return
 	}
 
 	if err := a.store.set([]byte(messageKeyPrefix+hash(opts.Addr, method)), rawJSON); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to store message: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to store message: %v", err))
 	}
 }
 
-func (a *api) monitorStateChanges(ctx context.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			// This will panic if we are waiting for a state change and the client (and its connection)
-			// get GC'd without this context being canceled
-			runtime.LogError(a.ctx, fmt.Sprintf("panic monitoring state changes: %v", r))
-		}
-	}()
-
+// monitorStateChanges forwards connectivity changes of cl to the frontend until
+// ctx is cancelled.
+func (a *api) monitorStateChanges(ctx context.Context, cl *client) {
 	for {
-		select {
-		case <-ctx.Done():
-			runtime.LogDebug(a.ctx, "ending monitoring of state changes")
+		state := cl.conn.GetState()
+		a.rt.Emit(eventClientStateChanged, state.String())
+		// Only returns false once ctx is done.
+		if !cl.conn.WaitForStateChange(ctx, state) || ctx.Err() != nil {
+			a.rt.LogDebug("ending monitoring of state changes")
 			return
-		default:
-			if a.client == nil || a.client.conn == nil {
-				// If client or connection is nil, wait a bit and check again
-				time.Sleep(500 * time.Millisecond)
-				continue
-			}
-
-			state := a.client.conn.GetState()
-			runtime.EventsEmit(a.ctx, eventClientStateChanged, state.String())
-
-			timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-			ok := a.client.conn.WaitForStateChange(timeoutCtx, state)
-			cancel()
-
-			if !ok {
-				runtime.LogDebug(a.ctx, "ending monitoring of state changes")
-				time.Sleep(500 * time.Millisecond)
-				return
-			}
 		}
 	}
 }
 
 func (a *api) getMethodDesc(fullname string) (protoreflect.MethodDescriptor, error) {
-	if a.protofiles == nil {
+	files := a.getProtofiles()
+	if files == nil {
 		return nil, fmt.Errorf("no proto files loaded")
+	}
+	if len(fullname) < 2 || fullname[0] != '/' {
+		return nil, fmt.Errorf("invalid method name %q", fullname)
 	}
 
 	name := strings.Replace(fullname[1:], "/", ".", 1)
-	desc, err := a.protofiles.FindDescriptorByName(protoreflect.FullName(name))
+	desc, err := files.FindDescriptorByName(protoreflect.FullName(name))
 	if err != nil {
 		return nil, fmt.Errorf("failed to find descriptor: %v", err)
 	}
@@ -661,9 +730,9 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to select method"
-			runtime.LogError(a.ctx, rerr.Error())
-			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
-			runtime.EventsEmit(a.ctx, eventMethodInputChanged)
+			a.rt.LogError(rerr.Error())
+			a.rt.Emit(eventError, errorMsg{errTitle, rerr.Error()})
+			a.rt.Emit(eventMethodInputChanged)
 		}
 	}()
 
@@ -684,10 +753,10 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 
 	var hs headers
 	if err := mapstructure.Decode(metadata, &hs); err != nil {
-		runtime.LogDebug(a.ctx, fmt.Sprintf("failed to decode metadata: %v", err))
-		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState)
+		a.rt.LogDebug(fmt.Sprintf("failed to decode metadata: %v", err))
+		a.rt.Emit(eventMethodInputChanged, m, initState)
 	} else {
-		runtime.EventsEmit(a.ctx, eventMethodInputChanged, m, initState, hs)
+		a.rt.Emit(eventMethodInputChanged, m, initState, hs)
 	}
 	return nil
 }
@@ -805,86 +874,80 @@ func fieldViewsFromDesc(fds protoreflect.FieldDescriptors, isOneof bool, cd *cyc
 	return fields, nil
 }
 
+// RetryConnection resets the connection backoff if the connection is in a
+// failed state and waits briefly for it to recover.
 func (a *api) RetryConnection() {
-	if a.client == nil || a.client.conn == nil {
-		runtime.LogError(a.ctx, "cannot retry connection: client or connection is nil")
-		return
-	}
-
-	state := a.client.conn.GetState()
-	if state == connectivity.TransientFailure || state == connectivity.Shutdown {
-		// State is currently disconnected. Do a quick retry in case the server restarted recently.
-		runtime.LogInfo(a.ctx, "connection in failed state, attempting to reset connection backoff")
-		a.client.conn.ResetConnectBackoff()
-
-		// Setup a one-time event handler to detect state change
-		stateChanged := make(chan bool, 1)
-		unsubscribe := runtime.EventsOn(a.ctx, eventClientStateChanged, func(data ...interface{}) {
-			select {
-			case stateChanged <- true:
-				// Signal sent
-			default:
-				// Channel already has a value, no need to send again
-			}
-		})
-
-		// Wait for at least one retry to complete or timeout after 5 seconds
-		select {
-		case <-stateChanged:
-			// State changed, continue
-		case <-time.After(5 * time.Second):
-			runtime.LogWarning(a.ctx, "retry connection timed out waiting for state change")
-		}
-
-		// Clean up event handler
-		unsubscribe()
+	if cl := a.getClient(); cl != nil {
+		a.retryConnection(cl)
 	}
 }
 
+func (a *api) retryConnection(cl *client) {
+	state := cl.conn.GetState()
+	switch state {
+	case connectivity.Idle:
+		cl.conn.Connect()
+		return
+	case connectivity.TransientFailure:
+	default:
+		return
+	}
+
+	// The server may have restarted recently; retry now instead of waiting
+	// for the backoff to expire.
+	a.rt.LogInfo("connection in failed state, resetting connection backoff")
+	cl.conn.ResetConnectBackoff()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	for {
+		if !cl.conn.WaitForStateChange(ctx, state) {
+			a.rt.LogWarning("retry connection timed out waiting for state change")
+			return
+		}
+		state = cl.conn.GetState()
+		switch state {
+		case connectivity.Idle:
+			cl.conn.Connect()
+		case connectivity.Connecting:
+		default:
+			return
+		}
+	}
+}
+
+// Send invokes method with the given JSON request. If a client stream for the
+// same method is already open, the message is sent on that stream instead.
 func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (rerr error) {
-	rawJSON := []byte(stringJSON)
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Unable to send request"
-			runtime.LogError(a.ctx, rerr.Error())
-			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
+			a.rt.LogError(rerr.Error())
+			a.rt.Emit(eventError, errorMsg{errTitle, rerr.Error()})
 		}
 	}()
 
-	a.RetryConnection()
-
+	rawJSON := []byte(stringJSON)
 	md, err := a.getMethodDesc(method)
 	if err != nil {
-		const errTitle = "getMethodDesc"
-		runtime.LogError(a.ctx, err.Error())
-		runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, err.Error()})
 		return err
 	}
 
 	req := dynamicpb.NewMessage(md.Input())
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(rawJSON, req); err != nil {
-		const errTitle = "unmarshal"
-		runtime.LogError(a.ctx, err.Error())
-		runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, err.Error()})
 		return fmt.Errorf("failed to unmarshal request: %v", err)
 	}
 
 	// Store message for later use
 	go a.setMessage(method, rawJSON)
 
-	if a.inFlight && md.IsStreamingClient() {
-		a.streamReq <- req
-		return nil
+	// Additional message for an already open client stream.
+	if cur := a.currentCall(); cur != nil {
+		if cur.reqs != nil && cur.method == method {
+			return cur.push(req)
+		}
+		return errCallInProgress
 	}
-
-	a.mu.Lock()
-	a.inFlight = true
-	defer func() {
-		a.mu.Unlock()
-		a.inFlight = false
-	}()
-
-	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(nil))
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
@@ -897,117 +960,106 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 	}
 	go a.setMetadata(metadataKeyPrefix+hash(opts.Addr), hs)
 
+	cl := a.getClient()
+	if cl == nil {
+		return errNoConn
+	}
+	a.retryConnection(cl)
+
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.New(nil))
 	for _, h := range hs {
 		if h.Key == "" {
 			continue
 		}
 		ctx = metadata.AppendToOutgoingContext(ctx, h.Key, h.Val)
 	}
+	ctx, cancel := context.WithCancel(ctx)
+	call := newRPCCall(method, cancel, md.IsStreamingClient())
+	ctx = context.WithValue(ctx, ctxCallKey{}, call)
 
-	ctx, a.cancelInFlight = context.WithCancel(ctx)
+	if err := a.beginCall(call); err != nil {
+		cancel()
+		return err
+	}
+	defer func() {
+		a.endCall(call)
+		if !call.ended.Load() {
+			// gRPC never reported the end of the RPC (e.g. the stream
+			// could not be created), so tell the frontend ourselves.
+			st := status.Convert(rerr)
+			a.rt.Emit(eventRPCEnded, rpcEnd{
+				StatusCode: int32(st.Code()),
+				Status:     st.Code().String(),
+				Duration:   "0s",
+			})
+		}
+	}()
 
-	runtime.EventsEmit(a.ctx, eventRPCStarted, rpcStart{
+	a.rt.Emit(eventRPCStarted, rpcStart{
 		ClientStream: md.IsStreamingClient(),
 		ServerStream: md.IsStreamingServer(),
 	})
 
-	if md.IsStreamingClient() && md.IsStreamingServer() {
-		stream, err := a.client.invokeBidiStream(ctx, method)
+	// Responses and status are delivered to the frontend by the stats
+	// handler, so receive errors are only logged here.
+	recvAll := func(stream grpc.ClientStream) {
+		for {
+			if err := stream.RecvMsg(dynamicpb.NewMessage(md.Output())); err != nil {
+				if err != io.EOF {
+					a.rt.LogDebug(fmt.Sprintf("stream receive ended with: %v", err))
+				}
+				return
+			}
+		}
+	}
+
+	switch {
+	case md.IsStreamingClient() && md.IsStreamingServer():
+		stream, err := cl.invokeBidiStream(ctx, method)
 		if err != nil {
 			return fmt.Errorf("failed to invoke bidirectional stream: %v", err)
 		}
-
-		a.streamReq = make(chan proto.Message)
-		go func() {
-			for r := range a.streamReq {
-				if err := stream.SendMsg(r); err != nil {
-					runtime.LogError(a.ctx, fmt.Sprintf("failed to send message to stream: %v", err))
-					close(a.streamReq)
-					a.streamReq = nil
-				}
-			}
-			stream.CloseSend()
-		}()
-		a.streamReq <- req
-
-		for {
-			resp := dynamicpb.NewMessage(md.Output())
-			if err := stream.RecvMsg(resp); err != nil {
-				if err != io.EOF {
-					runtime.LogDebug(a.ctx, fmt.Sprintf("stream receive ended with: %v", err))
-				}
-				break
-			}
+		if err := stream.SendMsg(req); err != nil && err != io.EOF {
+			return fmt.Errorf("failed to send message to stream: %v", err)
 		}
-
+		go func() {
+			if err := call.pump(ctx, stream); err != nil {
+				a.rt.LogError(fmt.Sprintf("failed to send message to stream: %v", err))
+			}
+		}()
+		recvAll(stream)
 		return nil
-	}
 
-	if md.IsStreamingClient() {
-		stream, err := a.client.invokeClientStream(ctx, method)
+	case md.IsStreamingClient():
+		stream, err := cl.invokeClientStream(ctx, method)
 		if err != nil {
 			return fmt.Errorf("failed to invoke client stream: %v", err)
 		}
-		a.streamReq = make(chan proto.Message, 1)
-		a.streamReq <- req
-		done := ctx.Done()
-
-	wait:
-		for {
-			select {
-			case <-done:
-				a.CloseSend()
-				return nil
-			case r := <-a.streamReq:
-				if r == nil {
-					break wait
-				}
-				if err := stream.SendMsg(r); err != nil {
-					runtime.LogError(a.ctx, fmt.Sprintf("failed to send message to stream: %v", err))
-					close(a.streamReq)
-					a.streamReq = nil
-					break wait
-				}
-			}
+		if err := stream.SendMsg(req); err != nil && err != io.EOF {
+			return fmt.Errorf("failed to send message to stream: %v", err)
 		}
-		stream.CloseSend()
-		resp := dynamicpb.NewMessage(md.Output())
-		if err := stream.RecvMsg(resp); err != nil {
-			if err != io.EOF {
-				return fmt.Errorf("error receiving message: %v", err)
-			}
+		// Blocks until the user clicks "close" (CloseSend) or cancels.
+		if err := call.pump(ctx, stream); err != nil {
+			a.rt.LogError(fmt.Sprintf("failed to send message to stream: %v", err))
 		}
-		if err := stream.RecvMsg(nil); err != io.EOF {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("unexpected message received after EOF: %v", err))
-		}
-
+		recvAll(stream)
 		return nil
-	}
 
-	if md.IsStreamingServer() {
-		stream, err := a.client.invokeServerStream(ctx, method, req)
+	case md.IsStreamingServer():
+		stream, err := cl.invokeServerStream(ctx, method, req)
 		if err != nil {
 			return fmt.Errorf("failed to invoke server stream: %v", err)
 		}
-		for {
-			resp := dynamicpb.NewMessage(md.Output())
-			if err := stream.RecvMsg(resp); err != nil {
-				if err != io.EOF {
-					runtime.LogDebug(a.ctx, fmt.Sprintf("stream receive ended with: %v", err))
-				}
-				break
-			}
-		}
+		recvAll(stream)
+		return nil
 
+	default:
+		resp := dynamicpb.NewMessage(md.Output())
+		if err := cl.invoke(ctx, method, req, resp); err != nil {
+			return fmt.Errorf("failed to invoke RPC: %v", err)
+		}
 		return nil
 	}
-
-	// Standard unary call
-	resp := dynamicpb.NewMessage(md.Output())
-	if err := a.client.invoke(ctx, method, req, resp); err != nil {
-		return fmt.Errorf("failed to invoke RPC: %v", err)
-	}
-	return nil
 }
 
 // TagConn implements the stats.Handler interface
@@ -1035,33 +1087,36 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 
 	switch s := stat.(type) {
 	case *stats.Begin:
-		runtime.EventsEmit(a.ctx, eventStatBegin, s)
+		a.rt.Emit(eventStatBegin, s)
 	case *stats.OutHeader:
-		runtime.EventsEmit(a.ctx, eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
+		a.rt.Emit(eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
 	case *stats.OutPayload:
 		if p, err := formatPayload(s.Payload); err == nil {
 			s.Payload = p
 		}
-		runtime.EventsEmit(a.ctx, eventStatOutPayload, rpcStatOutPayload{s, fmt.Sprintf("%+v", s.Payload)})
-		runtime.EventsEmit(a.ctx, eventOutPayloadReceived, s.Payload)
+		a.rt.Emit(eventStatOutPayload, rpcStatOutPayload{s, fmt.Sprintf("%+v", s.Payload)})
+		a.rt.Emit(eventOutPayloadReceived, s.Payload)
 	case *stats.OutTrailer:
-		runtime.EventsEmit(a.ctx, eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		a.rt.Emit(eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
 	case *stats.InHeader:
-		runtime.EventsEmit(a.ctx, eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
-		runtime.EventsEmit(a.ctx, eventInHeaderReceived, s.Header)
+		a.rt.Emit(eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
+		a.rt.Emit(eventInHeaderReceived, s.Header)
 	case *stats.InPayload:
 		txt, err := formatPayload(s.Payload)
 		if err != nil {
-			runtime.LogError(a.ctx, fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
+			a.rt.LogError(fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
 			return
 		}
 		s.Payload = txt
-		runtime.EventsEmit(a.ctx, eventStatInPayload, rpcStatInPayload{s, fmt.Sprintf("%+v", s.Payload)})
-		runtime.EventsEmit(a.ctx, eventInPayloadReceived, txt)
+		a.rt.Emit(eventStatInPayload, rpcStatInPayload{s, fmt.Sprintf("%+v", s.Payload)})
+		a.rt.Emit(eventInPayloadReceived, txt)
 	case *stats.InTrailer:
-		runtime.EventsEmit(a.ctx, eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
-		runtime.EventsEmit(a.ctx, eventInTrailerReceived, s.Trailer)
+		a.rt.Emit(eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		a.rt.Emit(eventInTrailerReceived, s.Trailer)
 	case *stats.End:
+		if c, ok := ctx.Value(ctxCallKey{}).(*rpcCall); ok {
+			c.ended.Store(true)
+		}
 
 		errProtoStr := ""
 		stus := status.Convert(s.Error)
@@ -1069,19 +1124,19 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 			var err error
 			errProtoStr, err = formatPayload(stus.Proto())
 			if err != nil {
-				runtime.LogError(a.ctx, fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
+				a.rt.LogError(fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
 			}
 			if errProtoStr != "" {
-				runtime.EventsEmit(a.ctx, eventErrorReceived, errProtoStr)
+				a.rt.Emit(eventErrorReceived, errProtoStr)
 			}
 		}
-		runtime.EventsEmit(a.ctx, eventStatEnd, rpcStatEnd{s, errProtoStr})
+		a.rt.Emit(eventStatEnd, rpcStatEnd{s, errProtoStr})
 
 		var end rpcEnd
 		end.StatusCode = int32(stus.Code())
 		end.Status = stus.Code().String()
 		end.Duration = s.EndTime.Sub(s.BeginTime).String()
-		runtime.EventsEmit(a.ctx, eventRPCEnded, end)
+		a.rt.Emit(eventRPCEnded, end)
 	}
 }
 
@@ -1110,28 +1165,17 @@ func formatPayload(payload interface{}) (string, error) {
 
 // CloseSend will stop streaming client messages
 func (a *api) CloseSend() {
-	if a.streamReq != nil {
-		runtime.LogDebug(a.ctx, "closing stream request channel")
-		close(a.streamReq)
-		a.streamReq = nil
-	} else {
-		runtime.LogDebug(a.ctx, "streamReq already closed or nil")
+	if c := a.currentCall(); c != nil {
+		a.rt.LogDebug("closing request stream")
+		c.closeSending()
 	}
 }
 
-// Cancel will attempt to cancel the current inflight request
+// Cancel will attempt to cancel the current inflight request. The rpc_ended
+// event is emitted by the stats handler once gRPC has torn the call down.
 func (a *api) Cancel() {
-	if a.cancelInFlight != nil {
-		runtime.LogDebug(a.ctx, "cancelling in-flight request")
-		a.cancelInFlight()
-		// Signal to frontend that the request was cancelled
-		runtime.EventsEmit(a.ctx, eventRPCEnded, rpcEnd{
-			StatusCode: int32(codes.Canceled),
-			Status:     codes.Canceled.String(),
-			Duration:   "0s",
-		})
-	} else {
-		runtime.LogDebug(a.ctx, "no in-flight request to cancel")
+	if !a.cancelCall() {
+		a.rt.LogDebug("no in-flight request to cancel")
 	}
 }
 
@@ -1146,7 +1190,7 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to decode headers: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to decode headers: %v", err))
 		return &commands{
 			Grpcurl: "Error: Failed to decode headers",
 		}
@@ -1165,7 +1209,7 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 
 	option, err := a.GetWorkspaceOptions()
 	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("failed to get workspace options: %v", err))
+		a.rt.LogError(fmt.Sprintf("failed to get workspace options: %v", err))
 		return &commands{
 			Grpcurl: "Error: Failed to get workspace options",
 		}
@@ -1180,7 +1224,7 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 
 	hds, err := a.GetReflectMetadata(option.Addr)
 	if err != nil {
-		runtime.LogWarning(a.ctx, fmt.Sprintf("failed to get reflection metadata: %v", err))
+		a.rt.LogWarning(fmt.Sprintf("failed to get reflection metadata: %v", err))
 	} else {
 		for _, h := range hds {
 			if h.Key == "" {
@@ -1197,7 +1241,7 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 	sb.WriteString("    ")
 	sb.WriteString(option.Addr)
 	sb.WriteString(" ")
-	sb.WriteString(method[1:])
+	sb.WriteString(strings.TrimPrefix(method, "/"))
 
 	return &commands{
 		Grpcurl: sb.String(),
@@ -1208,8 +1252,8 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 	defer func() {
 		if rerr != nil {
 			const errTitle = "Failed to import command"
-			runtime.LogError(a.ctx, rerr.Error())
-			runtime.EventsEmit(a.ctx, eventError, errorMsg{errTitle, rerr.Error()})
+			a.rt.LogError(rerr.Error())
+			a.rt.Emit(eventError, errorMsg{errTitle, rerr.Error()})
 		}
 	}()
 
@@ -1220,7 +1264,7 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 			return fmt.Errorf("error parsing grpcurl command: %v", err)
 		}
 
-		runtime.LogInfo(a.ctx, fmt.Sprintf("importing grpcurl command for method: %s", args.Method))
+		a.rt.LogInfo(fmt.Sprintf("importing grpcurl command for method: %s", args.Method))
 		return a.emitServicesSelect("/"+args.Method, args.Data, args.Metadata)
 	default:
 		return fmt.Errorf("unsupported command type: %s", kind)
@@ -1228,8 +1272,7 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 }
 
 func (a *api) GetWindowInfo() map[string]interface{} {
-	width, _ := runtime.WindowGetSize(a.ctx)
-	height, _ := runtime.WindowGetSize(a.ctx)
+	width, height := runtime.WindowGetSize(a.ctx)
 	x, y := runtime.WindowGetPosition(a.ctx)
 
 	// Detect the operating system using Go's standard library

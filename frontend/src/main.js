@@ -2,7 +2,7 @@
 
 import "./monaco";
 import App from './views/App.svelte';
-import { GetWindowInfo } from '../wailsjs/go/app/api';
+import { GetWindowInfo, FrontendReady } from '../wailsjs/go/app/api';
 import { EventsEmit } from '../wailsjs/runtime/runtime';
 
 let app;
@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
         app = new App({
             target: document.body,
         });
+
+        // All components are mounted and subscribed to backend events now,
+        // so the backend can make the initial connection.
+        FrontendReady();
     });
 });
 

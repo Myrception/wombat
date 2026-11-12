@@ -56,7 +56,8 @@ func Run(assetsFS embed.FS) int {
 			B: 64,
 			A: 255,
 		},
-		OnStartup: app.Startup,
+		OnStartup:  app.Startup,
+		OnShutdown: app.Shutdown,
 		Bind: []interface{}{
 			app,
 		},

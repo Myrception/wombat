@@ -14,9 +14,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func init() {
@@ -147,20 +145,39 @@ func (s *server) Empty(context.Context, *EmptyRequest) (*EmptyResponse, error) {
 	return &EmptyResponse{}, nil
 }
 
+// RouteChat echoes every received note back to the client.
+func (s *server) RouteChat(stream RouteGuide_RouteChatServer) error {
+	for {
+		note, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if err := stream.Send(note); err != nil {
+			return err
+		}
+	}
+}
+
+// NewGRPCServer returns a gRPC server with the test services and reflection
+// registered.
+func NewGRPCServer(opts ...grpc.ServerOption) *grpc.Server {
+	s := newServer()
+	gs := grpc.NewServer(opts...)
+	RegisterRouteGuideServer(gs, s)
+	RegisterFoobarServer(gs, s)
+	reflection.Register(gs)
+	return gs
+}
+
 // Serve stats serving a gRPC server that is used for testing
 func Serve() {
 	lis, err := net.Listen("tcp", ":5001")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "server: failed to create listener: %v", err)
+		return
 	}
-
-	e, _ := protojson.Marshal(&WellKnownRequest{Timestamp: timestamppb.Now()})
-	fmt.Printf("string(e) = %+v\n", string(e))
-
-	s := newServer()
-	gs := grpc.NewServer()
-	RegisterRouteGuideServer(gs, s)
-	RegisterFoobarServer(gs, s)
-	reflection.Register(gs)
-	gs.Serve(lis)
+	NewGRPCServer().Serve(lis)
 }
