@@ -1,7 +1,6 @@
 import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import image from '@rollup/plugin-image';
 import babel from 'rollup-plugin-babel';
@@ -11,27 +10,6 @@ import postcss from 'postcss';
 import cssvariables from 'postcss-css-variables';
 
 const production = !process.env.ROLLUP_WATCH;
-
-function serve() {
-    let server;
-
-    function toExit() {
-        if (server) server.kill(0);
-    }
-
-    return {
-        writeBundle() {
-            if (server) return;
-            server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-                stdio: ['ignore', 'inherit', 'inherit'],
-                shell: true
-            });
-
-            process.on('SIGTERM', toExit);
-            process.on('exit', toExit);
-        }
-    };
-}
 
 export default {
     input: 'src/main.js',
@@ -144,13 +122,8 @@ export default {
             output: 'extra.css'
         }),
 
-        // In dev mode, call `npm run start` once
-        // the bundle has been generated
-        !production && serve(),
-
-		// Watch the `public` directory and refresh the
-		// browser on changes when not in production
-		!production && livereload('public'),
+        // `wails dev` serves frontend/public itself and reloads the window
+        // when the bundle changes, so no dev server/livereload is needed.
 
 		// Credit: https://blog.az.sg/posts/svelte-and-ie11/
 		babel({

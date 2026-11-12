@@ -156,7 +156,7 @@ func (a *api) FrontendReady() {
 		a.emitError("Database Error", a.startupErr.Error())
 	}
 	a.connectCurrentWorkspace()
-	go a.checkForUpdate()
+	a.goSafe("update check", a.checkForUpdate)
 }
 
 func (a *api) connectCurrentWorkspace() {
@@ -470,7 +470,7 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 		// Still try to parse proto definitions. Will fail silently
 		// if using reflection services as there is no connection
 		// to a valid server.
-		go a.loadProtoFiles(gen, nil, opts, hds, true)
+		a.goSafe("loading proto files", func() { a.loadProtoFiles(gen, nil, opts, hds, true) })
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}
 
@@ -480,11 +480,11 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	a.addr = opts.Addr
 	a.cancelMonitoring = cancelMon
 	a.mu.Unlock()
-	go a.monitorStateChanges(monCtx, cl)
+	a.goSafe("connection monitor", func() { a.monitorStateChanges(monCtx, cl) })
 
 	a.rt.Emit(eventClientConnected, opts.Addr)
 
-	go a.loadProtoFiles(gen, cl, opts, hds, false)
+	a.goSafe("loading proto files", func() { a.loadProtoFiles(gen, cl, opts, hds, false) })
 
 	if save {
 		if opts.ID == "" {
@@ -939,7 +939,7 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 	}
 
 	// Store message for later use
-	go a.setMessage(method, rawJSON)
+	a.goSafe("saving message", func() { a.setMessage(method, rawJSON) })
 
 	// Additional message for an already open client stream.
 	if cur := a.currentCall(); cur != nil {
@@ -958,7 +958,7 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 	if err != nil {
 		return err
 	}
-	go a.setMetadata(metadataKeyPrefix+hash(opts.Addr), hs)
+	a.goSafe("saving metadata", func() { a.setMetadata(metadataKeyPrefix+hash(opts.Addr), hs) })
 
 	cl := a.getClient()
 	if cl == nil {
@@ -1022,11 +1022,11 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 		if err := stream.SendMsg(req); err != nil && err != io.EOF {
 			return fmt.Errorf("failed to send message to stream: %v", err)
 		}
-		go func() {
+		a.goSafe("request stream", func() {
 			if err := call.pump(ctx, stream); err != nil {
 				a.rt.LogError(fmt.Sprintf("failed to send message to stream: %v", err))
 			}
-		}()
+		})
 		recvAll(stream)
 		return nil
 

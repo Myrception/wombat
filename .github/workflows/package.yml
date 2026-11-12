@@ -7,7 +7,6 @@ jobs:
   package:
     strategy:
       matrix:
-        go-version: [1.24.x]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -23,16 +22,16 @@ jobs:
         $tag = $env:GITHUB_REF -replace "refs/tags/", ""
         echo "tag=$(echo $tag)" >> $GITHUB_OUTPUT
 
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: Install Go
       uses: actions/setup-go@v5
       with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Chechout
-      uses: actions/checkout@v2
+        go-version-file: go.mod
 
     - name: Install Wails
-      run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.1
+      run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.1
 
     # darwin
     - name: Build for darwin
@@ -65,7 +64,7 @@ jobs:
         sudo apt update && sudo apt install -y libgtk-3-dev libwebkit2gtk-4.1-dev
         mkdir -p ~/.wails
         cp wails.json ~/.wails/
-        wails build -f -ldflags "-X wombat/internal/app.semver=${{ steps.version.outputs.tag }}" -tags webkit2_41
+        wails build -f -ldflags "-X wombat/internal/app.semver=${{ steps.version.outputs.tag }}"
         rm -rf frontend/
         tar -C build/bin -zcvf Wombat_${{ steps.version.outputs.tag }}_Linux_x86_64.tar.gz wombat
 

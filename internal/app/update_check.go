@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -30,7 +29,7 @@ func init() {
 }
 
 func checkForUpdate() (*releaseInfo, error) {
-	if os.Getenv("WAILS_DEV_MODE") == "true" {
+	if isDev {
 		return nil, noUpdate
 	}
 

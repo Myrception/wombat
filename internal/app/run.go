@@ -1,17 +1,14 @@
 package app
 
 import (
-	"bytes"
-	"context"
 	"embed"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 
 	"github.com/wailsapp/wails/v2"
 	wails_options "github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"wombat/internal/server"
 )
@@ -19,29 +16,36 @@ import (
 var (
 	appName = "Wombat"
 	semver  = "0.0.0-dev"
-	appCtx  context.Context
 )
 
 // Run is the main function to run the application
 func Run(assetsFS embed.FS) int {
 	appData, err := appDataLocation(appName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to open add data directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to open app data directory: %v\n", err)
 		return 1
 	}
-	defer crashlog(appData)
+	defer func() {
+		if r := recover(); r != nil {
+			writeCrashLog(appData, r)
+			panic(r)
+		}
+	}()
 
-	assets := &assetserver.Options{
-		Assets: assetsFS,
-	}
-
-	if os.Getenv("WAILS_ENV") != "production" {
+	if isDev {
+		// Example gRPC server (localhost:5001) to try Wombat against.
 		go server.Serve()
 	}
 
 	app := NewApp()
-
 	app.appData = appData
+
+	// Dev and release builds use separate data directories, so they may
+	// run side by side.
+	instanceID := "wombat-grpc-client"
+	if isDev {
+		instanceID += ".dev"
+	}
 
 	opts := &wails_options.App{
 		Title:       appName,
@@ -49,12 +53,16 @@ func Run(assetsFS embed.FS) int {
 		Height:      820,
 		MaxWidth:    3840,
 		MaxHeight:   2560,
-		AssetServer: assets,
+		AssetServer: &assetserver.Options{Assets: assetsFS},
 		BackgroundColour: &wails_options.RGBA{
 			R: 46, // From hex #2e3440
 			G: 52,
 			B: 64,
 			A: 255,
+		},
+		SingleInstanceLock: &wails_options.SingleInstanceLock{
+			UniqueId:               instanceID,
+			OnSecondInstanceLaunch: app.onSecondInstanceLaunch,
 		},
 		OnStartup:  app.Startup,
 		OnShutdown: app.Shutdown,
@@ -63,29 +71,19 @@ func Run(assetsFS embed.FS) int {
 		},
 	}
 
-	err = wails.Run(opts)
-	if err != nil {
+	if err := wails.Run(opts); err != nil {
 		fmt.Fprintf(os.Stderr, "app: error running app: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-func crashlog(appData string) {
-	if os.Getenv("WAILS_ENV") == "production" {
-		if r := recover(); r != nil {
-			if _, err := os.Stat(appData); os.IsNotExist(err) {
-				os.MkdirAll(appData, 0700)
-			}
-
-			var b bytes.Buffer
-			b.WriteString(fmt.Sprintf("%+v\n\n", r))
-			buf := make([]byte, 1<<20)
-			s := runtime.Stack(buf, true)
-			b.Write(buf[0:s])
-
-			crashLogPath := filepath.Join(appData, "crash.log")
-			os.WriteFile(crashLogPath, b.Bytes(), 0644)
-		}
+// onSecondInstanceLaunch brings the running window to the front when the user
+// starts Wombat a second time.
+func (a *api) onSecondInstanceLaunch(wails_options.SecondInstanceData) {
+	if a.ctx == nil {
+		return
 	}
+	runtime.WindowUnminimise(a.ctx)
+	runtime.Show(a.ctx)
 }

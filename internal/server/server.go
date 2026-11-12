@@ -174,7 +174,7 @@ func NewGRPCServer(opts ...grpc.ServerOption) *grpc.Server {
 
 // Serve stats serving a gRPC server that is used for testing
 func Serve() {
-	lis, err := net.Listen("tcp", ":5001")
+	lis, err := net.Listen("tcp", "127.0.0.1:5001")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "server: failed to create listener: %v", err)
 		return
