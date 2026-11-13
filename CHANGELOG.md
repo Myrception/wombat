@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - grpcurl import: `-format text`, `-d @` and malformed quoting are reported instead of being misread
 - grpcurl import keeps headers whose value contains a colon
 - Exported grpcurl commands quote request data containing `'` correctly
+- Cancelling the proto file or import path dialog no longer shows an error or adds an empty path
+- Client certificate and key fields sit side by side on wide windows again
 
 ## [v0.5.0] - 2021-04-26
 
