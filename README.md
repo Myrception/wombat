@@ -50,12 +50,8 @@ This is a fork of [rogchap/wombat](https://github.com/rogchap/wombat), updated t
 
 ### MacOS
 
-[Download](https://github.com/Myrception/wombat/releases) and open `Wombat_*_Darwin_universal.dmg` (Intel and Apple Silicon), drag `Wombat.app` to the
-`Applications` folder and run from `Applications`.
-
-The app is not signed. If you get this error message: `"Wombat.app" can't be opened because the identity of the
-developer cannot be confirmed.`, install by **Right Click/Option Click** -> **Open** -> **Open**. You'll only need to
-do this on first install.
+There is no macOS download for this fork yet. Wombat builds on macOS with `wails build` (see
+[DEVELOPMENT.md](DEVELOPMENT.md)).
 
 ### Linux
 
