@@ -79,3 +79,34 @@ for (const zoom of [1.5, 2]) {
     expect(win.y + win.height).toBeLessThanOrEqual(page.viewportSize().height + 1);
   });
 }
+
+const LONG = "name: \"" + "Berkshire Valley Management Area Trail, Jefferson, NJ, USA ".repeat(3) + "\"\n";
+
+for (const zoom of [1, 1.5]) {
+  test.describe(`the response panel at ${zoom * 100}% zoom`, () => {
+    test.use({ fakeConfig: { responses: { "/wombat.v1.RouteGuide/GetFeature": LONG } } });
+
+    test("stays inside the window and wraps long lines", async ({ page }) => {
+      await page.addInitScript(z => localStorage.setItem("wombat_zoom_level", String(z)), zoom);
+      await openApp(page);
+      await selectMethod(page, METHODS.GetFeature);
+      await page.locator(".method-select").getByRole("button", { name: "Send", exact: true }).click();
+      const editor = page.locator(".response .monaco-editor");
+      await expect(editor).toContainText("Jefferson");
+
+      const vp = page.viewportSize();
+      for (const el of [page.locator(".output-pane"), page.locator(".response"), editor]) {
+        const box = await measure(el);
+        expect(box.x + box.width).toBeLessThanOrEqual(vp.width);
+        expect(box.y + box.height).toBeLessThanOrEqual(vp.height);
+      }
+      // Every rendered line ends inside the editor (the long one wraps).
+      const right = (await measure(editor)).x + (await measure(editor)).width;
+      const lines = page.locator(".response .view-line > span");
+      for (let i = 0; i < (await lines.count()); i++) {
+        const b = await lines.nth(i).boundingBox();
+        if (b) expect(b.x + b.width).toBeLessThanOrEqual(right + 1);
+      }
+    });
+  });
+}
