@@ -84,17 +84,23 @@
     {/each}
   </div>
   <div class="row">
-    {#each days as d} 
-      <div class="cell"
-        class:hoverable={!!d}
-        class:selected={current && new Date(year, month, d).getTime() === new Date(current.getFullYear(), current.getMonth(), current.getDate()).getTime()}
-        on:click={!!d ? () => onDayClicked(d) : () => {}}
-      >
-        {d || ''}
-        {#if today.getTime() === new Date(year, month, d).getTime()}
-          <div class="today"/>
-        {/if}
-      </div>
+    {#each days as d}
+      {#if d}
+        <div class="cell hoverable"
+          role="button"
+          tabindex="0"
+          class:selected={current && new Date(year, month, d).getTime() === new Date(current.getFullYear(), current.getMonth(), current.getDate()).getTime()}
+          on:click={() => onDayClicked(d)}
+          on:keydown={e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onDayClicked(d))}
+        >
+          {d}
+          {#if today.getTime() === new Date(year, month, d).getTime()}
+            <div class="today"/>
+          {/if}
+        </div>
+      {:else}
+        <div class="cell" />
+      {/if}
     {/each}
   </div>
 </div>

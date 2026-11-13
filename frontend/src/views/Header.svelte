@@ -27,6 +27,7 @@
   const onNewWorkspaceClicked = () => open(WorkspaceOptions, {createNew: true});
 
   let wkspSelectorVisible = false;
+  const openWorkspaceSelector = () => wkspSelectorVisible = true;
 </script>
 
 <style>
@@ -51,6 +52,10 @@
     align-items: center;
   }
 
+  /* Keyboard focus shows a ring; a mouse click does not. */
+  .workspace-select:focus:not(:focus-visible) {
+    outline: none;
+  }
   .workspace-select {
     display: flex;
     margin-left: calc(var(--padding) * 0.5);
@@ -155,7 +160,14 @@
     </Button>
   </div>
   
-  <div on:click={() => wkspSelectorVisible = true} class="workspace-select">
+  <div
+    class="workspace-select"
+    role="button"
+    tabindex="0"
+    title="Switch workspace"
+    on:click={openWorkspaceSelector}
+    on:keydown={e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openWorkspaceSelector())}
+  >
     <div class="connection">
       <h1>{addr}</h1>
       <h3 class={status}>{status}</h3>

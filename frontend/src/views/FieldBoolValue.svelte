@@ -21,7 +21,5 @@
   ];
 </script>
 
-<style>
-</style>
 
 <Radio on:remove {removeable} {labelColor} {options} label={field.name} hint={field.kind} bind:selectedValue={state[val]} />

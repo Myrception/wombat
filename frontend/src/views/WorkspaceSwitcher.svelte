@@ -60,7 +60,11 @@
   }
 </style>
 
+<svelte:window on:keydown={e => visible && e.key === "Escape" && (visible = false)} />
+
 {#if visible}
+  <!-- Clicking the backdrop closes the panel; Escape is the keyboard equivalent. -->
+  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
   <div class="overlay" on:click|self={() => visible = false}>
     <div class="panel">
       <h1>Select Workspace</h1>

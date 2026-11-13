@@ -4,7 +4,6 @@
   export let label = undefined;
   export let hint = "";
   export let placeholder = "";
-  export let width = "100%";
   export let style = "";
   export let value = "";
   export let labelColor = undefined;

@@ -19,10 +19,7 @@
   @media (min-width: 768px) {
     .client-certs {
       flex-direction: row;
-      justify-content: space-between;
-    }
-    .client-certs > * {
-      width: calc(50% - var(--padding) / 2);
+      gap: var(--padding);
     }
   }
 </style>
