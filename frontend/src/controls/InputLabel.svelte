@@ -48,6 +48,6 @@
     <CrossButton on:click={onCrossClicked} style="margin-left: calc(var(--padding) * -0.5)" />
   {/if}
   <span style="color:{color}">{label}</span>
-  <div class="spacer" />
+  <div class="spacer"></div>
   <span class="hint" title={hint}>{hint}</span>
 </div>

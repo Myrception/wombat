@@ -35,7 +35,7 @@
     <Status status={rpc.status} code={rpc.status_code} /> 
     <div>{rpc.duration}</div>
   {/if}
-  <div class="spacer" />
+  <div class="spacer"></div>
   {#if inflight}
     {#if client_stream}
       <Button on:click={onCloseClicked} text={server_stream ? "Close Send" : "Close & Receive"} color="var(--primary-color)" />

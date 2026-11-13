@@ -2,6 +2,8 @@
   export let color = "var(--bg-color3)";
   export let add = false;
   export let style = "";
+  /** Accessible name; the button only shows a + or × icon. */
+  export let label = add ? "Add" : "Remove";
 </script>
 
 <style>
@@ -36,7 +38,7 @@
   }
 </style>
 
-<button on:click|stopPropagation {style}>
+<button on:click|stopPropagation {style} aria-label={label} title={label}>
   <svg width="16" height="16" class:add>
     <line x1="1" y1="8" x2="15" y2="8" style="stroke:{color}" />
     <line x1="8" y1="1" x2="8" y2="15" style="stroke:{color}" /> 

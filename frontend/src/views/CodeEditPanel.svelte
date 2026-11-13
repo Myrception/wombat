@@ -46,8 +46,8 @@
 
 <div class="code-edit-panel">
   <h1>Edit as GRPCURL</h1>
-  <div bind:this={EditorContainer} class="editor-container unzoomed" />
-  <div class="spacer" />
+  <div bind:this={EditorContainer} class="editor-container unzoomed"></div>
+  <div class="spacer"></div>
   <footer>
     <Button text="Close" on:click={close} />
     <Button

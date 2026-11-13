@@ -90,7 +90,7 @@
       <WorkspaceOptionsMetadata bind:metadata={reflectmd} />
     </TabPanel>
   </Tabs>
-  <div class="spacer" />
+  <div class="spacer"></div>
   <footer>
     <Button
       text="Close"

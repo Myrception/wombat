@@ -65,7 +65,7 @@
   <label>
     {rhs ? "" : label}
     <input type="checkbox" bind:checked on:change={onChanged} />
-    <span class="indicator" style="margin-{rhs ? 'right' : 'left'}:12px;"><span /></span>
+    <span class="indicator" style="margin-{rhs ? 'right' : 'left'}:12px;"><span></span></span>
     {rhs ? label : ""}
   </label>
   </div>

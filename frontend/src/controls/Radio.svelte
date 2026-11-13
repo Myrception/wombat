@@ -63,7 +63,7 @@
 <div>
   {#if label}
     <InputLabel on:remove {removeable} {label} {hint} color={labelColor} block />
-    <div class="spacer" />
+    <div class="spacer"></div>
   {/if}
 
   <div class="radio">
@@ -71,7 +71,7 @@
       <label>
         {option.label}
         <input type="radio" bind:group={selectedValue} value={option.value} />
-        <span class="indicator"><span /></span>
+        <span class="indicator"><span></span></span>
       </label>
     {/each}
   </div>

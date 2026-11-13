@@ -63,7 +63,7 @@
   <Checkbox label="Use reflection to determine the RPC schema" rhs bind:checked={options.reflect} />
   <div class="protos">
     <FileList on:action={onFilesAction} on:clear={onFilesClear} files={options.protos.files} label="Proto source file(s):" actionText="Find *.proto files" actionColor="var(--primary-color)" />
-    <div class="spacer" />
+    <div class="spacer"></div>
     <FileList on:action={onRootsAction} on:clear={onRootsClear} files={options.protos.roots} label="Import proto (root) path(s):" />
   </div>
 </div>

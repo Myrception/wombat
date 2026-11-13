@@ -95,11 +95,11 @@
         >
           {d}
           {#if today.getTime() === new Date(year, month, d).getTime()}
-            <div class="today"/>
+            <div class="today"></div>
           {/if}
         </div>
       {:else}
-        <div class="cell" />
+        <div class="cell"></div>
       {/if}
     {/each}
   </div>

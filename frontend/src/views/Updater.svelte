@@ -58,7 +58,7 @@
 
 {#if visible}
 <div class="updater">
-  <div>🎉 Update available: <span class="old">{oldVersion}</span> → <span class="new">{newVersion}</div>
+  <div>🎉 Update available: <span class="old">{oldVersion}</span> → <span class="new">{newVersion}</span></div>
   <div class="dismiss">
     <Button on:click={onCloseClicked} text="Close" bgColor="var(--bg-color2)" />
     <Button on:click={onDownloadClicked} text="Download" bgColor="var(--bg-color2)" color="var(--primary-color)" border />

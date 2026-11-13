@@ -52,7 +52,7 @@
     </div>
   </div>
   <div class="btns">
-    <div class="spacer" />
+    <div class="spacer"></div>
     <Button text="Clear" on:click={onClearClicked} />
     <Button text="{actionText}" on:click={onActionClicked} color={actionColor} border />
   </div>

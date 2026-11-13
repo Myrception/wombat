@@ -66,5 +66,5 @@
 </style>
 
 <div class="response">
-  <div bind:this={Response} class="container unzoomed" />
+  <div bind:this={Response} class="container unzoomed"></div>
 </div>

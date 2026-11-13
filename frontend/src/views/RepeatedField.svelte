@@ -72,7 +72,7 @@
 </div>
 
 <div class="fields">
-  <div class="msg-border" />
+  <div class="msg-border"></div>
   {#each state[field.name] || [] as _, i}
     <svelte:component this={MessageFieldComponent} on:remove={() => onRemove(i)} field={field} state={state[field.name]} idx={i} />
   {/each}

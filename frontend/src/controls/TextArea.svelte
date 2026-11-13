@@ -38,5 +38,5 @@
   {#if label}
     <InputLabel on:remove {removeable} {label} {hint} color={labelColor} />
   {/if}
-  <textarea bind:value on:change={onDataChange} />
+  <textarea bind:value on:change={onDataChange}></textarea>
 </div>

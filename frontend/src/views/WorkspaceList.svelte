@@ -46,11 +46,12 @@
       <col />
       <col width="20px" />
     </colgroup>
+    <tbody>
     {#each workspaces || [] as wksp}
       <tr on:click={() => onWorkspaceClicked(wksp)} title={wksp.addr}>
         <td>
           {#if wksp.id === current.id}
-            <span class="box"/>
+            <span class="box"></span>
           {/if}
         </td>
         <td class:selected={wksp.id === current.id}>{!wksp.addr && wksp.id === "wksp_default" ? "default workspace" : wksp.addr}</td>
@@ -61,5 +62,6 @@
         </td>
       </tr>
     {/each}
+    </tbody>
   </table>
 </div>
