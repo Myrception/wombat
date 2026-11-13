@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded to Wails v2 (WebView2 on Windows, WebKitGTK 4.1 on Linux) and Go 1.27
 - Frontend is built with Vite and Svelte 5
 - Dropdowns use svelte-select 6, dialogs svelte-simple-modal 2
+- Monaco editor 0.56 (handles UI zoom natively; clicks land on the right character at any zoom level)
 - macOS release is a universal (Intel and Apple Silicon) build
 
 ### Fixed
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Client certificate and key fields sit side by side on wide windows again
 - Well-known types (Timestamp, Duration, wrappers, Struct) get their dedicated inputs again instead of a generic message form
 - Reflection services are listed after the application's own services
+- The "Edit as GRPCURL" dialog fits on screen when zoomed in
 
 ## [v0.5.0] - 2021-04-26
 

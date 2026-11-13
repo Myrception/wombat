@@ -42,7 +42,9 @@
 <style>
   .code-edit-panel {
     width: min(calc(90vw / var(--zoom)), 800px);
-    height: min(calc(90vh / var(--zoom)), 650px);
+    /* The modal's content is at most 100vh - 4rem tall (App.svelte),
+       including its padding; fill that, but no more. */
+    height: min(calc(100vh / var(--zoom) - 4rem - 2 * var(--padding)), 650px);
     display: flex;
     flex-flow: column;
   }
