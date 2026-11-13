@@ -3,38 +3,20 @@
 
   import Button from '../controls/Button.svelte';
   import { ImportCommand } from '../../wailsjs/go/app/api';
-  import { editorFontSize } from '../zoom';
+  import { monaco, baseOptions } from '../monaco';
 
   let EditorContainer;
-  let Editor
+  let Editor;
 
   export let commands;
 
   onMount(() => {
     const model = monaco.editor.createModel(commands.grpcurl, "shell");
-    Editor = monaco.editor.create(EditorContainer, {
-      model,
-      minimap: { enabled: false },
-      fontSize: editorFontSize(),
-      wordWrap: 'on',
-      theme: 'nord-dark',
-      links: false,
-      matchBrackets: "never",
-      renderIndentGuides: false,
-      renderValidationDecorations: 'off',
-      scrollBeyondLastLine: false,
-      selectionHighlight: false,
-      automaticLayout: true,
-      hideCursorInOverviewRuler: true,
-      overviewRulerBorder: false,
-      padding: {
-        top: 12,
-        bottom: 12,
-      },
-      scrollbar: {
-        useShadows: false,
-      },
-    });
+    Editor = monaco.editor.create(EditorContainer, { ...baseOptions, model });
+    return () => {
+      Editor.dispose();
+      model.dispose();
+    };
   });
 
   const { close } = getContext('modal');
@@ -46,8 +28,8 @@
 
 <div class="code-edit-panel">
   <h1>Edit as GRPCURL</h1>
-  <div bind:this={EditorContainer} class="editor-container unzoomed" />
-  <div class="spacer" />
+  <div bind:this={EditorContainer} class="editor-container"></div>
+  <div class="spacer"></div>
   <footer>
     <Button text="Close" on:click={close} />
     <Button
@@ -60,7 +42,9 @@
 <style>
   .code-edit-panel {
     width: min(calc(90vw / var(--zoom)), 800px);
-    height: min(calc(90vh / var(--zoom)), 650px);
+    /* The modal's content is at most 100vh - 4rem tall (App.svelte),
+       including its padding; fill that, but no more. */
+    height: min(calc(100vh / var(--zoom) - 4rem - 2 * var(--padding)), 650px);
     display: flex;
     flex-flow: column;
   }

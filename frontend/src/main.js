@@ -1,12 +1,13 @@
 import "./monaco";
 import "./zoom";
+import { mount } from 'svelte';
 import App from './views/App.svelte';
 import { FrontendReady } from '../wailsjs/go/app/api';
 
 let app;
 
 function start() {
-    app = new App({
+    app = mount(App, {
         target: document.body,
     });
 

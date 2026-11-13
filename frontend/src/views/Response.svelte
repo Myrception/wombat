@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { zoom, editorFontSize } from "../zoom";
+  import { monaco, baseOptions } from "../monaco";
 
   export let model;
 
@@ -9,40 +9,15 @@
 
   onMount(() => {
     editor = monaco.editor.create(Response, {
-      model: model,
+      ...baseOptions,
+      model,
       readOnly: true,
-      minimap: { enabled: false },
-      wordWrap: "on",
-      theme: "nord-dark",
-      links: false,
-      matchBrackets: "never",
-      renderIndentGuides: false,
       renderLineHighlight: "none",
-      renderValidationDecorations: "off",
-      scrollBeyondLastLine: false,
-      selectionHighlight: false,
-      automaticLayout: true,
-      hideCursorInOverviewRuler: true,
-      overviewRulerBorder: false,
       lineNumbers: "off",
-      fontSize: editorFontSize(),
-      padding: {
-        top: 12,
-        bottom: 12,
-      },
-      scrollbar: {
-        useShadows: false,
-      },
     });
   });
 
-  // The host cancels CSS zoom (Monaco can't handle it), so scale the font.
-  const unsubscribeZoom = zoom.subscribe((z) => {
-    if (editor) editor.updateOptions({ fontSize: editorFontSize(z) });
-  });
-
   onDestroy(() => {
-    unsubscribeZoom();
     if (editor) editor.dispose();
   });
 </script>
@@ -66,5 +41,5 @@
 </style>
 
 <div class="response">
-  <div bind:this={Response} class="container unzoomed" />
+  <div bind:this={Response} class="container"></div>
 </div>

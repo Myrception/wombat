@@ -149,7 +149,7 @@
 
 {#if mapItems[field.full_name].length > 0}
 <div class="pairs">
-  <div class="msg-border" />
+  <div class="msg-border"></div>
   {#each mapItems[field.full_name] as item, i}
     <TextField on:remove={() => onRemove(i)} removeable label="key" labelColor="var(--accent-color3)" hint={field.map_key.kind} value={item.key} on:input={e => onKeyChanged(e,i)} />
     <svelte:component this={MessageFieldComponent} field={field.map_value} state={item.ref !== undefined ? item.ref : state[field.name]} key={item.key} />

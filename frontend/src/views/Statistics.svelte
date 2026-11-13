@@ -91,6 +91,6 @@
       {/if}
     {/if}
   </div>
-  <div class="spacer" />
+  <div class="spacer"></div>
   {/each}
 </div>

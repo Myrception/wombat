@@ -61,7 +61,7 @@
 
 {#if state[val] && message.fields }
   <div class="fields">
-    <div class="msg-border" />
+    <div class="msg-border"></div>
     {#each message.fields as field }
       <svelte:component this={MessageFieldComponent} {field} state={state[val]} />
     {/each}

@@ -70,7 +70,8 @@ All backend event constants are defined in `/internal/app/events.go`.
 
 ## Frontend
 
-The frontend is built with [Svelte](https://svelte.dev/); and should be fairly straight forward if you have done any
+The frontend is built with [Svelte](https://svelte.dev/) 5 (the components still use the Svelte 4 syntax, which Svelte 5
+supports); and should be fairly straight forward if you have done any
 type of web-based frontend development before.
 
 The frontend is bundled with [Vite](https://vitejs.dev/). `wails dev` starts the Vite dev server and proxies it, so
@@ -97,6 +98,7 @@ $ npx playwright install webkit chromium   # once
 $ npm test                                 # both engines
 $ npm run test:chromium                    # Chromium only
 $ npx playwright test --ui                 # interactive runner
+$ npm run test:dev                         # against the dev server: also fails on Svelte runtime warnings
 ```
 
 Playwright's WebKit build needs Ubuntu/Debian libraries. On other distributions run the WebKit tests in Playwright's

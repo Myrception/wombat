@@ -137,11 +137,6 @@
     overflow-x: hidden;
     max-width: calc(100vw / var(--zoom));
   }
-
-  /* Monaco 0.21 does not support CSS zoom; see src/zoom.js. */
-  :global(.unzoomed) {
-    zoom: calc(1 / var(--zoom));
-  }
 </style>
 
 <main class="app">
