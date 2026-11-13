@@ -67,12 +67,6 @@
     position: relative;
     z-index: 10;
   }
-  /* Ensure buttons are always clickable */
-  footer button {
-    position: relative;
-    z-index: 20;
-    pointer-events: auto !important;
-  }
 </style>
 
 <div class="workspace-options">

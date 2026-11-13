@@ -26,8 +26,6 @@
   }
 </script>
 
-<style>
-</style>
 
 {#if field.kind === "google.protobuf.BoolValue"}
 

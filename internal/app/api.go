@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -412,21 +412,36 @@ func (a *api) FindProtoFiles() (files []string, rerr error) {
 
 	dir, err := a.SelectDirectory()
 	if err != nil {
-		const errTitle = "Not found"
-		a.rt.LogError(err.Error())
-		a.emitError(errTitle, err.Error())
+		return nil, fmt.Errorf("failed to open the directory dialog: %v", err)
 	}
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".proto" {
+	if dir == "" {
+		return nil, nil // dialog cancelled
+	}
+	return findProtoFiles(dir)
+}
+
+// findProtoFiles returns all *.proto files below dir. Subdirectories that
+// cannot be read are skipped.
+func findProtoFiles(dir string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if path != dir && d != nil && d.IsDir() {
+				return fs.SkipDir
+			}
+			return err
+		}
+		if !d.IsDir() && filepath.Ext(path) == ".proto" {
 			files = append(files, path)
 		}
 		return nil
 	})
-
-	if len(files) == 0 {
-		return nil, errors.New("no *.proto files found")
+	if err != nil {
+		return nil, fmt.Errorf("failed to search %s: %v", dir, err)
 	}
-
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no *.proto files found in %s", dir)
+	}
 	return files, nil
 }
 
@@ -1187,9 +1202,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 	rawJSON := []byte(stringJSON)
 	var sb strings.Builder
 	sb.WriteString("grpcurl ")
-	sb.WriteString("-d '")
-	sb.Write(rawJSON)
-	sb.WriteString("' \\\n")
+	sb.WriteString("-d ")
+	sb.WriteString(shellQuote(string(rawJSON)))
+	sb.WriteString(" \\\n")
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
@@ -1203,11 +1218,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 		if len(h.Key) == 0 {
 			continue
 		}
-		sb.WriteString("    -rpc-header '")
-		sb.WriteString(h.Key)
-		sb.WriteString(":")
-		sb.WriteString(h.Val)
-		sb.WriteString("' \\\n")
+		sb.WriteString("    -rpc-header ")
+		sb.WriteString(shellQuote(h.Key + ": " + h.Val))
+		sb.WriteString(" \\\n")
 	}
 
 	option, err := a.GetWorkspaceOptions()
@@ -1233,11 +1246,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 			if h.Key == "" {
 				continue
 			}
-			sb.WriteString("    -reflect-header '")
-			sb.WriteString(h.Key)
-			sb.WriteString(":")
-			sb.WriteString(h.Val)
-			sb.WriteString("' \\\n")
+			sb.WriteString("    -reflect-header ")
+			sb.WriteString(shellQuote(h.Key + ": " + h.Val))
+			sb.WriteString(" \\\n")
 		}
 	}
 

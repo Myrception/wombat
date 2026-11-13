@@ -23,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workspace not connecting on startup because events were sent before the UI was ready
 - Races between sending, cancelling and closing streaming requests
 - Connection state no longer stops updating after a few seconds
+- Loading services via reflection makes fewer round trips (faster on remote servers)
+- Servers that only support reflection v1alpha can be used again
+- Errors while loading services via reflection are reported with their cause
+- Importing a grpcurl command with an unknown flag no longer quits Wombat
+- grpcurl import: `-format text`, `-d @` and malformed quoting are reported instead of being misread
+- grpcurl import keeps headers whose value contains a colon
+- Exported grpcurl commands quote request data containing `'` correctly
+- Cancelling the proto file or import path dialog no longer shows an error or adds an empty path
+- Client certificate and key fields sit side by side on wide windows again
 
 ## [v0.5.0] - 2021-04-26
 

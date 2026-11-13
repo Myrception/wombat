@@ -43,9 +43,9 @@
 <div class="keyval">
   {#each list as kv, i}
     <div class="row">
-      <TextField on:focus={() => onKeyFocus(i)} width="100%" style="margin-bottom:0;" placeholder="key" bind:value={kv.key} />
+      <TextField on:focus={() => onKeyFocus(i)} style="margin-bottom:0;" placeholder="key" bind:value={kv.key} />
       <div class="spacer" />
-      <TextField width="100%" style="margin-bottom:0;" placeholder="value" bind:value={kv.val} />
+      <TextField style="margin-bottom:0;" placeholder="value" bind:value={kv.val} />
       <div class="remove">
         {#if list.length > 1}
           <CrossButton on:click={() => onRemoveClick(i)} />

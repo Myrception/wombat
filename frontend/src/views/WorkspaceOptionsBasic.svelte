@@ -12,15 +12,27 @@
   const onFilesClear = () => options.protos.files = [];
   const onRootsClear = () => options.protos.roots = [];
 
+  // The backend shows errors itself; a cancelled dialog returns nothing.
   const onFilesAction = async () => {
-    options.protos.files = options.protos.files || [];
-    options.protos.files = await FindProtoFiles();
+    try {
+      const files = await FindProtoFiles();
+      if (files) options.protos.files = files;
+    } catch (e) {
+      // keep the current list
+    }
   }
 
   const onRootsAction = async () => {
-    const dir = await SelectDirectory();
-    options.protos.roots = options.protos.roots || [];
-    options.protos.roots = [...options.protos.roots, dir];
+    let dir;
+    try {
+      dir = await SelectDirectory();
+    } catch (e) {
+      return;
+    }
+    const roots = options.protos.roots || [];
+    if (dir && !roots.includes(dir)) {
+      options.protos.roots = [...roots, dir];
+    }
   }
 </script>
 
