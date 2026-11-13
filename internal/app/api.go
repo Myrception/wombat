@@ -1187,9 +1187,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 	rawJSON := []byte(stringJSON)
 	var sb strings.Builder
 	sb.WriteString("grpcurl ")
-	sb.WriteString("-d '")
-	sb.Write(rawJSON)
-	sb.WriteString("' \\\n")
+	sb.WriteString("-d ")
+	sb.WriteString(shellQuote(string(rawJSON)))
+	sb.WriteString(" \\\n")
 
 	var hs headers
 	if err := mapstructure.Decode(rawHeaders, &hs); err != nil {
@@ -1203,11 +1203,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 		if len(h.Key) == 0 {
 			continue
 		}
-		sb.WriteString("    -rpc-header '")
-		sb.WriteString(h.Key)
-		sb.WriteString(":")
-		sb.WriteString(h.Val)
-		sb.WriteString("' \\\n")
+		sb.WriteString("    -rpc-header ")
+		sb.WriteString(shellQuote(h.Key + ": " + h.Val))
+		sb.WriteString(" \\\n")
 	}
 
 	option, err := a.GetWorkspaceOptions()
@@ -1233,11 +1231,9 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 			if h.Key == "" {
 				continue
 			}
-			sb.WriteString("    -reflect-header '")
-			sb.WriteString(h.Key)
-			sb.WriteString(":")
-			sb.WriteString(h.Val)
-			sb.WriteString("' \\\n")
+			sb.WriteString("    -reflect-header ")
+			sb.WriteString(shellQuote(h.Key + ": " + h.Val))
+			sb.WriteString(" \\\n")
 		}
 	}
 

@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading services via reflection makes fewer round trips (faster on remote servers)
 - Servers that only support reflection v1alpha can be used again
 - Errors while loading services via reflection are reported with their cause
+- Importing a grpcurl command with an unknown flag no longer quits Wombat
+- grpcurl import: `-format text`, `-d @` and malformed quoting are reported instead of being misread
+- grpcurl import keeps headers whose value contains a colon
+- Exported grpcurl commands quote request data containing `'` correctly
 
 ## [v0.5.0] - 2021-04-26
 
