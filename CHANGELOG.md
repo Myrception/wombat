@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.0-rc2] - 2026-11-13
+
 ### Changed
 - Dialogs are accessible: screen readers see them (named after their heading), focus moves into the dialog and stays
   there, the page behind is inert, and focus returns when the dialog closes
@@ -13,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - The response panel extended past the window, cutting off long lines and the last line of a response
+- A failed write to `crash.log` is no longer reported as a written crash log
 
 ## [v0.6.0-rc1] - 2026-11-13
 
