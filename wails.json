@@ -1,4 +1,5 @@
 {
+  "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "Wombat",
   "outputfilename": "wombat",
   "frontend:install": "npm install",
@@ -15,5 +16,6 @@
     "productVersion": "0.0.0-dev",
     "copyright": "",
     "comments": "Cross platform gRPC client"
-  }
+  },
+  "build:tags": "webkit2_41"
 }

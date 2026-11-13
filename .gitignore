@@ -4,6 +4,12 @@ deploy
 moc*
 rcc*
 
-# new v2
-build
+# new v2: build/ holds the platform assets, only the output is ignored
+/build/bin/
+/build/windows/
 .data
+
+# local databases and backups
+/db/
+/db_old/
+*.backup

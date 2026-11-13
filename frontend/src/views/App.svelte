@@ -6,11 +6,6 @@
   import Updater from "./Updater.svelte";
   import { setFieldRenderer } from './FieldContext';
   import MessageField from './MessageField.svelte';
-  
-  // Function to get current zoom level
-  function getCurrentZoom() {
-    return parseFloat(document.body.dataset.zoomLevel || "1.0");
-  }
 
   setFieldRenderer(MessageField);
 
@@ -18,8 +13,12 @@
     key: 'modal',
     transitionBg: () => {},
     transitionWindow: () => {},
+    // Viewport units are scaled by CSS zoom (see src/zoom.js), so the
+    // library's 100vw/100vh sizes are replaced with zoom-aware ones.
     styleBg: {
       backgroundColor: '#22222377',
+      width: '100%',
+      height: '100%',
     },
     styleWindow: {
       borderRadius: 0,
@@ -30,7 +29,8 @@
       position: "fixed",
       top: "50%",
       left: "50%",
-      transform: `translate(-50%, -50%) scale(${1/getCurrentZoom()})`,
+      transform: "translate(-50%, -50%)",
+      margin: 0,
       zIndex: 1000,
       overflowX: "hidden",
     },
@@ -40,6 +40,7 @@
       position: "relative",
       zIndex: 1001,
       boxSizing: "border-box",
+      maxHeight: "calc(100vh / var(--zoom) - 4rem)",
     },
     styleCloseButton: {
       borderRadius: 0,
@@ -50,7 +51,8 @@
 
 <style>
   :root {
-    --app-scale: 1;
+    /* Set by src/zoom.js together with CSS zoom on <html>. */
+    --zoom: 1;
 
     --bg-color: #2e3440;
     --bg-color2: #434c5e;
@@ -78,19 +80,20 @@
     --green-color: #a3be8c;
     --purple-color: #b48ead;
 
-    --padding: calc(12px * var(--app-scale));
-    --font-size: calc(10pt * var(--app-scale));
-    --border: calc(1px * var(--app-scale)) solid #3b4252;
+    --padding: 12px;
+    --font-size: 10pt;
+    --border: 1px solid #3b4252;
 
-    --icon-size: calc(16px * var(--app-scale));
-    --input-height: calc(40px * var(--app-scale));
-    --btn-height: calc(40px * var(--app-scale));
-    --header-height: calc(40px * var(--app-scale));
+    --icon-size: 16px;
+    --input-height: 40px;
+    --btn-height: 40px;
+    --header-height: 40px;
   }
 
   :global(html,body) {
     margin: 0;
-    height: 100vh;
+    /* Not 100vh: viewport units are scaled by CSS zoom and would overflow. */
+    height: 100%;
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -111,9 +114,6 @@
   :global(select) {
     font-size: var(--font-size);
   }
-  :global(.monaco-editor) {
-  font-size: var(--font-size) !important;
-  }
   
   :global(.header),
   :global(.content),
@@ -123,66 +123,20 @@
   :global(.response) {
     padding: var(--padding);
   }
-  :global(svg) {
-  transform-origin: center;
-  transform: scale(1);
-  }
-  
-  /* Ensure fixed dimensions scale with zoom */
-  :global([class*="fixed-"]) {
-    transform-origin: top left;
-    transform: scale(var(--app-scale));
-  }
-  
-  /* Apply zoom transition for smooth scaling */
-  /*:global(body) {
-    transition: font-size 0.2s ease;
-  }*/
-  
-  :global(*) {
-    transition: padding 0.2s ease, margin 0.2s ease, height 0.2s ease, width 0.2s ease;
-  }
-
   .app {
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-flow: column;
     overflow: hidden;
   }
-  :global(.fixed-position) {
-    position: fixed;
-    /* These elements will be adjusted by our JavaScript zoom handler */
-  }
-  /* Add a transition for smoother zoom experience */
- /* :global(body) {
-    transition: transform 0.2s ease;
-  }
-*/
-  
   :global(.window) {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    overflow-x: hidden !important;
-    max-width: 100% !important;
-  }
-  
-  :global(.window button) {
-    position: relative;
-    z-index: 1002;
-    pointer-events: auto !important;
-  }
-  
-  :global(.window .content) {
-    position: relative;
-    z-index: 1001;
-    pointer-events: auto;
     overflow-x: hidden;
-    width: 100%;
+    max-width: calc(100vw / var(--zoom));
   }
-  /* Prevent unnecessary scrollbars from appearing */
-  :global(html) {
-    overflow: hidden;
+
+  /* Monaco 0.21 does not support CSS zoom; see src/zoom.js. */
+  :global(.unzoomed) {
+    zoom: calc(1 / var(--zoom));
   }
 </style>
 

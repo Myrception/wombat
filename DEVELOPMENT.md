@@ -1,37 +1,58 @@
 # Development
 
-## Prerequisites 
+## Prerequisites
 
-- Working [Go](https://golang.org/) 1.15+ environment
-- Working [Node.js](https://nodejs.org/en/) v12+ environment
+- [Go](https://go.dev/) 1.27.4 (the version in `go.mod`)
+- [Node.js](https://nodejs.org/) 20+
+- The [Wails v2](https://wails.io/) CLI, at the version used in `go.mod`:
+
+  ```zsh
+  $ go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.1
+  ```
+
+- On Linux: GTK 3 and WebKitGTK 4.1 development packages (e.g. `libgtk-3-dev libwebkit2gtk-4.1-dev` on
+  Debian/Ubuntu, `gtk3 webkit2gtk-4.1` on Arch). `wails doctor` checks everything is in place.
 
 ## Getting started
 
-Wombat is built with [Wails](https://wails.app/); to install the CLI:
-
 ```zsh
-$ go get github.com/wailsapp/wails/cmd/wails
+$ wails dev
 ```
 
-Wails has a "Bridge Mode" that allows you to debug with your browser of choice; to enable:
+This builds and runs Wombat in development mode: the frontend is served by the Vite dev server with hot reload, and the
+Go side is rebuilt and restarted when a `.go` file changes. Open http://localhost:34115 to use the app in your browser
+(with its dev-tools) while still calling the Go backend.
+
+`wails.json` sets the `webkit2_41` build tag, so `wails dev` and `wails build` link against WebKitGTK 4.1 on Linux.
+When running Go tooling directly, pass it yourself:
 
 ```zsh
-$ wails serve
+$ (cd frontend && npm install && npm run build)   # main.go embeds frontend/dist
+$ go vet -tags webkit2_41 ./...
+$ go test -race -tags webkit2_41 ./...
 ```
 
-In a separate terminal you will need to start the frontend:
+## App data
 
-```zsh
-$ cd frontend
-$ npm run dev
-```
+Workspaces and their settings are stored in a Badger database:
 
-The frontend will automatically re-build and reload on changes.
+| Mode | Location |
+| --- | --- |
+| `wails dev` | `.data/` in the repository |
+| Linux | `~/.local/share/Wombat` |
+| macOS | `~/Library/Application Support/Wombat` |
+| Windows | `%AppData%\Wombat` |
+
+Set `WOMBAT_DATA_DIR` to use a different directory. Unexpected panics are appended to `crash.log` in the same directory.
+
+Only one instance of Wombat can run at a time (the database is locked); starting it again brings the running window to
+the front. A `wails dev` instance and an installed release use different data directories, so they can run side by
+side.
 
 ## Built-in gRPC server
 
-During development it's common to want to test proto files and gRPC APIs. When Wombat lanuches in "Bridge/Debug Mode" it
-automatically starts a gRPC server running on `localhost:5001`. You can also make changes to the
+During development it's common to want to test proto files and gRPC APIs. `wails dev` automatically starts a gRPC
+server with reflection on `localhost:5001` (it is not part of release builds). You can also make changes to the
 `/internal/server/foobar.proto` file to add test protos.
 
 ## Backend API
@@ -52,33 +73,32 @@ All backend event constants are defined in `/internal/app/events.go`.
 The frontend is built with [Svelte](https://svelte.dev/); and should be fairly straight forward if you have done any
 type of web-based frontend development before.
 
-During development, you can use any browser (and it's dev-tools), but it's important to remember that Wombat does not
-bundle a browser (like Chromium), but rather uses the system's built-in web view component. For Mac this will be a
-Safari web view; on Linux a WebKit web view and on Windows mshtml (basically IE11).
+The frontend is bundled with [Vite](https://vitejs.dev/). `wails dev` starts the Vite dev server and proxies it, so
+changes to the frontend are hot reloaded; `wails build` runs `npm run build` and embeds `frontend/dist`.
 
-mshtml does not have support for CSS variables (which is used heavily by Wombat frontend); because of this limitation we
-pre-compile the CSS via a plugin for rollup. This only works for CSS declared in `style` blocks; to use in the JS world
-we inject a `window.isWin` bool flag (just `isWin` for short) so that we can pass the real value rather than the CSS
-variable.
+During development, you can use any browser (and it's dev-tools) by opening http://localhost:34115 while `wails dev` is
+running, but it's important to remember that Wombat does not bundle a browser (like Chromium), but rather uses the
+system's built-in web view component: WKWebView on macOS, WebKitGTK on Linux and WebView2 (Chromium) on Windows. All of
+them are evergreen, so modern JS and CSS (including CSS variables) can be used without transpiling or polyfills.
 
-This is a short term fix; Wails v2 will built against
-[WebView2](https://docs.microsoft.com/en-us/microsoft-edge/webview2/) which is based off Chromium and will resolve most
-of the Windows "issues".
-
-If you need to add any styles please update both `frontend/src/views/App.svelte` and `frontend/rollup.config.js`.
+The theme colours are CSS variables declared in `frontend/src/views/App.svelte`. The UI zoom uses CSS `zoom`; see
+`frontend/src/zoom.js` for the two things to keep in mind when writing CSS.
 
 After getting your UI correct; it's always good to validate in a real build:
 
 ```zsh
-$ wails build -d
-$ ./build/wombat
+$ wails build -debug
+$ ./build/bin/wombat
 ```
 
-The `-d` flag will build Wombat in debug mode so you will still get all the debug output in the terminal, but also runs
-the development gRPC server too.
+`-debug` keeps debug logging and the web inspector ("Right/Option Click" -> "Inspect Element"), which are disabled in
+production builds. Note that the built-in gRPC server only runs under `wails dev`.
 
-In debug mode you can still "Right/Option Click" -> "Inspect Element" and bring up the development tools (mac and linux
-only). This is disabled in production builds.
+## Releasing
+
+Pushing a `v*` tag runs `.github/workflows/package.yml`, which builds Linux, macOS (universal) and Windows packages and
+attaches them to a draft GitHub release. The tag becomes the app version, and the in-app update check compares it
+against the latest release of the repository set in `internal/app/update_check.go`.
 
 ## Changelog
 

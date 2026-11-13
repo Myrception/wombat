@@ -1,12 +1,18 @@
 package app
 
 import (
+	"errors"
 	"path/filepath"
 
 	badger "github.com/dgraph-io/badger/v4"
 )
 
-var errKeyNotFound = badger.ErrKeyNotFound
+var (
+	errKeyNotFound = badger.ErrKeyNotFound
+	// errNoStore is returned by all store operations when the database could
+	// not be opened (e.g. another Wombat instance holds the lock).
+	errNoStore = errors.New("app: database is not available")
+)
 
 type dblogger = badger.Logger
 
@@ -26,6 +32,9 @@ func newStore(path string, l dblogger) (*store, error) {
 }
 
 func (s *store) get(key []byte) (val []byte, rtnErr error) {
+	if s == nil || s.db == nil {
+		return nil, errNoStore
+	}
 	rtnErr = s.db.View(func(txn *badger.Txn) error {
 		data, err := txn.Get(key)
 		if err != nil {
@@ -38,18 +47,27 @@ func (s *store) get(key []byte) (val []byte, rtnErr error) {
 }
 
 func (s *store) set(key, val []byte) error {
+	if s == nil || s.db == nil {
+		return errNoStore
+	}
 	return s.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(key, val)
 	})
 }
 
 func (s *store) del(key []byte) error {
+	if s == nil || s.db == nil {
+		return errNoStore
+	}
 	return s.db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(key)
 	})
 }
 
 func (s *store) list(prefix []byte) ([][]byte, error) {
+	if s == nil || s.db == nil {
+		return nil, errNoStore
+	}
 	var items [][]byte
 	err := s.db.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
@@ -69,7 +87,7 @@ func (s *store) list(prefix []byte) ([][]byte, error) {
 }
 
 func (s *store) close() {
-	if s == nil {
+	if s == nil || s.db == nil {
 		return
 	}
 	s.db.Close()

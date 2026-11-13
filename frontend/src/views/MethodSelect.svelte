@@ -94,7 +94,7 @@
   <div class="spacer" />
   <Button 
     text="Send"
-    color={isWin ? "#88c0d0" : "var(--primary-color)"}
+    color="var(--primary-color)"
     on:click={onSend}
   />
 </div>

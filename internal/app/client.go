@@ -23,94 +23,98 @@ type client struct {
 	conn *grpc.ClientConn
 }
 
+// transportCreds wraps the TLS credentials so that a handshake error can be
+// surfaced to the user instead of the generic "TRANSIENT_FAILURE" state.
+//
+// gRPC performs handshakes on its own goroutines for the whole lifetime of the
+// connection (including every reconnect), so the error channel is never closed
+// and sends are non-blocking: only the first error is kept, later ones are
+// dropped. Previously the channel was closed after connecting, which caused a
+// "send on closed channel" panic on the first failed reconnect.
 type transportCreds struct {
 	credentials.TransportCredentials
-	errc chan<- error
+	errc chan error
 }
 
 func (t *transportCreds) ClientHandshake(ctx context.Context, addr string, in net.Conn) (net.Conn, credentials.AuthInfo, error) {
 	out, auth, err := t.TransportCredentials.ClientHandshake(ctx, addr, in)
 	if err != nil {
-		t.errc <- err
+		select {
+		case t.errc <- err:
+		default:
+		}
 	}
 	return out, auth, err
 }
 
 func (c *client) connect(o options, h stats.Handler) error {
-	errc := make(chan error, 1)
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-		opts := []grpc.DialOption{
-			grpc.WithStatsHandler(h),
-			grpc.WithUserAgent(fmt.Sprintf("%s/%s", appName, semver)),
-		}
+	handshakeErr := make(chan error, 1)
 
-		if !o.Plaintext {
-			var tlsCfg tls.Config
-			tlsCfg.InsecureSkipVerify = o.Insecure
+	opts := []grpc.DialOption{
+		grpc.WithStatsHandler(h),
+		grpc.WithUserAgent(fmt.Sprintf("%s/%s", appName, semver)),
+	}
 
-			if o.Clientcert != "" {
-				cert, err := tls.X509KeyPair([]byte(o.Clientcert), []byte(o.Clientkey))
-				if err != nil {
-					errc <- err
-					return
-				}
-				tlsCfg.Certificates = []tls.Certificate{cert}
-			}
+	if !o.Plaintext {
+		var tlsCfg tls.Config
+		tlsCfg.InsecureSkipVerify = o.Insecure
 
-			var err error
-			tlsCfg.RootCAs, err = x509.SystemCertPool()
+		if o.Clientcert != "" {
+			cert, err := tls.X509KeyPair([]byte(o.Clientcert), []byte(o.Clientkey))
 			if err != nil {
-				tlsCfg.RootCAs = x509.NewCertPool()
+				return err
 			}
-
-			if o.Rootca != "" {
-				tlsCfg.RootCAs.AppendCertsFromPEM([]byte(o.Rootca))
-			}
-
-			creds := &transportCreds{
-				credentials.NewTLS(&tlsCfg),
-				errc,
-			}
-			opts = append(opts, grpc.WithTransportCredentials(creds))
-		} else {
-			opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			tlsCfg.Certificates = []tls.Certificate{cert}
 		}
 
 		var err error
-		c.conn, err = grpc.NewClient(o.Addr, opts...)
+		tlsCfg.RootCAs, err = x509.SystemCertPool()
 		if err != nil {
-			errc <- err
-			return
+			tlsCfg.RootCAs = x509.NewCertPool()
 		}
 
-		c.conn.Connect()
-
-		// Wait for connection to be READY
-		state := c.conn.GetState()
-		fmt.Printf("Initial connection state: %s\n", state.String())
-		for state != connectivity.Ready {
-			if !c.conn.WaitForStateChange(ctx, state) {
-				fmt.Printf("Context timed out while in state: %s\n", state.String())
-				errc <- ctx.Err()
-				return
-			}
-			state = c.conn.GetState()
-			fmt.Printf("Connection state changed to: %s\n", state.String())
-			if state == connectivity.TransientFailure || state == connectivity.Shutdown {
-				errc <- fmt.Errorf("connection in state: %s", state.String())
-				return
-			}
+		if o.Rootca != "" {
+			tlsCfg.RootCAs.AppendCertsFromPEM([]byte(o.Rootca))
 		}
-		close(errc)
-	}()
 
-	if err := <-errc; err != nil {
+		opts = append(opts, grpc.WithTransportCredentials(&transportCreds{
+			TransportCredentials: credentials.NewTLS(&tlsCfg),
+			errc:                 handshakeErr,
+		}))
+	} else {
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	conn, err := grpc.NewClient(o.Addr, opts...)
+	if err != nil {
 		return err
 	}
-	return nil
+	conn.Connect()
+
+	// Wait for the connection to become READY, fail fast on the first failure.
+	for {
+		state := conn.GetState()
+		switch state {
+		case connectivity.Ready:
+			c.conn = conn
+			return nil
+		case connectivity.TransientFailure, connectivity.Shutdown:
+			conn.Close()
+			select {
+			case err := <-handshakeErr:
+				return err
+			default:
+				return fmt.Errorf("connection in state: %s", state)
+			}
+		}
+		if !conn.WaitForStateChange(ctx, state) {
+			conn.Close()
+			return fmt.Errorf("timed out while in state %s: %w", state, ctx.Err())
+		}
+	}
 }
 
 func (c *client) invoke(ctx context.Context, method string, req, resp proto.Message) error {
@@ -130,18 +134,15 @@ func (c *client) invokeServerStream(ctx context.Context, method string, req prot
 		ClientStreams: false,
 		ServerStreams: true,
 	}
-	ctx, cancel := context.WithCancel(ctx)
-	_ = cancel // avoid go vet error
+	// The caller owns ctx and cancels it when the call is done.
 	s, err := c.conn.NewStream(ctx, sd, method)
 	if err != nil {
 		return nil, err
 	}
 	if err := s.SendMsg(req); err != nil {
-		cancel()
 		return nil, err
 	}
 	if err := s.CloseSend(); err != nil {
-		cancel()
 		return nil, err
 	}
 	return s, nil

@@ -2,14 +2,17 @@ package main
 
 import (
 	"embed"
-	_ "embed"
 	"os"
+
 	"wombat/internal/app"
 )
 
-//go:embed all:frontend/public
+//go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed build/appicon.png
+var icon []byte
+
 func main() {
-	os.Exit(app.Run(assets))
+	os.Exit(app.Run(assets, icon))
 }

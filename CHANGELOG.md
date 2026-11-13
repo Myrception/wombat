@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for connecting to unix sockets. Thanks to [@aschey](https://github.com/aschey)
 - Support google.protobuf.Struct. Thanks to [@n0trace](https://github.com/n0trace)
+- UI zoom (Ctrl/Cmd `+`, `-`, `0`) with a larger default on high resolution screens
+- Starting Wombat a second time focuses the running window
+- Unexpected panics are written to `crash.log` in the app data directory
+
+### Changed
+- Upgraded to Wails v2 (WebView2 on Windows, WebKitGTK 4.1 on Linux) and Go 1.27
+- Frontend is built with Vite and Svelte 4
+- macOS release is a universal (Intel and Apple Silicon) build
+
+### Fixed
+- Crash when a TLS connection failed during reconnect
+- Workspace not connecting on startup because events were sent before the UI was ready
+- Races between sending, cancelling and closing streaming requests
+- Connection state no longer stops updating after a few seconds
 
 ## [v0.5.0] - 2021-04-26
 
