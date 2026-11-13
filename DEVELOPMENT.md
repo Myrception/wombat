@@ -28,9 +28,11 @@ When running Go tooling directly, pass it yourself:
 
 ```zsh
 $ (cd frontend && npm install && npm run build)   # main.go embeds frontend/dist
-$ go vet -tags webkit2_41 ./...
 $ go test -race -tags webkit2_41 ./...
+$ golangci-lint run                                 # gofmt, vet, errcheck, staticcheck, ... (.golangci.yml)
 ```
+
+CI runs [golangci-lint](https://golangci-lint.run/) v2.15.0; install the same version locally to get the same results.
 
 ## App data
 
