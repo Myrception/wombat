@@ -11,16 +11,36 @@
   let serviceSelected;
   let methodOptions = []
   let methodSelected;
-  let holdon = false;
 
   const initServiceSelection = (value) => {
     methodSelected = undefined;
     methodOptions = servicesSelect[value].methods.map(m => ({
-      value: m.full_name, 
+      value: m.full_name,
       label: m.name,
       client_stream: m.client_stream,
       server_stream: m.server_stream,
     }))
+  }
+
+  // What is currently loaded, so picking the same service or method again
+  // does not reset the form.
+  let loadedService = -1;
+  let loadedMethod = undefined;
+
+  const loadMethod = (fullName, initState = "", metadata = []) => {
+    loadedMethod = fullName;
+    return SelectMethod(fullName, initState, metadata);
+  }
+
+  // Selects the first method of service `index` and loads its form.
+  const selectService = (index) => {
+    loadedService = index;
+    serviceSelected = serviceOptions[index];
+    initServiceSelection(index);
+    if (methodOptions.length > 0) {
+      methodSelected = methodOptions[0];
+      loadMethod(methodSelected.value);
+    }
   }
 
   // Set up event listener with cleanup
@@ -29,14 +49,14 @@
     servicesSelect = data;
     serviceOptions = data.map((s, i) => ({value: i, label: s.full_name}))
     if (methodFullName) {
-      holdon = true;
+      // An imported command: select its method with its request data.
       serviceSelected = serviceOptions.find(it => methodFullName.startsWith(`/${it.label}/`))
-      initServiceSelection(serviceOptions.indexOf(serviceSelected))
+      loadedService = serviceOptions.indexOf(serviceSelected)
+      initServiceSelection(loadedService)
       methodSelected = methodOptions.find(it => it.value == methodFullName)
-      await SelectMethod(methodSelected.value, initState ?? "{}", metadata ?? []);
-      holdon = false;
+      await loadMethod(methodSelected.value, initState ?? "{}", metadata ?? []);
     } else if (serviceOptions.length > 0) {
-      serviceSelected = serviceOptions[0]
+      selectService(0);
     }
   });
 
@@ -45,17 +65,13 @@
     unsubscribeServices();
   });
 
+  // The dropdowns fire `select` only for choices made by the user, so the
+  // methods are loaded explicitly here.
   const serviceSelectionChanged = ({ detail: { value } }) => {
-    if (holdon) return
-    initServiceSelection(value)
-    if (methodOptions.length > 0) {
-      methodSelected = methodOptions[0]
-    }
+    if (value !== loadedService) selectService(value);
   }
-
   const methodSelectionChanged = ({ detail: { value } }) => {
-    if (holdon) return
-    SelectMethod(value, "", []);
+    if (value !== loadedMethod) loadMethod(value);
   }
 
   const dispatch = createEventDispatcher();
@@ -66,6 +82,8 @@
   $: dispatch("selected", { method: methodSelected });
 
   const reset = () => {
+    loadedService = -1;
+    loadedMethod = undefined;
     serviceOptions = [];
     serviceSelected = undefined;
     methodOptions = [];

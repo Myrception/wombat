@@ -66,14 +66,14 @@ export const textInput = (scope, name) =>
 
 /** Picks `label` in the service (0) or method (1) dropdown. */
 export async function pick(page, dropdown, label) {
-  await page.locator(".method-select .selectContainer").nth(dropdown).click();
-  await page.locator(".listContainer .listItem").filter({ hasText: new RegExp(`^\\s*${label}\\b`) }).first().click();
+  await page.locator(".method-select .svelte-select").nth(dropdown).click();
+  await page.locator(".svelte-select-list .list-item").filter({ hasText: new RegExp(`^\\s*${label}\\b`) }).first().click();
 }
 
 /** Selects a method through the UI, like a user would. */
 export async function selectMethod(page, fullName) {
   const [, service, method] = fullName.split("/");
-  const current = await page.locator(".method-select .selectContainer").nth(0).innerText();
+  const current = await page.locator(".method-select .svelte-select").nth(0).innerText();
   if (!current.includes(service)) await pick(page, 0, service);
   await pick(page, 1, method);
   await expectMethod(page, fullName);
@@ -110,8 +110,8 @@ export const toggleBool = (scope, name) => scope.locator(".field-bool label", { 
 
 /** Opens a dropdown and picks the option `option`. */
 export async function choose(dropdown, option) {
-  await dropdown.locator(".selectContainer").click();
-  await dropdown.page().locator(".listContainer .listItem").filter({ hasText: exact(option) }).click();
+  await dropdown.locator(".svelte-select").click();
+  await dropdown.page().locator(".svelte-select-list .list-item").filter({ hasText: exact(option) }).click();
 }
 
 /** The dropdown of the enum field `name`. */

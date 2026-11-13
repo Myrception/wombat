@@ -6,8 +6,8 @@ const tab = (page, name) => page.locator(".input-pane").getByRole("button", { na
 test.beforeEach(async ({ page }) => openApp(page));
 
 test("picking a service selects its first method", async ({ page }) => {
-  // svelte-select 3 fires `select` for programmatic changes, which this
-  // relies on; svelte-select 5+ does not (see the Phase B plan).
+  // The dropdown only reports choices made by the user; MethodSelect has to
+  // load the first method itself.
   await pick(page, 0, "wombat.v1.RouteGuide");
   await expectMethod(page, METHODS.GetFeature);
   await expect(textInput(form(page), "latitude")).toBeVisible();

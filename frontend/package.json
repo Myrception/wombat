@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "monaco-editor": "0.21.3",
-    "svelte-select": "3.17.0",
+    "svelte-select": "5.8.3",
     "svelte-simple-modal": "1.6.2"
   }
 }
