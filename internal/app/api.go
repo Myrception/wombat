@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
