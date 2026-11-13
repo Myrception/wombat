@@ -6,7 +6,6 @@
 <p align="center">
 <a href="https://github.com/Myrception/wombat/releases"><img src="https://img.shields.io/github/v/release/Myrception/wombat?include_prereleases&style=flat-square" alt="Github release"></a>
 <img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/Myrception/wombat?style=flat-square" />
-<a href="https://goreportcard.com/report/github.com/Myrception/wombat"><img alt="Go report card" src="https://goreportcard.com/badge/github.com/Myrception/wombat?style=flat-square" /></a>
 <a href="https://github.com/grpc-ecosystem/awesome-grpc"><img alt="Awesome gRPC" src="https://raw.githubusercontent.com/sindresorhus/awesome/main/media/badge-flat.svg" /></a>
 </p>
 
