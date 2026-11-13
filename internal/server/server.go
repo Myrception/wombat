@@ -9,17 +9,12 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/proto"
 )
-
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 //go:generate protoc --go_out=:. --go-grpc_out=:. route_guide.proto foobar.proto
 
@@ -28,14 +23,13 @@ type server struct {
 	UnimplementedFoobarServer
 
 	savedFeatures []*Feature // read-only after initialized
-
-	mu         sync.Mutex // protects routeNotes
-	routeNotes map[string][]*RouteNote
 }
 
 func newServer() *server {
-	s := &server{routeNotes: make(map[string][]*RouteNote)}
-	json.Unmarshal(exampleData, &s.savedFeatures)
+	s := &server{}
+	if err := json.Unmarshal(exampleData, &s.savedFeatures); err != nil {
+		panic(fmt.Sprintf("server: invalid example data: %v", err)) // embedded, so a programming error
+	}
 
 	return s
 }
@@ -179,5 +173,7 @@ func Serve() {
 		fmt.Fprintf(os.Stderr, "server: failed to create listener: %v", err)
 		return
 	}
-	NewGRPCServer().Serve(lis)
+	if err := NewGRPCServer().Serve(lis); err != nil {
+		fmt.Fprintf(os.Stderr, "server: %v\n", err)
+	}
 }

@@ -102,7 +102,7 @@ func (c *client) connect(o options, h stats.Handler) error {
 			c.conn = conn
 			return nil
 		case connectivity.TransientFailure, connectivity.Shutdown:
-			conn.Close()
+			_ = conn.Close() // giving up on it; the handshake error matters
 			select {
 			case err := <-handshakeErr:
 				return err
@@ -111,7 +111,7 @@ func (c *client) connect(o options, h stats.Handler) error {
 			}
 		}
 		if !conn.WaitForStateChange(ctx, state) {
-			conn.Close()
+			_ = conn.Close() // giving up on it; the timeout matters
 			return fmt.Errorf("timed out while in state %s: %w", state, ctx.Err())
 		}
 	}

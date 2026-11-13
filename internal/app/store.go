@@ -86,9 +86,9 @@ func (s *store) list(prefix []byte) ([][]byte, error) {
 	return items, err
 }
 
-func (s *store) close() {
+func (s *store) close() error {
 	if s == nil || s.db == nil {
-		return
+		return nil
 	}
-	s.db.Close()
+	return s.db.Close()
 }

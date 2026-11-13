@@ -77,9 +77,8 @@ type statsHandler struct {
 }
 
 type storeLogger struct {
-	ctx     context.Context
-	log     *slog.Logger
-	logFunc func(string, ...interface{})
+	ctx context.Context
+	log *slog.Logger
 }
 
 // Create a new storeLogger
@@ -197,7 +196,7 @@ func (a *api) emitCurrentState() {
 func (a *api) checkForUpdate() {
 	r, err := checkForUpdate()
 	if err != nil {
-		if err == noUpdate {
+		if err == errNoUpdate {
 			a.rt.LogInfo(err.Error())
 			return
 		}
@@ -210,7 +209,9 @@ func (a *api) checkForUpdate() {
 // Shutdown is called when the application is closing
 func (a *api) Shutdown(ctx context.Context) {
 	a.resetConnection()
-	a.store.close()
+	if err := a.store.close(); err != nil && a.rt != nil {
+		a.rt.LogWarning(fmt.Sprintf("failed to close the database: %v", err))
+	}
 }
 
 func (a *api) getClient() *client {
@@ -367,8 +368,8 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 		a.rt.LogWarning(fmt.Sprintf("failed to get reflection metadata: %v", err))
 	}
 
-	// Ignoring error as Connect will already emit errors to the frontend
-	a.Connect(opts, hds, false)
+	// Connect reports its own errors to the frontend.
+	_ = a.Connect(opts, hds, false)
 
 	return nil
 }
@@ -380,7 +381,8 @@ func (a *api) DeleteWorkspace(id string) error {
 		return err
 	}
 	if a.currentWorkspaceID() == id {
-		a.SelectWorkspace(defaultWorkspaceKey)
+		// SelectWorkspace reports its own errors to the frontend.
+		_ = a.SelectWorkspace(defaultWorkspaceKey)
 	}
 	return nil
 }
@@ -488,7 +490,7 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 		// Still try to parse proto definitions. Will fail silently
 		// if using reflection services as there is no connection
 		// to a valid server.
-		a.goSafe("loading proto files", func() { a.loadProtoFiles(gen, nil, opts, hds, true) })
+		a.goSafe("loading proto files", func() { _ = a.loadProtoFiles(gen, nil, opts, hds, true) }) // reports its own errors
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}
 
@@ -502,7 +504,7 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 
 	a.rt.Emit(eventClientConnected, opts.Addr)
 
-	a.goSafe("loading proto files", func() { a.loadProtoFiles(gen, cl, opts, hds, false) })
+	a.goSafe("loading proto files", func() { _ = a.loadProtoFiles(gen, cl, opts, hds, false) }) // reports its own errors
 
 	if save {
 		if opts.ID == "" {

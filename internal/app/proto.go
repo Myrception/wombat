@@ -25,8 +25,8 @@ func protoFilesFromDisk(importPaths, filenames []string) (*protoregistry.Files, 
 		return nil, err
 	}
 	tempFilePath := tempFile.Name()
-	tempFile.Close()
-	defer os.Remove(tempFilePath)
+	_ = tempFile.Close() // protoc writes it by name
+	defer func() { _ = os.Remove(tempFilePath) }()
 
 	// Build protoc command with import paths and output
 	args := []string{"--descriptor_set_out=" + tempFilePath, "--include_imports"}
