@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4174;
+// PW_DEV=1 runs the tests against the Vite dev server instead: slower, but
+// Svelte's development-only runtime warnings are reported (and fail tests).
+const dev = !!process.env.PW_DEV;
 
 // UI tests: the production build of the frontend, served by `vite preview`,
 // running against a fake backend (tests/fake-backend.js).
@@ -23,7 +26,9 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1200, height: 820 } } },
   ],
   webServer: {
-    command: `npm run build && npx vite preview --host 127.0.0.1 --port ${port} --strictPort`,
+    command: dev
+      ? `npx vite --host 127.0.0.1 --port ${port} --strictPort`
+      : `npm run build && npx vite preview --host 127.0.0.1 --port ${port} --strictPort`,
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

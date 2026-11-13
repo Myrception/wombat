@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Upgraded to Wails v2 (WebView2 on Windows, WebKitGTK 4.1 on Linux) and Go 1.27
-- Frontend is built with Vite and Svelte 4
-- Dropdowns use svelte-select 5
+- Frontend is built with Vite and Svelte 5
+- Dropdowns use svelte-select 6, dialogs svelte-simple-modal 2
 - macOS release is a universal (Intel and Apple Silicon) build
 
 ### Fixed

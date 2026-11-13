@@ -18,6 +18,8 @@ export const test = base.extend({
     page.on("pageerror", e => problems.push(`pageerror: ${e.message}`));
     page.on("console", m => {
       if (m.type() === "error") problems.push(`console.error: ${m.text()}`);
+      // Svelte's runtime warnings (development builds only, see PW_DEV).
+      if (m.type() === "warning" && m.text().includes("[svelte]")) problems.push(`svelte warning: ${m.text()}`);
     });
     await page.addInitScript(([s, c]) => {
       window.__WOMBAT_SCHEMA__ = s;

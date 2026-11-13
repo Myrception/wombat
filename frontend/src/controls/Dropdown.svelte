@@ -1,5 +1,5 @@
 <script>
-  // Our wrapper around svelte-select (v5). Its props and events are our own
+  // Our wrapper around svelte-select (v6). Its props and events are our own
   // API, so the components using it do not depend on svelte-select's.
   //
   // `select` fires only when the user picks an option, never when
@@ -24,8 +24,12 @@
   export let titleProp = "value";
 
   const dispatch = createEventDispatcher();
-  const onChange = e => dispatch("select", e.detail);
-  const onClear = e => dispatch("clear", e.detail);
+  // svelte-select passes the payload directly (not as an event), and for
+  // plain string items it is the string itself. Our `select`/`clear` events
+  // always carry an item object: { value, label, ... }.
+  const asItem = v => (v !== null && typeof v === "object" ? v : { value: v, label: v });
+  const onChange = value => dispatch("select", asItem(value));
+  const onClear = value => dispatch("clear", value == null ? value : asItem(value));
 
   $: title = selectedValue && typeof selectedValue === "object" ? selectedValue[titleProp] ?? "" : selectedValue ?? "";
 </script>
@@ -77,8 +81,8 @@
     clearable={isClearable}
     searchable={isSearchable}
     showChevron={showIndicator}
-    on:change={onChange}
-    on:clear={onClear}
+    onchange={onChange}
+    onclear={onClear}
     --height="var(--input-height)"
     --box-sizing="border-box"
     --chevron-height="calc(var(--input-height) - 2px)"
@@ -104,12 +108,12 @@
     --item-is-active-color="var(--text-inverse-color)"
     --item-padding="0 12px"
   >
-    <svelte:fragment slot="item" let:item>
+    {#snippet item({ item })}
       {#if Item}
-        <svelte:component this={Item} {item} />
+        <Item {item} />
       {:else}
         {item.label}
       {/if}
-    </svelte:fragment>
+    {/snippet}
   </Select>
 </div>
