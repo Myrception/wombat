@@ -602,6 +602,10 @@ func (a *api) loadProtoFiles(gen uint64, cl *client, opts options, reflectHeader
 	return a.emitServicesSelect("", "", nil)
 }
 
+func isReflectionService(name string) bool {
+	return strings.HasPrefix(name, "grpc.reflection.")
+}
+
 func (a *api) emitServicesSelect(method string, data string, metadata headers) error {
 	files := a.getProtofiles()
 	if files == nil {
@@ -638,12 +642,18 @@ func (a *api) emitServicesSelect(method string, data string, metadata headers) e
 		}
 		return true
 	})
-
 	if len(ss) == 0 {
 		return nil
 	}
 
+	// Sorted by name, with the reflection services last: they are rarely
+	// what the user wants to call, and the first service is selected
+	// automatically.
 	sort.SliceStable(ss, func(i, j int) bool {
+		ri, rj := isReflectionService(ss[i].FullName), isReflectionService(ss[j].FullName)
+		if ri != rj {
+			return rj
+		}
 		return ss[i].FullName < ss[j].FullName
 	})
 
