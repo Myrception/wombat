@@ -17,7 +17,7 @@ const releaseRepo = "Myrception/wombat"
 
 const latestReleaseURL = "https://api.github.com/repos/" + releaseRepo + "/releases/latest"
 
-var noUpdate = errors.New("no update available")
+var errNoUpdate = errors.New("no update available")
 
 type releaseResponse struct {
 	TagName string `json:"tag_name"`
@@ -34,7 +34,7 @@ func init() {
 
 func checkForUpdate() (*releaseInfo, error) {
 	if isDev {
-		return nil, noUpdate
+		return nil, errNoUpdate
 	}
 
 	req, err := http.NewRequest("GET", latestReleaseURL, nil)
@@ -61,7 +61,7 @@ func checkForUpdate() (*releaseInfo, error) {
 	}
 
 	if versionGreaterThanOrEqual(semver, r.TagName) {
-		return nil, noUpdate
+		return nil, errNoUpdate
 	}
 
 	return &releaseInfo{

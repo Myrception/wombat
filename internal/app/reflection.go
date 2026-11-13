@@ -7,10 +7,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	v1grpc "google.golang.org/grpc/reflection/grpc_reflection_v1"
-	v1pb "google.golang.org/grpc/reflection/grpc_reflection_v1"
-	v1alphagrpc "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
-	v1alphapb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
+	reflectionv1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	reflectionv1alpha "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -42,7 +40,7 @@ func protoFilesFromReflectionAPI(ctx context.Context, conn *grpc.ClientConn) (*p
 	if err != nil {
 		return nil, fmt.Errorf("listing services: %w", err)
 	}
-	defer rs.CloseSend()
+	defer func() { _ = rs.CloseSend() }() // cancelling ctx releases the stream anyway
 
 	l := newFileLoader()
 	for _, svc := range services {
@@ -146,15 +144,15 @@ type reflectionStream interface {
 // openReflection opens a reflection stream and lists the services, using v1
 // and falling back to v1alpha for servers that only implement the latter.
 func openReflection(ctx context.Context, conn *grpc.ClientConn) (reflectionStream, []string, error) {
-	v1, err := v1grpc.NewServerReflectionClient(conn).ServerReflectionInfo(ctx)
+	v1, err := reflectionv1.NewServerReflectionClient(conn).ServerReflectionInfo(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	rs := reflectionStream(v1Stream{v1})
 	services, err := rs.listServices()
 	if status.Code(err) == codes.Unimplemented {
-		v1.CloseSend()
-		alpha, aerr := v1alphagrpc.NewServerReflectionClient(conn).ServerReflectionInfo(ctx)
+		_ = v1.CloseSend() // the server rejected it already
+		alpha, aerr := reflectionv1alpha.NewServerReflectionClient(conn).ServerReflectionInfo(ctx)
 		if aerr != nil {
 			return nil, nil, aerr
 		}
@@ -172,10 +170,10 @@ func openReflection(ctx context.Context, conn *grpc.ClientConn) (reflectionStrea
 }
 
 type v1Stream struct {
-	v1grpc.ServerReflection_ServerReflectionInfoClient
+	reflectionv1.ServerReflection_ServerReflectionInfoClient
 }
 
-func (s v1Stream) roundTrip(req *v1pb.ServerReflectionRequest) (*v1pb.ServerReflectionResponse, error) {
+func (s v1Stream) roundTrip(req *reflectionv1.ServerReflectionRequest) (*reflectionv1.ServerReflectionResponse, error) {
 	if err := s.Send(req); err != nil {
 		return nil, err
 	}
@@ -190,8 +188,8 @@ func (s v1Stream) roundTrip(req *v1pb.ServerReflectionRequest) (*v1pb.ServerRefl
 }
 
 func (s v1Stream) listServices() ([]string, error) {
-	resp, err := s.roundTrip(&v1pb.ServerReflectionRequest{
-		MessageRequest: &v1pb.ServerReflectionRequest_ListServices{},
+	resp, err := s.roundTrip(&reflectionv1.ServerReflectionRequest{
+		MessageRequest: &reflectionv1.ServerReflectionRequest_ListServices{},
 	})
 	if err != nil {
 		return nil, err
@@ -208,11 +206,11 @@ func (s v1Stream) listServices() ([]string, error) {
 }
 
 func (s v1Stream) files(symbol, filename string) ([][]byte, error) {
-	req := &v1pb.ServerReflectionRequest{}
+	req := &reflectionv1.ServerReflectionRequest{}
 	if symbol != "" {
-		req.MessageRequest = &v1pb.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: symbol}
+		req.MessageRequest = &reflectionv1.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: symbol}
 	} else {
-		req.MessageRequest = &v1pb.ServerReflectionRequest_FileByFilename{FileByFilename: filename}
+		req.MessageRequest = &reflectionv1.ServerReflectionRequest_FileByFilename{FileByFilename: filename}
 	}
 	resp, err := s.roundTrip(req)
 	if err != nil {
@@ -226,10 +224,10 @@ func (s v1Stream) files(symbol, filename string) ([][]byte, error) {
 }
 
 type v1alphaStream struct {
-	v1alphagrpc.ServerReflection_ServerReflectionInfoClient
+	reflectionv1alpha.ServerReflection_ServerReflectionInfoClient
 }
 
-func (s v1alphaStream) roundTrip(req *v1alphapb.ServerReflectionRequest) (*v1alphapb.ServerReflectionResponse, error) {
+func (s v1alphaStream) roundTrip(req *reflectionv1alpha.ServerReflectionRequest) (*reflectionv1alpha.ServerReflectionResponse, error) {
 	if err := s.Send(req); err != nil {
 		return nil, err
 	}
@@ -244,8 +242,8 @@ func (s v1alphaStream) roundTrip(req *v1alphapb.ServerReflectionRequest) (*v1alp
 }
 
 func (s v1alphaStream) listServices() ([]string, error) {
-	resp, err := s.roundTrip(&v1alphapb.ServerReflectionRequest{
-		MessageRequest: &v1alphapb.ServerReflectionRequest_ListServices{},
+	resp, err := s.roundTrip(&reflectionv1alpha.ServerReflectionRequest{
+		MessageRequest: &reflectionv1alpha.ServerReflectionRequest_ListServices{},
 	})
 	if err != nil {
 		return nil, err
@@ -262,11 +260,11 @@ func (s v1alphaStream) listServices() ([]string, error) {
 }
 
 func (s v1alphaStream) files(symbol, filename string) ([][]byte, error) {
-	req := &v1alphapb.ServerReflectionRequest{}
+	req := &reflectionv1alpha.ServerReflectionRequest{}
 	if symbol != "" {
-		req.MessageRequest = &v1alphapb.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: symbol}
+		req.MessageRequest = &reflectionv1alpha.ServerReflectionRequest_FileContainingSymbol{FileContainingSymbol: symbol}
 	} else {
-		req.MessageRequest = &v1alphapb.ServerReflectionRequest_FileByFilename{FileByFilename: filename}
+		req.MessageRequest = &reflectionv1alpha.ServerReflectionRequest_FileByFilename{FileByFilename: filename}
 	}
 	resp, err := s.roundTrip(req)
 	if err != nil {

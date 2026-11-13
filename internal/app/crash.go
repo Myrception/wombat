@@ -26,8 +26,13 @@ func writeCrashLog(appData string, r interface{}) string {
 	if err != nil {
 		return ""
 	}
-	defer f.Close()
-	f.Write(b.Bytes())
+	if _, err := f.Write(b.Bytes()); err != nil {
+		_ = f.Close()
+		return ""
+	}
+	if err := f.Close(); err != nil {
+		return ""
+	}
 	return p
 }
 

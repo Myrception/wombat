@@ -87,7 +87,9 @@ func (c *rpcCall) push(m proto.Message) error {
 // user, the call is cancelled, or a send fails. It always half-closes the
 // stream before returning. It must be the only goroutine sending on stream.
 func (c *rpcCall) pump(ctx context.Context, stream grpc.ClientStream) error {
-	defer stream.CloseSend()
+	// The real outcome is reported by RecvMsg; CloseSend only fails if the
+	// stream is already broken.
+	defer func() { _ = stream.CloseSend() }()
 	for {
 		select {
 		case <-ctx.Done():

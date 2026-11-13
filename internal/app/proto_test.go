@@ -12,10 +12,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	v1grpc "google.golang.org/grpc/reflection/grpc_reflection_v1"
-	v1pb "google.golang.org/grpc/reflection/grpc_reflection_v1"
-	v1alphagrpc "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
-	v1alphapb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
+	reflectionv1 "google.golang.org/grpc/reflection/grpc_reflection_v1"
+	reflectionv1alpha "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -56,9 +54,9 @@ func (s countingStream) RecvMsg(m interface{}) error {
 		return err
 	}
 	switch r := m.(type) {
-	case *v1pb.ServerReflectionRequest:
+	case *reflectionv1.ServerReflectionRequest:
 		s.c.add(requestKind(r.GetFileContainingSymbol(), r.GetFileByFilename()))
-	case *v1alphapb.ServerReflectionRequest:
+	case *reflectionv1alpha.ServerReflectionRequest:
 		s.c.add("v1alpha:" + requestKind(r.GetFileContainingSymbol(), r.GetFileByFilename()))
 	}
 	return nil
@@ -87,7 +85,7 @@ func dialTest(t *testing.T, addr string) *grpc.ClientConn {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { conn.Close() })
+	t.Cleanup(func() { _ = conn.Close() })
 	return conn
 }
 
@@ -145,8 +143,8 @@ func TestReflectionV1AlphaFallback(t *testing.T) {
 	}
 	gs := grpc.NewServer(grpc.StreamInterceptor(c.interceptor()))
 	server.RegisterRouteGuideServer(gs, nil)
-	v1alphagrpc.RegisterServerReflectionServer(gs, reflection.NewServer(reflection.ServerOptions{Services: gs}))
-	go gs.Serve(lis)
+	reflectionv1alpha.RegisterServerReflectionServer(gs, reflection.NewServer(reflection.ServerOptions{Services: gs}))
+	go func() { _ = gs.Serve(lis) }()
 	t.Cleanup(gs.Stop)
 
 	files, err := protoFilesFromReflectionAPI(loadCtx(t), dialTest(t, lis.Addr().String()))
@@ -167,7 +165,7 @@ func TestReflectionUnavailable(t *testing.T) {
 	}
 	gs := grpc.NewServer()
 	server.RegisterRouteGuideServer(gs, nil)
-	go gs.Serve(lis)
+	go func() { _ = gs.Serve(lis) }()
 	t.Cleanup(gs.Stop)
 
 	_, err = protoFilesFromReflectionAPI(loadCtx(t), dialTest(t, lis.Addr().String()))
@@ -181,53 +179,53 @@ func TestReflectionUnavailable(t *testing.T) {
 // grpc-go's, returns only the requested file and never its dependencies.
 // If dropFile is set it also "forgets" that file when asked for it by name.
 type singleFileReflection struct {
-	v1grpc.UnimplementedServerReflectionServer
+	reflectionv1.UnimplementedServerReflectionServer
 	services []string
 	dropFile string
 }
 
-func (s singleFileReflection) ServerReflectionInfo(stream v1grpc.ServerReflection_ServerReflectionInfoServer) error {
+func (s singleFileReflection) ServerReflectionInfo(stream reflectionv1.ServerReflection_ServerReflectionInfoServer) error {
 	for {
 		req, err := stream.Recv()
 		if err != nil {
 			return nil
 		}
-		resp := &v1pb.ServerReflectionResponse{}
+		resp := &reflectionv1.ServerReflectionResponse{}
 		file := func(fd protoreflect.FileDescriptor) {
 			b, _ := proto.Marshal(protodesc.ToFileDescriptorProto(fd))
-			resp.MessageResponse = &v1pb.ServerReflectionResponse_FileDescriptorResponse{
-				FileDescriptorResponse: &v1pb.FileDescriptorResponse{FileDescriptorProto: [][]byte{b}},
+			resp.MessageResponse = &reflectionv1.ServerReflectionResponse_FileDescriptorResponse{
+				FileDescriptorResponse: &reflectionv1.FileDescriptorResponse{FileDescriptorProto: [][]byte{b}},
 			}
 		}
 		switch {
 		case req.GetFileContainingSymbol() != "":
 			d, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(req.GetFileContainingSymbol()))
 			if err != nil {
-				resp.MessageResponse = &v1pb.ServerReflectionResponse_ErrorResponse{
-					ErrorResponse: &v1pb.ErrorResponse{ErrorCode: int32(codes.NotFound), ErrorMessage: err.Error()},
+				resp.MessageResponse = &reflectionv1.ServerReflectionResponse_ErrorResponse{
+					ErrorResponse: &reflectionv1.ErrorResponse{ErrorCode: int32(codes.NotFound), ErrorMessage: err.Error()},
 				}
 				break
 			}
 			file(d.ParentFile())
 		case req.GetFileByFilename() != "":
 			if req.GetFileByFilename() == s.dropFile {
-				resp.MessageResponse = &v1pb.ServerReflectionResponse_FileDescriptorResponse{FileDescriptorResponse: &v1pb.FileDescriptorResponse{}}
+				resp.MessageResponse = &reflectionv1.ServerReflectionResponse_FileDescriptorResponse{FileDescriptorResponse: &reflectionv1.FileDescriptorResponse{}}
 				break
 			}
 			fd, err := protoregistry.GlobalFiles.FindFileByPath(req.GetFileByFilename())
 			if err != nil {
-				resp.MessageResponse = &v1pb.ServerReflectionResponse_ErrorResponse{
-					ErrorResponse: &v1pb.ErrorResponse{ErrorCode: int32(codes.NotFound), ErrorMessage: err.Error()},
+				resp.MessageResponse = &reflectionv1.ServerReflectionResponse_ErrorResponse{
+					ErrorResponse: &reflectionv1.ErrorResponse{ErrorCode: int32(codes.NotFound), ErrorMessage: err.Error()},
 				}
 				break
 			}
 			file(fd)
 		default:
-			list := &v1pb.ListServiceResponse{}
+			list := &reflectionv1.ListServiceResponse{}
 			for _, n := range s.services {
-				list.Service = append(list.Service, &v1pb.ServiceResponse{Name: n})
+				list.Service = append(list.Service, &reflectionv1.ServiceResponse{Name: n})
 			}
-			resp.MessageResponse = &v1pb.ServerReflectionResponse_ListServicesResponse{ListServicesResponse: list}
+			resp.MessageResponse = &reflectionv1.ServerReflectionResponse_ListServicesResponse{ListServicesResponse: list}
 		}
 		if err := stream.Send(resp); err != nil {
 			return err
@@ -243,8 +241,8 @@ func startSingleFileReflection(t *testing.T, srv singleFileReflection) (string, 
 		t.Fatal(err)
 	}
 	gs := grpc.NewServer(grpc.StreamInterceptor(c.interceptor()))
-	v1grpc.RegisterServerReflectionServer(gs, srv)
-	go gs.Serve(lis)
+	reflectionv1.RegisterServerReflectionServer(gs, srv)
+	go func() { _ = gs.Serve(lis) }()
 	t.Cleanup(gs.Stop)
 	return lis.Addr().String(), c
 }

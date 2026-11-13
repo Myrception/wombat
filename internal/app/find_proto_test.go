@@ -24,7 +24,7 @@ func TestFindProtoFiles(t *testing.T) {
 	if err := os.Mkdir(locked, 0o000); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { os.Chmod(locked, 0o755) })
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
 
 	files, err := findProtoFiles(dir)
 	if err != nil {

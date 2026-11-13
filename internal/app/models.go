@@ -2,11 +2,6 @@ package app
 
 import "google.golang.org/grpc/stats"
 
-type initData struct {
-	Version   string `json:"version"`
-	BuildMode string `json:"build_mode"`
-}
-
 type workspaceState struct {
 	CurrentID string
 }

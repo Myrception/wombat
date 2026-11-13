@@ -27,24 +27,18 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
-      # main.go embeds frontend/dist, so it must exist before go vet/test.
+      # main.go embeds frontend/dist, so it must exist before linting/testing.
       - name: Build frontend
         working-directory: frontend
         run: |
           npm ci
           npm run build
 
-      - name: gofmt
-        run: |
-          unformatted=$(gofmt -l main.go internal)
-          if [ -n "$unformatted" ]; then
-            echo "These files need gofmt:"
-            echo "$unformatted"
-            exit 1
-          fi
-
-      - name: go vet
-        run: go vet -tags webkit2_41 ./...
+      # gofmt, go vet, errcheck, staticcheck, ... (see .golangci.yml)
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15.0
 
       - name: go test
         run: go test -race -tags webkit2_41 ./...

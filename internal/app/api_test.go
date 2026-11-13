@@ -106,7 +106,7 @@ func startServer(t *testing.T, opts ...grpc.ServerOption) (string, *grpc.Server)
 		t.Fatal(err)
 	}
 	gs := server.NewGRPCServer(opts...)
-	go gs.Serve(lis)
+	go func() { _ = gs.Serve(lis) }()
 	t.Cleanup(gs.Stop)
 	return lis.Addr().String(), gs
 }
@@ -252,7 +252,7 @@ func TestSendWhileBusy(t *testing.T) {
 		t.Fatalf("Send while busy = %v, want errCallInProgress", err)
 	}
 	a.Cancel()
-	recvErr(t, done)
+	_ = recvErr(t, done) // only that it ends
 }
 
 func TestSendWithoutConnection(t *testing.T) {
@@ -275,11 +275,11 @@ func TestStreamControlStress(t *testing.T) {
 			wg.Add(3)
 			// A push that loses the race against Cancel legitimately
 			// starts a new stream; those are cancelled below.
-			go func() { defer wg.Done(); a.Send(methodRecordRoute, pointJSON, headers{}) }()
+			go func() { defer wg.Done(); _ = a.Send(methodRecordRoute, pointJSON, headers{}) }()
 			go func() { defer wg.Done(); a.CloseSend() }()
 			go func() { defer wg.Done(); a.Cancel() }()
 		}
-		recvErr(t, done)
+		_ = recvErr(t, done) // only that it ends
 
 		allDone := make(chan struct{})
 		go func() { wg.Wait(); close(allDone) }()
@@ -307,7 +307,7 @@ func TestReconnectDuringStream(t *testing.T) {
 
 	done := startStream(t, a, methodRouteChat, noteJSON)
 	connectTo(t, a, opts) // must cancel the in-flight stream
-	recvErr(t, done)
+	_ = recvErr(t, done)  // only that it ends
 
 	if err := a.Send(methodGetFeature, pointJSON, headers{}); err != nil {
 		t.Fatalf("Send after reconnect: %v", err)
@@ -350,14 +350,14 @@ func TestTLSReconnectHandshakeFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer lis.Close()
+	defer func() { _ = lis.Close() }()
 	go func() {
 		for {
 			c, err := lis.Accept()
 			if err != nil {
 				return
 			}
-			c.Close()
+			_ = c.Close()
 		}
 	}()
 

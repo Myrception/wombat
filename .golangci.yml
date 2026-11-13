@@ -1,0 +1,21 @@
+version: "2"
+
+run:
+  # The Wails packages need the WebKitGTK 4.1 tag on Linux (see wails.json).
+  build-tags:
+    - webkit2_41
+
+linters:
+  # errcheck, govet, ineffassign, staticcheck, unused
+  default: standard
+  exclusions:
+    rules:
+      # Reflection v1alpha is deprecated, but older servers only speak it;
+      # the fallback to it is intentional.
+      - path: internal/app/(reflection|proto_test)\.go
+        linters: [staticcheck]
+        text: "SA1019: .*grpc_reflection_v1alpha"
+
+formatters:
+  enable:
+    - gofmt
