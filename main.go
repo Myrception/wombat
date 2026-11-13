@@ -2,12 +2,11 @@ package main
 
 import (
 	"embed"
-	_ "embed"
 	"os"
 	"wombat/internal/app"
 )
 
-//go:embed all:frontend/public
+//go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {

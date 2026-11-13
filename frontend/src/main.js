@@ -1,18 +1,11 @@
 import "./monaco";
 import "./zoom";
 import App from './views/App.svelte';
-import { GetWindowInfo, FrontendReady } from '../wailsjs/go/app/api';
+import { FrontendReady } from '../wailsjs/go/app/api';
 
 let app;
 
-async function start() {
-    try {
-        const info = await GetWindowInfo();
-        window.isWin = info.isWindows;
-    } catch (e) {
-        window.isWin = false;
-    }
-
+function start() {
     app = new App({
         target: document.body,
     });

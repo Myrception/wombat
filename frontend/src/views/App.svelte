@@ -13,8 +13,12 @@
     key: 'modal',
     transitionBg: () => {},
     transitionWindow: () => {},
+    // Viewport units are scaled by CSS zoom (see src/zoom.js), so the
+    // library's 100vw/100vh sizes are replaced with zoom-aware ones.
     styleBg: {
       backgroundColor: '#22222377',
+      width: '100%',
+      height: '100%',
     },
     styleWindow: {
       borderRadius: 0,
@@ -26,6 +30,7 @@
       top: "50%",
       left: "50%",
       transform: "translate(-50%, -50%)",
+      margin: 0,
       zIndex: 1000,
       overflowX: "hidden",
     },
@@ -35,6 +40,7 @@
       position: "relative",
       zIndex: 1001,
       boxSizing: "border-box",
+      maxHeight: "calc(100vh / var(--zoom) - 4rem)",
     },
     styleCloseButton: {
       borderRadius: 0,

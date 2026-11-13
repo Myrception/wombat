@@ -52,20 +52,16 @@ All backend event constants are defined in `/internal/app/events.go`.
 The frontend is built with [Svelte](https://svelte.dev/); and should be fairly straight forward if you have done any
 type of web-based frontend development before.
 
-During development, you can use any browser (and it's dev-tools), but it's important to remember that Wombat does not
-bundle a browser (like Chromium), but rather uses the system's built-in web view component. For Mac this will be a
-Safari web view; on Linux a WebKit web view and on Windows mshtml (basically IE11).
+The frontend is bundled with [Vite](https://vitejs.dev/). `wails dev` starts the Vite dev server and proxies it, so
+changes to the frontend are hot reloaded; `wails build` runs `npm run build` and embeds `frontend/dist`.
 
-mshtml does not have support for CSS variables (which is used heavily by Wombat frontend); because of this limitation we
-pre-compile the CSS via a plugin for rollup. This only works for CSS declared in `style` blocks; to use in the JS world
-we inject a `window.isWin` bool flag (just `isWin` for short) so that we can pass the real value rather than the CSS
-variable.
+During development, you can use any browser (and it's dev-tools) by opening http://localhost:34115 while `wails dev` is
+running, but it's important to remember that Wombat does not bundle a browser (like Chromium), but rather uses the
+system's built-in web view component: WKWebView on macOS, WebKitGTK on Linux and WebView2 (Chromium) on Windows. All of
+them are evergreen, so modern JS and CSS (including CSS variables) can be used without transpiling or polyfills.
 
-This is a short term fix; Wails v2 will built against
-[WebView2](https://docs.microsoft.com/en-us/microsoft-edge/webview2/) which is based off Chromium and will resolve most
-of the Windows "issues".
-
-If you need to add any styles please update both `frontend/src/views/App.svelte` and `frontend/rollup.config.js`.
+The theme colours are CSS variables declared in `frontend/src/views/App.svelte`. The UI zoom uses CSS `zoom`; see
+`frontend/src/zoom.js` for the two things to keep in mind when writing CSS.
 
 After getting your UI correct; it's always good to validate in a real build:
 

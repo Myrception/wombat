@@ -60,8 +60,8 @@
 <div class="updater">
   <div>🎉 Update available: <span class="old">{oldVersion}</span> → <span class="new">{newVersion}</div>
   <div class="dismiss">
-    <Button on:click={onCloseClicked} text="Close" bgColor={isWin ? "#434c5e" : "var(--bg-color2)"} />
-    <Button on:click={onDownloadClicked} text="Download" bgColor={isWin ? "#434c5e" : "var(--bg-color2)"} color={isWin ? "#88c0d0" : "var(--primary-color)"} border />
+    <Button on:click={onCloseClicked} text="Close" bgColor="var(--bg-color2)" />
+    <Button on:click={onDownloadClicked} text="Download" bgColor="var(--bg-color2)" color="var(--primary-color)" border />
   </div>
 </div>
 {/if}
