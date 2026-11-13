@@ -48,3 +48,33 @@ jobs:
 
       - name: go test
         run: go test -race -tags webkit2_41 ./...
+
+  ui-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps webkit chromium
+
+      # Builds the frontend and runs it against the fake backend in WebKit
+      # (the engine of WebKitGTK/WKWebView) and Chromium (close to WebView2).
+      - name: UI tests
+        working-directory: frontend
+        run: npm test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
