@@ -393,6 +393,10 @@ func (a *api) GetRawMessageState(method string) (string, error) {
 	}
 
 	val, err := a.store.get([]byte(messageKeyPrefix + hash(opts.Addr, method)))
+	if err == errKeyNotFound {
+		// Nothing saved yet for this method.
+		return "", nil
+	}
 	return string(val), err
 }
 
