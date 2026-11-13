@@ -1,7 +1,33 @@
-import "monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution";
-import "monaco-editor/esm/vs/basic-languages/shell/shell.contribution";
-import "monaco-editor/esm/vs/editor/editor.api";
+// Only the editor core and the Monarch tokenizers we need are bundled; the
+// full "monaco-editor" entry would pull in every language and service.
+import * as monaco from "monaco-editor/editor/editor.api";
+import "monaco-editor/languages/definitions/javascript/register";
+import "monaco-editor/languages/definitions/shell/register";
 import "./monaco.css";
+
+export { monaco };
+
+// Options shared by all editors. Newer Monaco features are turned off to keep
+// the editors as plain as they were.
+export const baseOptions = {
+    theme: "nord-dark",
+    fontSize: 14,
+    minimap: { enabled: false },
+    wordWrap: "on",
+    links: false,
+    matchBrackets: "never",
+    guides: { indentation: false },
+    bracketPairColorization: { enabled: false },
+    stickyScroll: { enabled: false },
+    renderValidationDecorations: "off",
+    scrollBeyondLastLine: false,
+    selectionHighlight: false,
+    automaticLayout: true,
+    hideCursorInOverviewRuler: true,
+    overviewRulerBorder: false,
+    padding: { top: 12, bottom: 12 },
+    scrollbar: { useShadows: false },
+};
 
 monaco.editor.defineTheme("nord-dark", {
     base: "vs-dark",
@@ -23,10 +49,6 @@ monaco.editor.defineTheme("nord-dark", {
         "scrollbarSlider.background": "#3b4252",
         "scrollbarSlider.hoverBackground" : "#434c5e",
         "scrollbarSlider.activeBackground" : "#4c566a",
-    },
-    settings: {
-        fontSize: 14,
-        lineHeight: 1.5,
     }
 });
 

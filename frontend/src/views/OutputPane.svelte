@@ -9,6 +9,7 @@
   import HeadersTrailers from "./HeadersTrailers.svelte";
   import Statistics from "./Statistics.svelte";
   import { EventsOn } from '../../wailsjs/runtime/runtime';
+  import { monaco } from '../monaco';
   
   let headers = {};
   let trailers = {};
