@@ -1,0 +1,41 @@
+# Dependency update PRs. CI (lint, Go tests, UI tests in WebKit and Chromium)
+# checks each one; merge the green ones.
+#
+# - Weekly, with minor and patch updates grouped into one PR per ecosystem;
+#   major updates come as separate PRs, as they usually need code changes.
+# - Versions must be released for 14 days before they are proposed.
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      go:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: [minor, patch]
