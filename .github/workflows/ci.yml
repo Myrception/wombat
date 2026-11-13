@@ -56,9 +56,30 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: |
-          npm ci
-          npx playwright install --with-deps webkit chromium
+        run: npm ci
+
+      # The browsers are cached per Playwright version; their system
+      # libraries come from apt every time.
+      - name: Playwright version
+        id: playwright
+        working-directory: frontend
+        run: echo "version=$(node -p 'require("@playwright/test/package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install browsers
+        if: steps.browsers.outputs.cache-hit != 'true'
+        working-directory: frontend
+        run: npx playwright install --with-deps webkit chromium
+
+      - name: Install browser system dependencies
+        if: steps.browsers.outputs.cache-hit == 'true'
+        working-directory: frontend
+        run: npx playwright install-deps webkit chromium
 
       # Builds the frontend and runs it against the fake backend in WebKit
       # (the engine of WebKitGTK/WKWebView) and Chromium (close to WebView2).

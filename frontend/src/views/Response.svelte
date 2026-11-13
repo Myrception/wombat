@@ -24,6 +24,7 @@
 
 <style>
   .response {
+    box-sizing: border-box; /* the global padding (App.svelte) counts towards the size */
     height: calc(100% - 82px);
     width: 100%;
   }

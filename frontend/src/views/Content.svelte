@@ -6,6 +6,7 @@
 
 <style>
   .content {
+    box-sizing: border-box; /* the global padding (App.svelte) counts towards width: 100% */
     flex: 1;
     min-height: 0;
     height: 0;

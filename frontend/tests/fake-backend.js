@@ -14,6 +14,7 @@
     saved: {}, // method full name -> saved request JSON
     metadata: null, // saved request metadata [{key, val}]
     schemaDelay: 0, // ms until the services arrive (reflection time)
+    responses: {}, // method full name -> response text (default: an echo)
     ...(window.__WOMBAT_FAKE_CONFIG__ || {}),
   };
 
@@ -49,6 +50,41 @@
   const methodSelect = name => {
     for (const s of schema.services) for (const m of s.methods) if (m.full_name === name) return m;
     return undefined;
+  };
+
+  // The request as prototext, like api.formatPayload sends it (multiline,
+  // two-space indent, trailing newline), using the method's field kinds.
+  const QUOTED = new Set(["string", "bytes"]);
+  const prototext = (message, value, indent = "") => {
+    let out = "";
+    const scalar = (field, v) => (QUOTED.has(field.kind) ? JSON.stringify(String(v)) : String(v));
+    const entry = (name, field, v) => {
+      if (v === null || v === undefined) return;
+      if (field.kind === "message" || field.kind === "group") {
+        out += `${indent}${name}: {\n${prototext(field.message, v, indent + "  ")}${indent}}\n`;
+      } else {
+        out += `${indent}${name}: ${scalar(field, v)}\n`;
+      }
+    };
+    for (const field of message?.fields || []) {
+      if (field.kind === "oneof") {
+        for (const member of field.oneof) entry(member.name, member, value?.[member.name]);
+        continue;
+      }
+      const v = value?.[field.name];
+      if (field.kind === "map") {
+        for (const [k, mv] of Object.entries(v || {})) {
+          out += `${indent}${field.name}: {\n${indent}  key: ${scalar(field.map_key, k)}\n`;
+          const inner = { fields: [{ ...field.map_value, name: "value" }] };
+          out += prototext(inner, { value: mv }, indent + "  ") + `${indent}}\n`;
+        }
+      } else if (field.repeated) {
+        for (const item of v || []) entry(field.name, { ...field, repeated: false }, item);
+      } else {
+        entry(field.name, field, v);
+      }
+    }
+    return out;
   };
 
   // Mirrors api.Connect + loadProtoFiles.
@@ -97,9 +133,9 @@
       cfg.metadata = metadata;
       const m = methodSelect(method) || {};
       emit("wombat:rpc_started", { client_stream: !!m.client_stream, server_stream: !!m.server_stream });
-      emit("wombat:out_payload_received", json);
+      emit("wombat:out_payload_received", prototext(schema.methods[method]?.message, JSON.parse(json)));
       emit("wombat:in_header_received", { "content-type": ["application/grpc"] });
-      emit("wombat:in_payload_received", `echo: ${json}\n`);
+      emit("wombat:in_payload_received", cfg.responses[method] ?? `echo: ${json}\n`); // text ends with \n
       emit("wombat:in_trailer_received", {});
       emit("wombat:rpc_ended", { status: "OK", status_code: 0, duration: "1ms" });
     },
