@@ -144,9 +144,5 @@ export const chooseRadio = (scope, name, option) =>
     .locator(".radio label", { hasText: exact(option) })
     .click();
 
-/**
- * The button with text `text`. Use this inside dialogs: svelte-simple-modal
- * 1.x marks its backdrop aria-hidden, which hides the whole dialog from
- * getByRole().
- */
+/** The button with text `text` inside `scope`. */
 export const button = (scope, text) => scope.locator("button").filter({ hasText: exact(text) });
