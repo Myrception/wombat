@@ -1,5 +1,5 @@
 <script>
-  import ModalContext from "svelte-simple-modal";
+  import Modal from "../controls/Modal.svelte";
   import Header from "./Header.svelte";
   import Content from "./Content.svelte";
   import Errors from "./Errors.svelte";
@@ -9,44 +9,6 @@
 
   setFieldRenderer(MessageField);
 
-  const modalSettings = {
-    key: 'modal',
-    transitionBg: () => {},
-    transitionWindow: () => {},
-    // Viewport units are scaled by CSS zoom (see src/zoom.js), so the
-    // library's 100vw/100vh sizes are replaced with zoom-aware ones.
-    styleBg: {
-      backgroundColor: '#22222377',
-      width: '100%',
-      height: '100%',
-    },
-    styleWindow: {
-      borderRadius: 0,
-      backgroundColor: "#2e3440",
-      border: "1px solid #3b4252",
-      color: "#eceff4",
-      width: "838px",
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      margin: 0,
-      zIndex: 1000,
-      overflowX: "hidden",
-    },
-    styleContent: {
-      padding: "12px",
-      width: "100%",
-      position: "relative",
-      zIndex: 1001,
-      boxSizing: "border-box",
-      maxHeight: "calc(100vh / var(--zoom) - 4rem)",
-    },
-    styleCloseButton: {
-      borderRadius: 0,
-    },
-    closeButton: false,
-  }
 </script>
 
 <style>
@@ -133,17 +95,13 @@
     flex-flow: column;
     overflow: hidden;
   }
-  :global(.window) {
-    overflow-x: hidden;
-    max-width: calc(100vw / var(--zoom));
-  }
 </style>
 
 <main class="app">
   <Errors />
-  <ModalContext {...modalSettings} >
+  <Modal>
     <Header />
     <Content />
-  </ModalContext>
+  </Modal>
   <Updater />
 </main>

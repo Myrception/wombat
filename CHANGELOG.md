@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Dialogs are accessible: screen readers see them (named after their heading), focus moves into the dialog and stays
+  there, the page behind is inert, and focus returns when the dialog closes
+- Updated Go dependencies (gRPC 1.85, protobuf 1.36.12, Badger 4.9) and the frontend build (Vite 8)
+
 ## [v0.6.0-rc1] - 2026-11-13
 
 ### Added
