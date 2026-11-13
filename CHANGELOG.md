@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend is built with Vite and Svelte 5
 - Dropdowns use svelte-select 6, dialogs svelte-simple-modal 2
 - Monaco editor 0.56 (handles UI zoom natively; clicks land on the right character at any zoom level)
-- macOS release is a universal (Intel and Apple Silicon) build
+- Release packages for Linux and Windows (no macOS package for now)
 
 ### Fixed
 - Crash when a TLS connection failed during reconnect

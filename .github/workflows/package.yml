@@ -13,6 +13,10 @@ env:
 
 jobs:
   package:
+    # macOS is not built for now: GitHub's macOS runners were often not
+    # available (capacity). build/darwin still holds the bundle settings; to
+    # add it back, add a macos-15 / darwin/universal entry and a create-dmg
+    # step (see git history).
     strategy:
       fail-fast: false
       matrix:
@@ -20,9 +24,6 @@ jobs:
           - os: ubuntu-24.04
             platform: linux/amd64
             asset: Linux_x86_64.tar.gz
-          - os: macos-15
-            platform: darwin/universal
-            asset: Darwin_universal.dmg
           - os: windows-latest
             platform: windows/amd64
             asset: Windows_x86_64.zip
@@ -63,21 +64,6 @@ jobs:
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: tar -C build/bin -zcvf "$ASSET" wombat
-
-      - name: Package (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install create-dmg
-          create-dmg \
-            --volname "Wombat" \
-            --volicon "assets/darwin/dmg_icon.icns" \
-            --background "assets/darwin/dmg_bg.png" \
-            --window-size 512 360 \
-            --icon-size 100 \
-            --icon "Wombat.app" 100 185 \
-            --hide-extension "Wombat.app" \
-            --app-drop-link 388 185 \
-            "$ASSET" build/bin
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
