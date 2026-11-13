@@ -4,12 +4,9 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/rogchap/wombat/releases"><img src="https://img.shields.io/github/v/release/rogchap/wombat?include_prereleases&style=flat-square" alt="Github release"></a>
-<img alt="Homebrew Cask" src="https://img.shields.io/homebrew/cask/v/wombat?style=flat-square" />
-<img alt="AUR" src="https://img.shields.io/aur/version/wombat-bin?style=flat-square" />
-<br/>
-<img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/rogchap/wombat?style=flat-square" />
-<a href="https://goreportcard.com/badge/github.com/rogchap/wombat"><img alt="Go report card" src="https://goreportcard.com/badge/github.com/rogchap/wombat?style=flat-square" /></a>
+<a href="https://github.com/Myrception/wombat/releases"><img src="https://img.shields.io/github/v/release/Myrception/wombat?include_prereleases&style=flat-square" alt="Github release"></a>
+<img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/Myrception/wombat?style=flat-square" />
+<a href="https://goreportcard.com/report/github.com/Myrception/wombat"><img alt="Go report card" src="https://goreportcard.com/badge/github.com/Myrception/wombat?style=flat-square" /></a>
 <a href="https://github.com/grpc-ecosystem/awesome-grpc"><img alt="Awesome gRPC" src="https://raw.githubusercontent.com/sindresorhus/awesome/main/media/badge-flat.svg" /></a>
 </p>
 
@@ -47,36 +44,28 @@
 
 ## Download
 
-Visit the [Releases](https://github.com/rogchap/wombat/releases) page for the latest downloads. 
+This is a fork of [rogchap/wombat](https://github.com/rogchap/wombat), updated to Wails v2. Visit the
+[Releases](https://github.com/Myrception/wombat/releases) page for the latest downloads.
 
 ## Install
 
 ### MacOS
 
-[Download](https://github.com/rogchap/wombat/releases) and open `Wombat*_Darwin_86_64.dmg`, drag `Wombat.app` to the `Applications` folder and run from `Applications`.
+[Download](https://github.com/Myrception/wombat/releases) and open `Wombat_*_Darwin_universal.dmg` (Intel and Apple Silicon), drag `Wombat.app` to the
+`Applications` folder and run from `Applications`.
 
-Or via [Homebrew](https://brew.sh/)
-
-```bash
-$ brew install --cask wombat
-```
-
-If you get this error message: `"Wombat.app" can't be opened because the identity of the developer cannot be
-confirmed.`, Install by **Right Click/Option Click** -> **Open** -> **Open**. You'll only need to do this on first
-install.
-
-
+The app is not signed. If you get this error message: `"Wombat.app" can't be opened because the identity of the
+developer cannot be confirmed.`, install by **Right Click/Option Click** -> **Open** -> **Open**. You'll only need to
+do this on first install.
 
 ### Linux
 
-[Download](https://github.com/rogchap/wombat/releases) and unarchive `Wombat*_Linux_86_64.tar.gz` and run.
+[Download](https://github.com/Myrception/wombat/releases), unarchive `Wombat_*_Linux_x86_64.tar.gz` and run `wombat`.
 
-#### Arch Linux AUR
-
-```bash
-$ yay -S wombat-bin
-```
+Wombat needs GTK 3 and WebKitGTK 4.1, e.g. `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0` on Debian/Ubuntu or
+`sudo pacman -S gtk3 webkit2gtk-4.1` on Arch.
 
 ### Windows
 
-[Download](https://github.com/rogchap/wombat/releases) and unarchive `Wombat*_Windows_86_64.zip` and run.
+[Download](https://github.com/Myrception/wombat/releases), unarchive `Wombat_*_Windows_x86_64.zip` and run `wombat.exe`. Wombat uses the Microsoft Edge
+WebView2 runtime, which is part of Windows 10 and 11.

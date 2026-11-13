@@ -47,7 +47,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
+        run: go install "github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}"
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -96,22 +96,38 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
 
-      # CHANGELOG headings look like "## [v0.5.0] - 2021-04-26", whose GitHub
-      # anchor is "v050---2021-04-26".
-      - name: Changelog link
-        id: changelog
+      # The release text is the tag's section of CHANGELOG.md
+      # ("## [v0.6.0] - 2026-11-13"), plus a link to it.
+      - name: Release notes
+        env:
+          TAG: ${{ github.ref_name }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
         run: |
-          anchor="$(echo "${GITHUB_REF_NAME}" | tr -d .)---$(date +'%Y-%m-%d')"
-          echo "url=${{ github.server_url }}/${{ github.repository }}/blob/master/CHANGELOG.md#${anchor}" >> "$GITHUB_OUTPUT"
+          heading=$(grep -m1 -E "^## \[${TAG}\]" CHANGELOG.md || true)
+          if [ -z "$heading" ]; then
+            echo "::error::CHANGELOG.md has no '## [${TAG}]' section"
+            exit 1
+          fi
+          # GitHub's heading anchor: lower case, punctuation removed, spaces -> '-'.
+          anchor=$(echo "${heading#\#\# }" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9 -]//g; s/ /-/g')
+          awk -v h="$heading" '$0 == h {on=1; next} on && /^## \[/ {exit} on' CHANGELOG.md > notes.md
+          printf '\nFull changelog ⇒ [CHANGELOG.md](%s/%s/blob/%s/CHANGELOG.md#%s)\n' \
+            "$SERVER" "$REPO" "$TAG" "$anchor" >> notes.md
 
+      # Tags with a suffix (v0.6.0-rc1, v0.6.0-beta.2) are pre-releases, which
+      # the in-app update check (releases/latest) does not offer.
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
           name: ${{ github.ref_name }}
-          body: "Full changelog ⇒ [${{ github.ref_name }}](${{ steps.changelog.outputs.url }})"
+          body_path: notes.md
           files: dist/*

@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.0-rc1] - 2026-11-13
+
 ### Added
 - Support for connecting to unix sockets. Thanks to [@aschey](https://github.com/aschey)
 - Support google.protobuf.Struct. Thanks to [@n0trace](https://github.com/n0trace)

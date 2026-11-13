@@ -124,9 +124,15 @@ production builds. Note that the built-in gRPC server only runs under `wails dev
 
 ## Releasing
 
-Pushing a `v*` tag runs `.github/workflows/package.yml`, which builds Linux, macOS (universal) and Windows packages and
-attaches them to a draft GitHub release. The tag becomes the app version, and the in-app update check compares it
-against the latest release of the repository set in `internal/app/update_check.go`.
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` into a new section, e.g. `## [v0.6.0] - 2026-11-13`.
+2. Tag the commit and push the tag: `git tag -a v0.6.0 -m "Wombat v0.6.0" && git push origin v0.6.0`.
+
+The tag runs `.github/workflows/package.yml`, which builds Linux, macOS (universal) and Windows packages and attaches
+them to a **draft** GitHub release whose text is the tag's `CHANGELOG.md` section (the workflow fails if there is none).
+Review and publish the draft on GitHub. Tags with a suffix (`v0.6.0-rc1`) become pre-releases.
+
+The tag becomes the app version. The in-app update check compares it against the latest published, non-pre-release
+release of the repository set in `internal/app/update_check.go`.
 
 ## Changelog
 
