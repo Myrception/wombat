@@ -1,0 +1,2741 @@
+{
+  "methods": {
+    "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo": {
+      "full_name": "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo",
+      "message": {
+        "name": "ServerReflectionRequest",
+        "full_name": "grpc.reflection.v1.ServerReflectionRequest",
+        "fields": [
+          {
+            "name": "host",
+            "full_name": "grpc.reflection.v1.ServerReflectionRequest.host",
+            "kind": "string",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "message_request",
+            "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_by_filename",
+            "kind": "oneof",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": [
+              {
+                "name": "file_by_filename",
+                "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_by_filename",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "file_containing_symbol",
+                "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_containing_symbol",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "file_containing_extension",
+                "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_containing_extension",
+                "kind": "message",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": {
+                  "name": "ExtensionRequest",
+                  "full_name": "grpc.reflection.v1.ExtensionRequest",
+                  "fields": [
+                    {
+                      "name": "containing_type",
+                      "full_name": "grpc.reflection.v1.ExtensionRequest.containing_type",
+                      "kind": "string",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "extension_number",
+                      "full_name": "grpc.reflection.v1.ExtensionRequest.extension_number",
+                      "kind": "int32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "all_extension_numbers_of_type",
+                "full_name": "grpc.reflection.v1.ServerReflectionRequest.all_extension_numbers_of_type",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "list_services",
+                "full_name": "grpc.reflection.v1.ServerReflectionRequest.list_services",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              }
+            ],
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo": {
+      "full_name": "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo",
+      "message": {
+        "name": "ServerReflectionRequest",
+        "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest",
+        "fields": [
+          {
+            "name": "host",
+            "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.host",
+            "kind": "string",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "message_request",
+            "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_by_filename",
+            "kind": "oneof",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": [
+              {
+                "name": "file_by_filename",
+                "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_by_filename",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "file_containing_symbol",
+                "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_containing_symbol",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "file_containing_extension",
+                "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_containing_extension",
+                "kind": "message",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": {
+                  "name": "ExtensionRequest",
+                  "full_name": "grpc.reflection.v1alpha.ExtensionRequest",
+                  "fields": [
+                    {
+                      "name": "containing_type",
+                      "full_name": "grpc.reflection.v1alpha.ExtensionRequest.containing_type",
+                      "kind": "string",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "extension_number",
+                      "full_name": "grpc.reflection.v1alpha.ExtensionRequest.extension_number",
+                      "kind": "int32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "all_extension_numbers_of_type",
+                "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.all_extension_numbers_of_type",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              },
+              {
+                "name": "list_services",
+                "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.list_services",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              }
+            ],
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/AFoo": {
+      "full_name": "/wombat.v1.Foobar/AFoo",
+      "message": {
+        "name": "AFooRequest",
+        "full_name": "wombat.v1.AFooRequest",
+        "fields": [
+          {
+            "name": "map_string_string",
+            "full_name": "wombat.v1.AFooRequest.map_string_string",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.AFooRequest.MapStringStringEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.AFooRequest.MapStringStringEntry.value",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "map_int32_bytes",
+            "full_name": "wombat.v1.AFooRequest.map_int32_bytes",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.AFooRequest.MapInt32BytesEntry.key",
+              "kind": "int32",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.AFooRequest.MapInt32BytesEntry.value",
+              "kind": "bytes",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "map_string_enum",
+            "full_name": "wombat.v1.AFooRequest.map_string_enum",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.AFooRequest.MapStringEnumEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.AFooRequest.MapStringEnumEntry.value",
+              "kind": "enum",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": [
+                "UNKNOWN",
+                "FOO",
+                "BAR",
+                "BAZ"
+              ],
+              "message": null
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "map_string_bool",
+            "full_name": "wombat.v1.AFooRequest.map_string_bool",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.AFooRequest.MapStringBoolEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.AFooRequest.MapStringBoolEntry.value",
+              "kind": "bool",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "map_int32_message",
+            "full_name": "wombat.v1.AFooRequest.map_int32_message",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.AFooRequest.MapInt32MessageEntry.key",
+              "kind": "int32",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.AFooRequest.MapInt32MessageEntry.value",
+              "kind": "message",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": {
+                "name": "BazRequest",
+                "full_name": "wombat.v1.BazRequest",
+                "fields": [
+                  {
+                    "name": "request",
+                    "full_name": "wombat.v1.BazRequest.foo",
+                    "kind": "oneof",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": [
+                      {
+                        "name": "foo",
+                        "full_name": "wombat.v1.BazRequest.foo",
+                        "kind": "message",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": {
+                          "name": "FooRequest",
+                          "full_name": "wombat.v1.FooRequest",
+                          "fields": [
+                            {
+                              "name": "type_double",
+                              "full_name": "wombat.v1.FooRequest.type_double",
+                              "kind": "double",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_float",
+                              "full_name": "wombat.v1.FooRequest.type_float",
+                              "kind": "float",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_int64",
+                              "full_name": "wombat.v1.FooRequest.type_int64",
+                              "kind": "int64",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_uint64",
+                              "full_name": "wombat.v1.FooRequest.type_uint64",
+                              "kind": "uint64",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_int32",
+                              "full_name": "wombat.v1.FooRequest.type_int32",
+                              "kind": "int32",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_fixed64",
+                              "full_name": "wombat.v1.FooRequest.type_fixed64",
+                              "kind": "fixed64",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_fixed32",
+                              "full_name": "wombat.v1.FooRequest.type_fixed32",
+                              "kind": "fixed32",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_bool",
+                              "full_name": "wombat.v1.FooRequest.type_bool",
+                              "kind": "bool",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_string",
+                              "full_name": "wombat.v1.FooRequest.type_string",
+                              "kind": "string",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_message",
+                              "full_name": "wombat.v1.FooRequest.type_message",
+                              "kind": "message",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": {
+                                "name": "Bar",
+                                "full_name": "wombat.v1.Bar",
+                                "fields": [
+                                  {
+                                    "name": "id",
+                                    "full_name": "wombat.v1.Bar.id",
+                                    "kind": "string",
+                                    "repeated": false,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": null
+                                  },
+                                  {
+                                    "name": "names",
+                                    "full_name": "wombat.v1.Bar.names",
+                                    "kind": "message",
+                                    "repeated": true,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": {
+                                      "name": "Nested",
+                                      "full_name": "wombat.v1.Bar.Nested",
+                                      "fields": [
+                                        {
+                                          "name": "name",
+                                          "full_name": "wombat.v1.Bar.Nested.name",
+                                          "kind": "string",
+                                          "repeated": false,
+                                          "map_key": null,
+                                          "map_value": null,
+                                          "oneof": null,
+                                          "enum": null,
+                                          "message": null
+                                        },
+                                        {
+                                          "name": "is_nested",
+                                          "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                          "kind": "bool",
+                                          "repeated": false,
+                                          "map_key": null,
+                                          "map_value": null,
+                                          "oneof": null,
+                                          "enum": null,
+                                          "message": null
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "type_bytes",
+                              "full_name": "wombat.v1.FooRequest.type_bytes",
+                              "kind": "bytes",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_uint32",
+                              "full_name": "wombat.v1.FooRequest.type_uint32",
+                              "kind": "uint32",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_enum",
+                              "full_name": "wombat.v1.FooRequest.type_enum",
+                              "kind": "enum",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": [
+                                "UNKNOWN",
+                                "FOO",
+                                "BAR",
+                                "BAZ"
+                              ],
+                              "message": null
+                            },
+                            {
+                              "name": "type_sfixed32",
+                              "full_name": "wombat.v1.FooRequest.type_sfixed32",
+                              "kind": "sfixed32",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_sfixed64",
+                              "full_name": "wombat.v1.FooRequest.type_sfixed64",
+                              "kind": "sfixed64",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_sint32",
+                              "full_name": "wombat.v1.FooRequest.type_sint32",
+                              "kind": "sint32",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_sint64",
+                              "full_name": "wombat.v1.FooRequest.type_sint64",
+                              "kind": "sint64",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_string_map",
+                              "full_name": "wombat.v1.FooRequest.type_string_map",
+                              "kind": "map",
+                              "repeated": false,
+                              "map_key": {
+                                "name": "key",
+                                "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+                                "kind": "string",
+                                "repeated": false,
+                                "map_key": null,
+                                "map_value": null,
+                                "oneof": null,
+                                "enum": null,
+                                "message": null
+                              },
+                              "map_value": {
+                                "name": "value",
+                                "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+                                "kind": "string",
+                                "repeated": false,
+                                "map_key": null,
+                                "map_value": null,
+                                "oneof": null,
+                                "enum": null,
+                                "message": null
+                              },
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_complex_map",
+                              "full_name": "wombat.v1.FooRequest.type_complex_map",
+                              "kind": "map",
+                              "repeated": false,
+                              "map_key": {
+                                "name": "key",
+                                "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+                                "kind": "string",
+                                "repeated": false,
+                                "map_key": null,
+                                "map_value": null,
+                                "oneof": null,
+                                "enum": null,
+                                "message": null
+                              },
+                              "map_value": {
+                                "name": "value",
+                                "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+                                "kind": "message",
+                                "repeated": false,
+                                "map_key": null,
+                                "map_value": null,
+                                "oneof": null,
+                                "enum": null,
+                                "message": {
+                                  "name": "Bar",
+                                  "full_name": "wombat.v1.Bar",
+                                  "fields": [
+                                    {
+                                      "name": "id",
+                                      "full_name": "wombat.v1.Bar.id",
+                                      "kind": "string",
+                                      "repeated": false,
+                                      "map_key": null,
+                                      "map_value": null,
+                                      "oneof": null,
+                                      "enum": null,
+                                      "message": null
+                                    },
+                                    {
+                                      "name": "names",
+                                      "full_name": "wombat.v1.Bar.names",
+                                      "kind": "message",
+                                      "repeated": true,
+                                      "map_key": null,
+                                      "map_value": null,
+                                      "oneof": null,
+                                      "enum": null,
+                                      "message": {
+                                        "name": "Nested",
+                                        "full_name": "wombat.v1.Bar.Nested",
+                                        "fields": [
+                                          {
+                                            "name": "name",
+                                            "full_name": "wombat.v1.Bar.Nested.name",
+                                            "kind": "string",
+                                            "repeated": false,
+                                            "map_key": null,
+                                            "map_value": null,
+                                            "oneof": null,
+                                            "enum": null,
+                                            "message": null
+                                          },
+                                          {
+                                            "name": "is_nested",
+                                            "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                            "kind": "bool",
+                                            "repeated": false,
+                                            "map_key": null,
+                                            "map_value": null,
+                                            "oneof": null,
+                                            "enum": null,
+                                            "message": null
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "bar",
+                        "full_name": "wombat.v1.BazRequest.bar",
+                        "kind": "message",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": {
+                          "name": "BarRequest",
+                          "full_name": "wombat.v1.BarRequest",
+                          "fields": [
+                            {
+                              "name": "type_repeated_string",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_string",
+                              "kind": "string",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_repeated_float",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_float",
+                              "kind": "float",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_repeated_bool",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+                              "kind": "bool",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_repeated_enum",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+                              "kind": "enum",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": [
+                                "UNKNOWN",
+                                "FOO",
+                                "BAR",
+                                "BAZ"
+                              ],
+                              "message": null
+                            },
+                            {
+                              "name": "type_repeated_bytes",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+                              "kind": "bytes",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "type_repeated_message",
+                              "full_name": "wombat.v1.BarRequest.type_repeated_message",
+                              "kind": "message",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": {
+                                "name": "Bar",
+                                "full_name": "wombat.v1.Bar",
+                                "fields": [
+                                  {
+                                    "name": "id",
+                                    "full_name": "wombat.v1.Bar.id",
+                                    "kind": "string",
+                                    "repeated": false,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": null
+                                  },
+                                  {
+                                    "name": "names",
+                                    "full_name": "wombat.v1.Bar.names",
+                                    "kind": "message",
+                                    "repeated": true,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": {
+                                      "name": "Nested",
+                                      "full_name": "wombat.v1.Bar.Nested",
+                                      "fields": [
+                                        {
+                                          "name": "name",
+                                          "full_name": "wombat.v1.Bar.Nested.name",
+                                          "kind": "string",
+                                          "repeated": false,
+                                          "map_key": null,
+                                          "map_value": null,
+                                          "oneof": null,
+                                          "enum": null,
+                                          "message": null
+                                        },
+                                        {
+                                          "name": "is_nested",
+                                          "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                          "kind": "bool",
+                                          "repeated": false,
+                                          "map_key": null,
+                                          "map_value": null,
+                                          "oneof": null,
+                                          "enum": null,
+                                          "message": null
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "name": "uint32repeated",
+                              "full_name": "wombat.v1.BarRequest.uint32repeated",
+                              "kind": "uint32",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "name": "baz",
+                        "full_name": "wombat.v1.BazRequest.baz",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      }
+                    ],
+                    "enum": null,
+                    "message": null
+                  }
+                ]
+              }
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/Bar": {
+      "full_name": "/wombat.v1.Foobar/Bar",
+      "message": {
+        "name": "BarRequest",
+        "full_name": "wombat.v1.BarRequest",
+        "fields": [
+          {
+            "name": "type_repeated_string",
+            "full_name": "wombat.v1.BarRequest.type_repeated_string",
+            "kind": "string",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_repeated_float",
+            "full_name": "wombat.v1.BarRequest.type_repeated_float",
+            "kind": "float",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_repeated_bool",
+            "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+            "kind": "bool",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_repeated_enum",
+            "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+            "kind": "enum",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": [
+              "UNKNOWN",
+              "FOO",
+              "BAR",
+              "BAZ"
+            ],
+            "message": null
+          },
+          {
+            "name": "type_repeated_bytes",
+            "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+            "kind": "bytes",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_repeated_message",
+            "full_name": "wombat.v1.BarRequest.type_repeated_message",
+            "kind": "message",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Bar",
+              "full_name": "wombat.v1.Bar",
+              "fields": [
+                {
+                  "name": "id",
+                  "full_name": "wombat.v1.Bar.id",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "names",
+                  "full_name": "wombat.v1.Bar.names",
+                  "kind": "message",
+                  "repeated": true,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": {
+                    "name": "Nested",
+                    "full_name": "wombat.v1.Bar.Nested",
+                    "fields": [
+                      {
+                        "name": "name",
+                        "full_name": "wombat.v1.Bar.Nested.name",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      {
+                        "name": "is_nested",
+                        "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "kind": "bool",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "uint32repeated",
+            "full_name": "wombat.v1.BarRequest.uint32repeated",
+            "kind": "uint32",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/Baz": {
+      "full_name": "/wombat.v1.Foobar/Baz",
+      "message": {
+        "name": "BazRequest",
+        "full_name": "wombat.v1.BazRequest",
+        "fields": [
+          {
+            "name": "request",
+            "full_name": "wombat.v1.BazRequest.foo",
+            "kind": "oneof",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": [
+              {
+                "name": "foo",
+                "full_name": "wombat.v1.BazRequest.foo",
+                "kind": "message",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": {
+                  "name": "FooRequest",
+                  "full_name": "wombat.v1.FooRequest",
+                  "fields": [
+                    {
+                      "name": "type_double",
+                      "full_name": "wombat.v1.FooRequest.type_double",
+                      "kind": "double",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_float",
+                      "full_name": "wombat.v1.FooRequest.type_float",
+                      "kind": "float",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_int64",
+                      "full_name": "wombat.v1.FooRequest.type_int64",
+                      "kind": "int64",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_uint64",
+                      "full_name": "wombat.v1.FooRequest.type_uint64",
+                      "kind": "uint64",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_int32",
+                      "full_name": "wombat.v1.FooRequest.type_int32",
+                      "kind": "int32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_fixed64",
+                      "full_name": "wombat.v1.FooRequest.type_fixed64",
+                      "kind": "fixed64",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_fixed32",
+                      "full_name": "wombat.v1.FooRequest.type_fixed32",
+                      "kind": "fixed32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_bool",
+                      "full_name": "wombat.v1.FooRequest.type_bool",
+                      "kind": "bool",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_string",
+                      "full_name": "wombat.v1.FooRequest.type_string",
+                      "kind": "string",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_message",
+                      "full_name": "wombat.v1.FooRequest.type_message",
+                      "kind": "message",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": {
+                        "name": "Bar",
+                        "full_name": "wombat.v1.Bar",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "full_name": "wombat.v1.Bar.id",
+                            "kind": "string",
+                            "repeated": false,
+                            "map_key": null,
+                            "map_value": null,
+                            "oneof": null,
+                            "enum": null,
+                            "message": null
+                          },
+                          {
+                            "name": "names",
+                            "full_name": "wombat.v1.Bar.names",
+                            "kind": "message",
+                            "repeated": true,
+                            "map_key": null,
+                            "map_value": null,
+                            "oneof": null,
+                            "enum": null,
+                            "message": {
+                              "name": "Nested",
+                              "full_name": "wombat.v1.Bar.Nested",
+                              "fields": [
+                                {
+                                  "name": "name",
+                                  "full_name": "wombat.v1.Bar.Nested.name",
+                                  "kind": "string",
+                                  "repeated": false,
+                                  "map_key": null,
+                                  "map_value": null,
+                                  "oneof": null,
+                                  "enum": null,
+                                  "message": null
+                                },
+                                {
+                                  "name": "is_nested",
+                                  "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                  "kind": "bool",
+                                  "repeated": false,
+                                  "map_key": null,
+                                  "map_value": null,
+                                  "oneof": null,
+                                  "enum": null,
+                                  "message": null
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "type_bytes",
+                      "full_name": "wombat.v1.FooRequest.type_bytes",
+                      "kind": "bytes",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_uint32",
+                      "full_name": "wombat.v1.FooRequest.type_uint32",
+                      "kind": "uint32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_enum",
+                      "full_name": "wombat.v1.FooRequest.type_enum",
+                      "kind": "enum",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": [
+                        "UNKNOWN",
+                        "FOO",
+                        "BAR",
+                        "BAZ"
+                      ],
+                      "message": null
+                    },
+                    {
+                      "name": "type_sfixed32",
+                      "full_name": "wombat.v1.FooRequest.type_sfixed32",
+                      "kind": "sfixed32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_sfixed64",
+                      "full_name": "wombat.v1.FooRequest.type_sfixed64",
+                      "kind": "sfixed64",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_sint32",
+                      "full_name": "wombat.v1.FooRequest.type_sint32",
+                      "kind": "sint32",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_sint64",
+                      "full_name": "wombat.v1.FooRequest.type_sint64",
+                      "kind": "sint64",
+                      "repeated": false,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_string_map",
+                      "full_name": "wombat.v1.FooRequest.type_string_map",
+                      "kind": "map",
+                      "repeated": false,
+                      "map_key": {
+                        "name": "key",
+                        "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      "map_value": {
+                        "name": "value",
+                        "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_complex_map",
+                      "full_name": "wombat.v1.FooRequest.type_complex_map",
+                      "kind": "map",
+                      "repeated": false,
+                      "map_key": {
+                        "name": "key",
+                        "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      "map_value": {
+                        "name": "value",
+                        "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+                        "kind": "message",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": {
+                          "name": "Bar",
+                          "full_name": "wombat.v1.Bar",
+                          "fields": [
+                            {
+                              "name": "id",
+                              "full_name": "wombat.v1.Bar.id",
+                              "kind": "string",
+                              "repeated": false,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": null
+                            },
+                            {
+                              "name": "names",
+                              "full_name": "wombat.v1.Bar.names",
+                              "kind": "message",
+                              "repeated": true,
+                              "map_key": null,
+                              "map_value": null,
+                              "oneof": null,
+                              "enum": null,
+                              "message": {
+                                "name": "Nested",
+                                "full_name": "wombat.v1.Bar.Nested",
+                                "fields": [
+                                  {
+                                    "name": "name",
+                                    "full_name": "wombat.v1.Bar.Nested.name",
+                                    "kind": "string",
+                                    "repeated": false,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": null
+                                  },
+                                  {
+                                    "name": "is_nested",
+                                    "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                    "kind": "bool",
+                                    "repeated": false,
+                                    "map_key": null,
+                                    "map_value": null,
+                                    "oneof": null,
+                                    "enum": null,
+                                    "message": null
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "bar",
+                "full_name": "wombat.v1.BazRequest.bar",
+                "kind": "message",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": {
+                  "name": "BarRequest",
+                  "full_name": "wombat.v1.BarRequest",
+                  "fields": [
+                    {
+                      "name": "type_repeated_string",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_string",
+                      "kind": "string",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_repeated_float",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_float",
+                      "kind": "float",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_repeated_bool",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+                      "kind": "bool",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_repeated_enum",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+                      "kind": "enum",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": [
+                        "UNKNOWN",
+                        "FOO",
+                        "BAR",
+                        "BAZ"
+                      ],
+                      "message": null
+                    },
+                    {
+                      "name": "type_repeated_bytes",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+                      "kind": "bytes",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    },
+                    {
+                      "name": "type_repeated_message",
+                      "full_name": "wombat.v1.BarRequest.type_repeated_message",
+                      "kind": "message",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": {
+                        "name": "Bar",
+                        "full_name": "wombat.v1.Bar",
+                        "fields": [
+                          {
+                            "name": "id",
+                            "full_name": "wombat.v1.Bar.id",
+                            "kind": "string",
+                            "repeated": false,
+                            "map_key": null,
+                            "map_value": null,
+                            "oneof": null,
+                            "enum": null,
+                            "message": null
+                          },
+                          {
+                            "name": "names",
+                            "full_name": "wombat.v1.Bar.names",
+                            "kind": "message",
+                            "repeated": true,
+                            "map_key": null,
+                            "map_value": null,
+                            "oneof": null,
+                            "enum": null,
+                            "message": {
+                              "name": "Nested",
+                              "full_name": "wombat.v1.Bar.Nested",
+                              "fields": [
+                                {
+                                  "name": "name",
+                                  "full_name": "wombat.v1.Bar.Nested.name",
+                                  "kind": "string",
+                                  "repeated": false,
+                                  "map_key": null,
+                                  "map_value": null,
+                                  "oneof": null,
+                                  "enum": null,
+                                  "message": null
+                                },
+                                {
+                                  "name": "is_nested",
+                                  "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                  "kind": "bool",
+                                  "repeated": false,
+                                  "map_key": null,
+                                  "map_value": null,
+                                  "oneof": null,
+                                  "enum": null,
+                                  "message": null
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "name": "uint32repeated",
+                      "full_name": "wombat.v1.BarRequest.uint32repeated",
+                      "kind": "uint32",
+                      "repeated": true,
+                      "map_key": null,
+                      "map_value": null,
+                      "oneof": null,
+                      "enum": null,
+                      "message": null
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "baz",
+                "full_name": "wombat.v1.BazRequest.baz",
+                "kind": "string",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": null
+              }
+            ],
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/Empty": {
+      "full_name": "/wombat.v1.Foobar/Empty",
+      "message": {
+        "name": "EmptyRequest",
+        "full_name": "wombat.v1.EmptyRequest",
+        "fields": null
+      }
+    },
+    "/wombat.v1.Foobar/Foo": {
+      "full_name": "/wombat.v1.Foobar/Foo",
+      "message": {
+        "name": "FooRequest",
+        "full_name": "wombat.v1.FooRequest",
+        "fields": [
+          {
+            "name": "type_double",
+            "full_name": "wombat.v1.FooRequest.type_double",
+            "kind": "double",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_float",
+            "full_name": "wombat.v1.FooRequest.type_float",
+            "kind": "float",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_int64",
+            "full_name": "wombat.v1.FooRequest.type_int64",
+            "kind": "int64",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_uint64",
+            "full_name": "wombat.v1.FooRequest.type_uint64",
+            "kind": "uint64",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_int32",
+            "full_name": "wombat.v1.FooRequest.type_int32",
+            "kind": "int32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_fixed64",
+            "full_name": "wombat.v1.FooRequest.type_fixed64",
+            "kind": "fixed64",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_fixed32",
+            "full_name": "wombat.v1.FooRequest.type_fixed32",
+            "kind": "fixed32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_bool",
+            "full_name": "wombat.v1.FooRequest.type_bool",
+            "kind": "bool",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_string",
+            "full_name": "wombat.v1.FooRequest.type_string",
+            "kind": "string",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_message",
+            "full_name": "wombat.v1.FooRequest.type_message",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Bar",
+              "full_name": "wombat.v1.Bar",
+              "fields": [
+                {
+                  "name": "id",
+                  "full_name": "wombat.v1.Bar.id",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "names",
+                  "full_name": "wombat.v1.Bar.names",
+                  "kind": "message",
+                  "repeated": true,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": {
+                    "name": "Nested",
+                    "full_name": "wombat.v1.Bar.Nested",
+                    "fields": [
+                      {
+                        "name": "name",
+                        "full_name": "wombat.v1.Bar.Nested.name",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      {
+                        "name": "is_nested",
+                        "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "kind": "bool",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "type_bytes",
+            "full_name": "wombat.v1.FooRequest.type_bytes",
+            "kind": "bytes",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_uint32",
+            "full_name": "wombat.v1.FooRequest.type_uint32",
+            "kind": "uint32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_enum",
+            "full_name": "wombat.v1.FooRequest.type_enum",
+            "kind": "enum",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": [
+              "UNKNOWN",
+              "FOO",
+              "BAR",
+              "BAZ"
+            ],
+            "message": null
+          },
+          {
+            "name": "type_sfixed32",
+            "full_name": "wombat.v1.FooRequest.type_sfixed32",
+            "kind": "sfixed32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_sfixed64",
+            "full_name": "wombat.v1.FooRequest.type_sfixed64",
+            "kind": "sfixed64",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_sint32",
+            "full_name": "wombat.v1.FooRequest.type_sint32",
+            "kind": "sint32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_sint64",
+            "full_name": "wombat.v1.FooRequest.type_sint64",
+            "kind": "sint64",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_string_map",
+            "full_name": "wombat.v1.FooRequest.type_string_map",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "type_complex_map",
+            "full_name": "wombat.v1.FooRequest.type_complex_map",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+              "kind": "message",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": {
+                "name": "Bar",
+                "full_name": "wombat.v1.Bar",
+                "fields": [
+                  {
+                    "name": "id",
+                    "full_name": "wombat.v1.Bar.id",
+                    "kind": "string",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": null
+                  },
+                  {
+                    "name": "names",
+                    "full_name": "wombat.v1.Bar.names",
+                    "kind": "message",
+                    "repeated": true,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": {
+                      "name": "Nested",
+                      "full_name": "wombat.v1.Bar.Nested",
+                      "fields": [
+                        {
+                          "name": "name",
+                          "full_name": "wombat.v1.Bar.Nested.name",
+                          "kind": "string",
+                          "repeated": false,
+                          "map_key": null,
+                          "map_value": null,
+                          "oneof": null,
+                          "enum": null,
+                          "message": null
+                        },
+                        {
+                          "name": "is_nested",
+                          "full_name": "wombat.v1.Bar.Nested.is_nested",
+                          "kind": "bool",
+                          "repeated": false,
+                          "map_key": null,
+                          "map_value": null,
+                          "oneof": null,
+                          "enum": null,
+                          "message": null
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/SingleOneof": {
+      "full_name": "/wombat.v1.Foobar/SingleOneof",
+      "message": {
+        "name": "SingleOneofRequest",
+        "full_name": "wombat.v1.SingleOneofRequest",
+        "fields": [
+          {
+            "name": "foobar",
+            "full_name": "wombat.v1.SingleOneofRequest.baz",
+            "kind": "oneof",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": [
+              {
+                "name": "baz",
+                "full_name": "wombat.v1.SingleOneofRequest.baz",
+                "kind": "message",
+                "repeated": false,
+                "map_key": null,
+                "map_value": null,
+                "oneof": null,
+                "enum": null,
+                "message": {
+                  "name": "WellKnownResponse",
+                  "full_name": "wombat.v1.WellKnownResponse",
+                  "fields": null
+                }
+              }
+            ],
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.Foobar/WellKnown": {
+      "full_name": "/wombat.v1.Foobar/WellKnown",
+      "message": {
+        "name": "WellKnownRequest",
+        "full_name": "wombat.v1.WellKnownRequest",
+        "fields": [
+          {
+            "name": "timestamp",
+            "full_name": "wombat.v1.WellKnownRequest.timestamp",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Timestamp",
+              "full_name": "google.protobuf.Timestamp",
+              "fields": [
+                {
+                  "name": "seconds",
+                  "full_name": "google.protobuf.Timestamp.seconds",
+                  "kind": "int64",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "nanos",
+                  "full_name": "google.protobuf.Timestamp.nanos",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "duration",
+            "full_name": "wombat.v1.WellKnownRequest.duration",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Duration",
+              "full_name": "google.protobuf.Duration",
+              "fields": [
+                {
+                  "name": "seconds",
+                  "full_name": "google.protobuf.Duration.seconds",
+                  "kind": "int64",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "nanos",
+                  "full_name": "google.protobuf.Duration.nanos",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "double_value",
+            "full_name": "wombat.v1.WellKnownRequest.double_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "DoubleValue",
+              "full_name": "google.protobuf.DoubleValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.DoubleValue.value",
+                  "kind": "double",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "float_value",
+            "full_name": "wombat.v1.WellKnownRequest.float_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "FloatValue",
+              "full_name": "google.protobuf.FloatValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.FloatValue.value",
+                  "kind": "float",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "int64_value",
+            "full_name": "wombat.v1.WellKnownRequest.int64_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Int64Value",
+              "full_name": "google.protobuf.Int64Value",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.Int64Value.value",
+                  "kind": "int64",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "uint64_value",
+            "full_name": "wombat.v1.WellKnownRequest.uint64_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "UInt64Value",
+              "full_name": "google.protobuf.UInt64Value",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.UInt64Value.value",
+                  "kind": "uint64",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "int32_value",
+            "full_name": "wombat.v1.WellKnownRequest.int32_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Int32Value",
+              "full_name": "google.protobuf.Int32Value",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.Int32Value.value",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "uint32_value",
+            "full_name": "wombat.v1.WellKnownRequest.uint32_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "UInt32Value",
+              "full_name": "google.protobuf.UInt32Value",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.UInt32Value.value",
+                  "kind": "uint32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "bool_value",
+            "full_name": "wombat.v1.WellKnownRequest.bool_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "BoolValue",
+              "full_name": "google.protobuf.BoolValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.BoolValue.value",
+                  "kind": "bool",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "string_value",
+            "full_name": "wombat.v1.WellKnownRequest.string_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "StringValue",
+              "full_name": "google.protobuf.StringValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.StringValue.value",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "bytes_value",
+            "full_name": "wombat.v1.WellKnownRequest.bytes_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "BytesValue",
+              "full_name": "google.protobuf.BytesValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.BytesValue.value",
+                  "kind": "bytes",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "struct_value",
+            "full_name": "wombat.v1.WellKnownRequest.struct_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Struct",
+              "full_name": "google.protobuf.Struct",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.Struct.value",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/wombat.v1.RouteGuide/GetFeature": {
+      "full_name": "/wombat.v1.RouteGuide/GetFeature",
+      "message": {
+        "name": "Point",
+        "full_name": "wombat.v1.Point",
+        "fields": [
+          {
+            "name": "latitude",
+            "full_name": "wombat.v1.Point.latitude",
+            "kind": "int32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "longitude",
+            "full_name": "wombat.v1.Point.longitude",
+            "kind": "int32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.RouteGuide/ListFeatures": {
+      "full_name": "/wombat.v1.RouteGuide/ListFeatures",
+      "message": {
+        "name": "Rectangle",
+        "full_name": "wombat.v1.Rectangle",
+        "fields": [
+          {
+            "name": "lo",
+            "full_name": "wombat.v1.Rectangle.lo",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Point",
+              "full_name": "wombat.v1.Point",
+              "fields": [
+                {
+                  "name": "latitude",
+                  "full_name": "wombat.v1.Point.latitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "longitude",
+                  "full_name": "wombat.v1.Point.longitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "hi",
+            "full_name": "wombat.v1.Rectangle.hi",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Point",
+              "full_name": "wombat.v1.Point",
+              "fields": [
+                {
+                  "name": "latitude",
+                  "full_name": "wombat.v1.Point.latitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "longitude",
+                  "full_name": "wombat.v1.Point.longitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/wombat.v1.RouteGuide/RecordRoute": {
+      "full_name": "/wombat.v1.RouteGuide/RecordRoute",
+      "message": {
+        "name": "Point",
+        "full_name": "wombat.v1.Point",
+        "fields": [
+          {
+            "name": "latitude",
+            "full_name": "wombat.v1.Point.latitude",
+            "kind": "int32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          },
+          {
+            "name": "longitude",
+            "full_name": "wombat.v1.Point.longitude",
+            "kind": "int32",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
+    "/wombat.v1.RouteGuide/RouteChat": {
+      "full_name": "/wombat.v1.RouteGuide/RouteChat",
+      "message": {
+        "name": "RouteNote",
+        "full_name": "wombat.v1.RouteNote",
+        "fields": [
+          {
+            "name": "location",
+            "full_name": "wombat.v1.RouteNote.location",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Point",
+              "full_name": "wombat.v1.Point",
+              "fields": [
+                {
+                  "name": "latitude",
+                  "full_name": "wombat.v1.Point.latitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "longitude",
+                  "full_name": "wombat.v1.Point.longitude",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "message",
+            "full_name": "wombat.v1.RouteNote.message",
+            "kind": "string",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    }
+  },
+  "services": [
+    {
+      "full_name": "wombat.v1.Foobar",
+      "methods": [
+        {
+          "full_name": "/wombat.v1.Foobar/AFoo",
+          "name": "AFoo",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/Bar",
+          "name": "Bar",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/Baz",
+          "name": "Baz",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/Empty",
+          "name": "Empty",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/Foo",
+          "name": "Foo",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/SingleOneof",
+          "name": "SingleOneof",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/WellKnown",
+          "name": "WellKnown",
+          "client_stream": false,
+          "server_stream": false
+        }
+      ]
+    },
+    {
+      "full_name": "wombat.v1.RouteGuide",
+      "methods": [
+        {
+          "full_name": "/wombat.v1.RouteGuide/GetFeature",
+          "name": "GetFeature",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.RouteGuide/ListFeatures",
+          "name": "ListFeatures",
+          "client_stream": false,
+          "server_stream": true
+        },
+        {
+          "full_name": "/wombat.v1.RouteGuide/RecordRoute",
+          "name": "RecordRoute",
+          "client_stream": true,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.RouteGuide/RouteChat",
+          "name": "RouteChat",
+          "client_stream": true,
+          "server_stream": true
+        }
+      ]
+    },
+    {
+      "full_name": "grpc.reflection.v1.ServerReflection",
+      "methods": [
+        {
+          "full_name": "/grpc.reflection.v1.ServerReflection/ServerReflectionInfo",
+          "name": "ServerReflectionInfo",
+          "client_stream": true,
+          "server_stream": true
+        }
+      ]
+    },
+    {
+      "full_name": "grpc.reflection.v1alpha.ServerReflection",
+      "methods": [
+        {
+          "full_name": "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo",
+          "name": "ServerReflectionInfo",
+          "client_stream": true,
+          "server_stream": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 <script>
-  // No imports of field components here!
+  // No imports of field components here (they are passed in as
+  // `components`, which avoids circular imports).
+  import { isWellKnown } from "./wellKnown";
   
   export let field = {};
   export let state;
@@ -9,10 +11,6 @@
   export let key = undefined;
   export let components = {}; // Pass components from parent
 
-  const isWellKnown = full_name => {
-    // Same function as before
-    // ...
-  }
 
   $: if(!field) field = {};
 </script>

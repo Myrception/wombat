@@ -85,7 +85,7 @@
     --border: 1px solid #3b4252;
 
     --icon-size: 16px;
-    --input-height: 40px;
+    --input-height: 41px; /* text inputs and dropdowns */
     --btn-height: 40px;
     --header-height: 40px;
   }
@@ -108,10 +108,14 @@
     cursor: default;
   }
   
+  /* Form controls do not inherit the font by default; without this they use
+     the engine's default form font, which differs between WebKit and
+     Chromium (and so do their heights). */
   :global(button),
   :global(input),
   :global(textarea),
   :global(select) {
+    font-family: inherit;
     font-size: var(--font-size);
   }
   

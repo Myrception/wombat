@@ -18,6 +18,7 @@
   input {
     box-sizing: border-box;
     width: 100%;
+    height: var(--input-height);
     background-color: var(--bg-input-color);
     border: var(--border);
     outline: none;

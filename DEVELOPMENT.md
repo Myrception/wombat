@@ -84,6 +84,32 @@ them are evergreen, so modern JS and CSS (including CSS variables) can be used w
 The theme colours are CSS variables declared in `frontend/src/views/App.svelte`. The UI zoom uses CSS `zoom`; see
 `frontend/src/zoom.js` for the two things to keep in mind when writing CSS.
 
+### UI tests
+
+`frontend/tests` holds [Playwright](https://playwright.dev/) tests that run the production build of the frontend
+against a fake backend (`tests/fake-backend.js`), in WebKit (the engine of WebKitGTK and WKWebView) and Chromium (close
+to WebView2). They cover every field type, sending, saved requests and metadata, method selection, grpcurl
+import/export, the dialogs and zoom.
+
+```zsh
+$ cd frontend
+$ npx playwright install webkit chromium   # once
+$ npm test                                 # both engines
+$ npm run test:chromium                    # Chromium only
+$ npx playwright test --ui                 # interactive runner
+```
+
+Playwright's WebKit build needs Ubuntu/Debian libraries. On other distributions run the WebKit tests in Playwright's
+container instead (needs Docker): `npm run test:webkit:docker`.
+
+The fake backend's schema, `tests/fixtures/schema.json`, is generated from the real Go backend so the two cannot drift
+apart; `go test` fails when it is out of date. Regenerate it after changing the test protos or the method/field
+descriptions:
+
+```zsh
+$ go test -tags webkit2_41 ./internal/app -run TestFrontendFixtures -update-fixtures
+```
+
 After getting your UI correct; it's always good to validate in a real build:
 
 ```zsh

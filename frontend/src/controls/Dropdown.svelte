@@ -1,4 +1,10 @@
 <script>
+  // Our wrapper around svelte-select (v5). Its props and events are our own
+  // API, so the components using it do not depend on svelte-select's.
+  //
+  // `select` fires only when the user picks an option, never when
+  // `selectedValue` is changed from code.
+  import { createEventDispatcher } from "svelte";
   import Select from "svelte-select";
   import InputLabel from "./InputLabel.svelte";
 
@@ -13,58 +19,97 @@
   export let isSearchable = false;
   export let labelColor = undefined;
   export let removeable = false;
+  /** Optional component rendering a list item, given `item`. */
   export let Item = undefined;
   export let titleProp = "value";
+
+  const dispatch = createEventDispatcher();
+  const onChange = e => dispatch("select", e.detail);
+  const onClear = e => dispatch("clear", e.detail);
+
+  $: title = selectedValue && typeof selectedValue === "object" ? selectedValue[titleProp] ?? "" : selectedValue ?? "";
 </script>
 
 <style>
-  :global(.dropdown div) {
-    display: block
-  }
   .dropdown {
     display: block;
     width: 100%;
     max-width: 100%;
     margin-bottom: var(--padding);
-    --height: 40px;
-    --background: var(--bg-input-color);
-    --borderRadius: 0;
-    --borderFocusColor: var(--border-color);
-    --borderHoverColor: var(--border-color);
-    --inputColor: var(--text-color);
-    --listBackground: var(--bg-inverse-color);
-    --listBorderRadius: 0;
-    --itemColor: var(--text-inverse-color);
-    --itemHoverBG: var(--bg-inverse-color2);
-    --itemIsActiveColor: var(--text-inverse-color);
-    --itemIsActiveBG: var(--bg-inverse-color3);
-    --placeholderColor: var(--border-color);
-    --indicatorColor: var(--border-color);
-    --clearSelectRight: calc(var(--padding) * 3);
-    --clearSelectBottom: 0;
-    --clearSelectTop: 3px;
-    --clearSelectColor: var(--border-color);
-    --clearSelectFocusColor: var(--border-color);
   }
 
   .frameless {
     width: auto;
     min-width: min(150px, 30%);
-    --border: none;
-    --background: var(--bg-color);
     color: var(--primary-color);
     margin: 0;
   }
-  /* TODO: v2 */
-  :global(.frameless .selectContainer) {
-    border: none !important;
-    background-color: var(--bg-color) !important;
+
+  /* svelte-select positions its list with floating-ui, which computes in
+     unzoomed pixels and puts the list in the wrong place under CSS zoom
+     (see src/zoom.js). The list always opens below the select anyway. */
+  .dropdown :global(.svelte-select-list) {
+    position: absolute !important;
+    top: calc(100% + 1px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    transform: none !important;
+  }
+  /* Line the list up with the select's outer border. */
+  .dropdown:not(.frameless) :global(.svelte-select-list) {
+    left: -1px !important;
+    right: -1px !important;
   }
 </style>
 
-<div class="dropdown" class:frameless title={selectedValue ? selectedValue[titleProp] : ''} >
+<div class="dropdown" class:frameless {title}>
   {#if label}
     <InputLabel on:remove {removeable} {label} {hint} color={labelColor} />
   {/if}
-  <Select on:select on:clear {items} {Item} bind:selectedValue {placeholder} {isClearable} {showIndicator} {isSearchable} />
+  <!-- svelte-select reads generic names (--padding, --border, --height, ...)
+       that our theme also defines, so all of them are set here, on the
+       Select only. -->
+  <Select
+    {items}
+    bind:value={selectedValue}
+    {placeholder}
+    clearable={isClearable}
+    searchable={isSearchable}
+    showChevron={showIndicator}
+    on:change={onChange}
+    on:clear={onClear}
+    --height="var(--input-height)"
+    --box-sizing="border-box"
+    --chevron-height="calc(var(--input-height) - 2px)"
+    --padding="0 0 0 12px"
+    --margin="0"
+    --border={frameless ? "none" : "1px solid var(--border-color)"}
+    --border-hover={frameless ? "none" : "1px solid var(--border-color)"}
+    --border-focused={frameless ? "none" : "1px solid var(--border-color)"}
+    --border-radius="0"
+    --background={frameless ? "var(--bg-color)" : "var(--bg-input-color)"}
+    --input-color="var(--text-color)"
+    --selected-item-color={frameless ? "var(--primary-color)" : "var(--text-color)"}
+    --placeholder-color="var(--border-color)"
+    --chevron-color="var(--border-color)"
+    --clear-select-color="var(--border-color)"
+    --list-background="var(--bg-inverse-color)"
+    --list-border-radius="0"
+    --list-z-index="100"
+    --item-color="var(--text-inverse-color)"
+    --item-hover-bg="var(--bg-inverse-color2)"
+    --item-hover-color="var(--text-inverse-color)"
+    --item-is-active-bg="var(--bg-inverse-color3)"
+    --item-is-active-color="var(--text-inverse-color)"
+    --item-padding="0 12px"
+  >
+    <svelte:fragment slot="item" let:item>
+      {#if Item}
+        <svelte:component this={Item} {item} />
+      {:else}
+        {item.label}
+      {/if}
+    </svelte:fragment>
+  </Select>
 </div>
