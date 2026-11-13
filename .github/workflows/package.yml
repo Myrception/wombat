@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-24.04
             platform: linux/amd64
             asset: Linux_x86_64.tar.gz
-          - os: macos-14
+          - os: macos-15
             platform: darwin/universal
             asset: Darwin_universal.dmg
           - os: windows-latest
