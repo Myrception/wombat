@@ -8,6 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	wails_options "github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"wombat/internal/server"
@@ -19,7 +20,7 @@ var (
 )
 
 // Run is the main function to run the application
-func Run(assetsFS embed.FS) int {
+func Run(assetsFS embed.FS, icon []byte) int {
 	appData, err := appDataLocation(appName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to open app data directory: %v\n", err)
@@ -63,6 +64,10 @@ func Run(assetsFS embed.FS) int {
 		SingleInstanceLock: &wails_options.SingleInstanceLock{
 			UniqueId:               instanceID,
 			OnSecondInstanceLaunch: app.onSecondInstanceLaunch,
+		},
+		Linux: &linux.Options{
+			Icon:        icon,
+			ProgramName: "wombat",
 		},
 		OnStartup:  app.Startup,
 		OnShutdown: app.Shutdown,

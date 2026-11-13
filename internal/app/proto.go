@@ -186,4 +186,3 @@ func protoFilesFromDisk(importPaths, filenames []string) (*protoregistry.Files, 
 
 	return protodesc.NewFiles(fdset)
 }
-

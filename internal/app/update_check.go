@@ -11,7 +11,11 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-const latestReleaseURL = "https://api.github.com/repos/rogchap/wombat/releases/latest"
+// releaseRepo is the GitHub repository whose releases are offered as updates.
+// It must match the repository the release workflow publishes to.
+const releaseRepo = "Myrception/wombat"
+
+const latestReleaseURL = "https://api.github.com/repos/" + releaseRepo + "/releases/latest"
 
 var noUpdate = errors.New("no update available")
 
