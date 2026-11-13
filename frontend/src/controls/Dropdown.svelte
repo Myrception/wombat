@@ -79,9 +79,9 @@
     showChevron={showIndicator}
     on:change={onChange}
     on:clear={onClear}
-    --height="41px"
+    --height="var(--input-height)"
     --box-sizing="border-box"
-    --chevron-height="39px"
+    --chevron-height="calc(var(--input-height) - 2px)"
     --padding="0 0 0 12px"
     --margin="0"
     --border={frameless ? "none" : "1px solid var(--border-color)"}
