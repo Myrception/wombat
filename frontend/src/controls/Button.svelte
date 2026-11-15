@@ -4,10 +4,12 @@
   export let bgColor = "var(--bg-color)";
   export let border = false;
   export let style = "";
+  export let disabled = false;
 </script>
 
 <button
-  on:click 
+  on:click
+  {disabled}
   class:border
   style="background-color:{bgColor}; color:{color}; {style}">
   {text}
@@ -29,6 +31,9 @@
   }
   button:active {
     background-color: var(--bg-color2) !important;
+  }
+  button:disabled {
+    opacity: 0.5;
   }
   .border {
     border: var(--border);

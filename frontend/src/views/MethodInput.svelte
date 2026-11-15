@@ -1,5 +1,7 @@
 <script>
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, setContext } from "svelte";
+  import { writable } from "svelte/store";
+  import { collectMessages } from "./jsonCheck";
   import Button from '../controls/Button.svelte';
   import MessageField from "./MessageField.svelte";
 
@@ -12,6 +14,12 @@
   export let mapItems;
 
   let methodSelected;
+
+  // Every message type of the request by full name, so JSON-edited
+  // recursive messages can be checked (see FieldStruct.svelte).
+  const messages = writable(new Map());
+  setContext("messages", messages);
+  $: messages.set(collectMessages(methodInput));
 
   const dispatch = createEventDispatcher();
   const onEdit = () => dispatch("edit");

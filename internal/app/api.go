@@ -478,6 +478,11 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	if err := mapstructure.Decode(data, &opts); err != nil {
 		return err
 	}
+	opts.Addr = strings.TrimSpace(opts.Addr)
+	if opts.Addr == "" {
+		// Checked before saving, so no workspace without an address is stored.
+		return errors.New("enter the address of the gRPC server")
+	}
 
 	// reset all things
 	a.rt.Emit(eventClientConnectStarted, opts.Addr)
@@ -525,8 +530,6 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	return nil
 }
 
-// resetConnection cancels any in-flight call, stops state monitoring and closes
-// the current connection. It returns the new connection generation.
 // disconnect closes the connection and clears the frontend, leaving it as
 // it is at startup without a configured workspace.
 func (a *api) disconnect() {
@@ -539,6 +542,8 @@ func (a *api) disconnect() {
 	a.rt.Emit(eventClientStateChanged, "")
 }
 
+// resetConnection cancels any in-flight call, stops state monitoring and closes
+// the current connection. It returns the new connection generation.
 func (a *api) resetConnection() uint64 {
 	a.cancelCall()
 

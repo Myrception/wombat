@@ -129,3 +129,23 @@ func TestProtocNotFound(t *testing.T) {
 		t.Fatalf("got %v, want a 'protoc was not found' error", err)
 	}
 }
+
+// Connect without an address fails before anything is saved.
+func TestConnectEmptyAddressNotSaved(t *testing.T) {
+	a, _ := newTestAPI(t)
+	if err := a.Connect(options{Addr: "  "}, headers{}, true); err == nil {
+		t.Fatal("expected an error")
+	}
+	list, err := a.ListWorkspaces()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range list {
+		if w.ID != defaultWorkspaceKey {
+			t.Fatalf("a workspace was saved: %+v", list)
+		}
+	}
+	if a.currentWorkspaceID() != defaultWorkspaceKey && a.currentWorkspaceID() != "" {
+		t.Fatalf("current workspace = %s", a.currentWorkspaceID())
+	}
+}

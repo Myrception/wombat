@@ -143,3 +143,15 @@ test.describe("a failed connect", () => {
     await expect(addr).toHaveValue("localhost:5999");
   });
 });
+
+test("Connect is disabled without an address", async ({ page }) => {
+  await page.getByRole("button", { name: "Workspace", exact: true }).click();
+  const dialog = page.locator(".workspace-options");
+  const addr = dialog.locator(".text-field input").first();
+  const connect = button(dialog, "Connect");
+  await expect(connect).toBeEnabled();
+  await addr.fill("  ");
+  await expect(connect).toBeDisabled();
+  await addr.fill("localhost:1");
+  await expect(connect).toBeEnabled();
+});

@@ -105,6 +105,7 @@
     <Button
       text="Connect"
       bgColor="var(--accent-color3)"
+      disabled={!options?.addr?.trim()}
       on:click={onConnectClicked}
     />
   </footer>
