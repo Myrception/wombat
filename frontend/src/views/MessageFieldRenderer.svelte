@@ -1,7 +1,7 @@
 <script>
   // No imports of field components here (they are passed in as
   // `components`, which avoids circular imports).
-  import { isWellKnown } from "./wellKnown";
+  import { isWellKnown, isJSONEdited } from "./wellKnown";
   
   export let field = {};
   export let state;
@@ -24,7 +24,7 @@
   <svelte:component this={components.FieldOneof} {field} {state} on:remove />
 
 {:else if (field.kind === "group" || field.kind === "message")}
-  {#if isWellKnown(field.message.full_name) && components.FieldWellKnown}
+  {#if (isWellKnown(field.message.full_name) || isJSONEdited(field.message)) && components.FieldWellKnown}
     <svelte:component this={components.FieldWellKnown} name={field.name} message={field.message} {state} {key} {idx} on:remove />
   {:else if components.FieldMessage}
     <svelte:component this={components.FieldMessage} on:remove name={field.name} message={field.message} {state} {key} {oneof} {idx} />

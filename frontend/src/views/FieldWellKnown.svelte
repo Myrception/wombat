@@ -4,6 +4,7 @@
   import FieldNilText from "./FieldNilText.svelte";
   import FieldTimestamp from "./FieldTimestamp.svelte";
   import FieldStruct from "./FieldStruct.svelte";
+  import { isJSONEdited } from "./wellKnown";
 
   export let name = "";
   export let message = {};
@@ -43,7 +44,7 @@
 
 <FieldTimestamp on:remove {field} {state} {key} {idx} />
 
-{:else if field.kind === "google.protobuf.Struct"}
+{:else if isJSONEdited(message)}
 
   <FieldStruct on:remove {field} {state} {key} {idx} />
 

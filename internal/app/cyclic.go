@@ -1,34 +1,33 @@
 package app
 
 import (
-	"fmt"
-	"strings"
-
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// cyclicDetector tracks the messages on the current path while a message
+// descriptor is walked, so that recursive message types (trees, expressions,
+// google.protobuf.Value) are not expanded forever.
+//
+// Only the path matters: the same message type may appear any number of
+// times side by side (e.g. two fields of type B), only not inside itself.
 type cyclicDetector struct {
-	seen  map[protoreflect.FullName]struct{}
-	graph []string
+	path map[protoreflect.FullName]struct{}
 }
 
-func (d *cyclicDetector) detect(md protoreflect.MessageDescriptor) error {
-	if d.seen == nil {
-		d.seen = make(map[protoreflect.FullName]struct{})
+// enter records md as being walked. It returns false if md is already on the
+// path, i.e. md (directly or indirectly) contains itself. Every successful
+// enter must be followed by a leave.
+func (d *cyclicDetector) enter(md protoreflect.MessageDescriptor) bool {
+	if d.path == nil {
+		d.path = make(map[protoreflect.FullName]struct{})
 	}
-
-	n, f := md.Name(), md.FullName()
-	if _, cyclic := d.seen[f]; cyclic {
-		d.graph = append(d.graph, string(n))
-		return fmt.Errorf("unable to parse proto descriptors: cyclic data detected: %s", strings.Join(d.graph, " → "))
+	if _, ok := d.path[md.FullName()]; ok {
+		return false
 	}
-	d.seen[f] = struct{}{}
-	d.graph = append(d.graph, string(n))
-
-	return nil
+	d.path[md.FullName()] = struct{}{}
+	return true
 }
 
-func (d *cyclicDetector) reset() {
-	d.seen = nil
-	d.graph = nil
+func (d *cyclicDetector) leave(md protoreflect.MessageDescriptor) {
+	delete(d.path, md.FullName())
 }

@@ -2,8 +2,10 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -42,8 +44,15 @@ func protoFilesFromDisk(importPaths, filenames []string) (*protoregistry.Files, 
 	// Run protoc
 	cmd := exec.Command("protoc", args...)
 	output, err := cmd.CombinedOutput()
+	if errors.Is(err, exec.ErrNotFound) {
+		return nil, errors.New("protoc was not found: loading .proto files needs protoc on the PATH (https://protobuf.dev/installation/), or use server reflection")
+	}
 	if err != nil {
-		return nil, errors.New("app: protoc execution failed: " + string(output))
+		msg := strings.TrimSpace(string(output))
+		if msg == "" {
+			msg = err.Error()
+		}
+		return nil, fmt.Errorf("protoc failed: %s", msg)
 	}
 
 	// Read the generated descriptor set

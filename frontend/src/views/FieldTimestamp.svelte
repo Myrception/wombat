@@ -11,9 +11,12 @@
   let showCal = false;
   let selected = undefined;
 
+  // Where the value lives: a map key, a list index or the field itself.
+  $: val = key !== undefined ? key : idx >= 0 ? idx : field.name;
+
   $: {
-    let s = Date.parse(state[field.name]);
-    if (showCal && s && s !== NaN) {
+    let s = Date.parse(state[val]);
+    if (showCal && !Number.isNaN(s)) {
       selected = new Date(s);
     } else {
       selected = undefined;
@@ -25,7 +28,7 @@
   }
 
   const onDateChanged = ({detail: d}) => {
-    state[field.name] = d.toISOString();
+    state[val] = d.toISOString();
     showCal = false;
   }
 

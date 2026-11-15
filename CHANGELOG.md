@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `google.protobuf.Value` and `ListValue` fields are edited as JSON, like `Struct`
+- Recursive message types (trees, expressions) can be used: where a message would contain itself, it is edited as
+  JSON
+
+### Fixed
+- A recursive message type could crash Wombat when its method was selected (or on start, when it was the first
+  method)
+- A client stream the server ended early (e.g. with an error) kept waiting for "Close & Receive" instead of showing
+  the status
+- A unary call with a non-OK status, or a cancelled one, also showed an error dialog on top of the status
+- Workspace settings were lost when the server could not be reached; they are now saved anyway
+- Switching to an empty workspace, or deleting the current one, showed a connection error
+- A missing `protoc` gave an empty error message; the requirement is now documented
+- The date picker of a repeated or map Timestamp field did not change the value
+- Invalid JSON in a `Struct` field is shown next to the field instead of in a dialog on every change
+
 ## [v0.6.0-rc2] - 2026-11-13
 
 ### Changed

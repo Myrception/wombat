@@ -13,6 +13,14 @@ const WELL_KNOWN = new Set([
   "google.protobuf.StringValue",
   "google.protobuf.BytesValue",
   "google.protobuf.Struct",
+  "google.protobuf.Value",
+  "google.protobuf.ListValue",
 ]);
 
+// Edited as JSON text: arbitrary JSON, and recursive messages (a message
+// nested inside itself, which the backend does not expand; see
+// messageViewFromDesc).
+const JSON_TYPES = new Set(["google.protobuf.Struct", "google.protobuf.Value", "google.protobuf.ListValue"]);
+
 export const isWellKnown = fullName => WELL_KNOWN.has(fullName);
+export const isJSONEdited = message => !!message && (message.recursive || JSON_TYPES.has(message.full_name));
