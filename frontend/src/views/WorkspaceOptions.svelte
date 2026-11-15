@@ -28,8 +28,14 @@
     }
   })
 
+  // The settings are saved even if the server cannot be reached; the
+  // backend then shows the connection error itself.
   const onConnectClicked = async () => {
-    await Connect(options, reflectmd, true);
+    try {
+      await Connect(options, reflectmd, true);
+    } catch (e) {
+      // already reported
+    }
     close();
   }
   const onCloseClicked = () => close();

@@ -362,6 +362,12 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 	if err != nil {
 		return err
 	}
+	if opts.Addr == "" {
+		// A workspace that was never configured (the default one, e.g.
+		// after deleting the current workspace): nothing to connect to.
+		a.disconnect()
+		return nil
+	}
 
 	hds, err := a.GetReflectMetadata(opts.Addr)
 	if err != nil {
@@ -485,6 +491,17 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 		a.rt.LogError(fmt.Sprintf("unable to decode reflection metadata headers: %v", err))
 	}
 
+	// Save first, so the settings are kept even if the server cannot be
+	// reached right now (and are stored before anything reads them back).
+	if save {
+		if opts.ID == "" {
+			opts.ID = workspacePrefix + uuid.Must(uuid.NewV4()).String()
+			a.changeWorkspace(opts.ID)
+		}
+		a.setWorkspaceOptions(opts)
+		a.setMetadata(reflectMetadataKeyPrefix+hash(opts.Addr), hds)
+	}
+
 	cl := &client{}
 	if err := cl.connect(opts, statsHandler{a}); err != nil {
 		// Still try to parse proto definitions. Will fail silently
@@ -505,20 +522,23 @@ func (a *api) Connect(data, rawHeaders interface{}, save bool) (rerr error) {
 	a.rt.Emit(eventClientConnected, opts.Addr)
 
 	a.goSafe("loading proto files", func() { _ = a.loadProtoFiles(gen, cl, opts, hds, false) }) // reports its own errors
-
-	if save {
-		if opts.ID == "" {
-			opts.ID = workspacePrefix + uuid.Must(uuid.NewV4()).String()
-			a.changeWorkspace(opts.ID)
-		}
-		a.setWorkspaceOptions(opts)
-		a.setMetadata(reflectMetadataKeyPrefix+hash(opts.Addr), hds)
-	}
 	return nil
 }
 
 // resetConnection cancels any in-flight call, stops state monitoring and closes
 // the current connection. It returns the new connection generation.
+// disconnect closes the connection and clears the frontend, leaving it as
+// it is at startup without a configured workspace.
+func (a *api) disconnect() {
+	a.connectMu.Lock()
+	defer a.connectMu.Unlock()
+	a.resetConnection()
+	a.rt.Emit(eventClientConnectStarted, "")
+	a.rt.Emit(eventServicesSelectChanged)
+	a.rt.Emit(eventMethodInputChanged)
+	a.rt.Emit(eventClientStateChanged, "")
+}
+
 func (a *api) resetConnection() uint64 {
 	a.cancelCall()
 
@@ -791,25 +811,52 @@ func (a *api) SelectMethod(fullname string, initState string, metadata interface
 	return nil
 }
 
-func messageViewFromDesc(md protoreflect.MessageDescriptor, cd *cyclicDetector) (*messageDesc, error) {
-	//(rogchap) this is a recursive function, therefore we should make sure we
-	// don't get a stack overflow. The protobuf wireformat does not support
-	// cyclic data objects: protocolbuffers/protobuf#5504
-	if err := cd.detect(md); err != nil {
-		return nil, err
-	}
-	var rtn messageDesc
-	rtn.Name = string(md.Name())
-	rtn.FullName = string(md.FullName())
+// jsonMessages are edited as JSON text instead of a form, because they hold
+// arbitrary JSON (and Value and ListValue contain each other).
+var jsonMessages = map[protoreflect.FullName]bool{
+	"google.protobuf.Struct":    true,
+	"google.protobuf.Value":     true,
+	"google.protobuf.ListValue": true,
+}
 
-	fds := md.Fields()
+// fieldMessageView describes the message type of a field or map value.
+func fieldMessageView(md protoreflect.MessageDescriptor, cd *cyclicDetector) (*messageDesc, error) {
+	if jsonMessages[md.FullName()] {
+		// The frontend edits these as JSON and ignores the fields; the
+		// field is what older versions sent.
+		return &messageDesc{
+			Name:     string(md.Name()),
+			FullName: string(md.FullName()),
+			Fields: []fieldDesc{{
+				Name:     "value",
+				FullName: string(md.FullName()) + ".value",
+				Kind:     "string",
+			}},
+		}, nil
+	}
+	return messageViewFromDesc(md, cd)
+}
+
+func messageViewFromDesc(md protoreflect.MessageDescriptor, cd *cyclicDetector) (*messageDesc, error) {
+	rtn := &messageDesc{
+		Name:     string(md.Name()),
+		FullName: string(md.FullName()),
+	}
+	// A recursive message type (one that contains itself, like a tree) would
+	// expand forever. Its nested occurrence is marked instead, and the
+	// frontend edits it as JSON.
+	if !cd.enter(md) {
+		rtn.Recursive = true
+		return rtn, nil
+	}
+	defer cd.leave(md)
+
 	var err error
-	rtn.Fields, err = fieldViewsFromDesc(fds, false, cd)
+	rtn.Fields, err = fieldViewsFromDesc(md.Fields(), false, cd)
 	if err != nil {
 		return nil, err
 	}
-
-	return &rtn, nil
+	return rtn, nil
 }
 
 func setFieldDescBasics(fdesc *fieldDesc, fd protoreflect.FieldDescriptor) {
@@ -847,11 +894,10 @@ func fieldViewsFromDesc(fds protoreflect.FieldDescriptors, isOneof bool, cd *cyc
 			setFieldDescBasics(fdesc.MapValue, mapVal)
 			if fmd := mapVal.Message(); fmd != nil {
 				var err error
-				fdesc.MapValue.Message, err = messageViewFromDesc(fmd, cd)
+				fdesc.MapValue.Message, err = fieldMessageView(fmd, cd)
 				if err != nil {
 					return nil, err
 				}
-				cd.reset()
 			}
 			goto appendField
 		}
@@ -876,26 +922,10 @@ func fieldViewsFromDesc(fds protoreflect.FieldDescriptors, isOneof bool, cd *cyc
 
 		if fmd := fd.Message(); fmd != nil {
 			var err error
-			const structFullName = "google.protobuf.Struct"
-			if fmd.FullName() == structFullName {
-				fdesc.Kind = "message"
-				fdesc.Message = &messageDesc{
-					Name:     string(fmd.Name()),
-					FullName: structFullName,
-					Fields: []fieldDesc{{
-						Name:     "value",
-						FullName: "google.protobuf.Struct.value",
-						Kind:     "string",
-					}},
-				}
-				goto appendField
-			}
-
-			fdesc.Message, err = messageViewFromDesc(fmd, cd)
+			fdesc.Message, err = fieldMessageView(fmd, cd)
 			if err != nil {
 				return nil, err
 			}
-			cd.reset()
 		}
 
 	appendField:
@@ -1044,35 +1074,29 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 	}
 
 	switch {
-	case md.IsStreamingClient() && md.IsStreamingServer():
-		stream, err := cl.invokeBidiStream(ctx, method)
+	case md.IsStreamingClient():
+		var stream grpc.ClientStream
+		if md.IsStreamingServer() {
+			stream, err = cl.invokeBidiStream(ctx, method)
+		} else {
+			stream, err = cl.invokeClientStream(ctx, method)
+		}
 		if err != nil {
-			return fmt.Errorf("failed to invoke bidirectional stream: %v", err)
+			return fmt.Errorf("failed to invoke stream: %v", err)
 		}
 		if err := stream.SendMsg(req); err != nil && err != io.EOF {
 			return fmt.Errorf("failed to send message to stream: %v", err)
 		}
+		// Receive while the user is still sending: the server may end the
+		// call at any time (e.g. with an error), and only receiving reports
+		// that. For a client stream this returns once the response arrives.
 		a.goSafe("request stream", func() {
 			if err := call.pump(ctx, stream); err != nil {
 				a.rt.LogError(fmt.Sprintf("failed to send message to stream: %v", err))
 			}
 		})
 		recvAll(stream)
-		return nil
-
-	case md.IsStreamingClient():
-		stream, err := cl.invokeClientStream(ctx, method)
-		if err != nil {
-			return fmt.Errorf("failed to invoke client stream: %v", err)
-		}
-		if err := stream.SendMsg(req); err != nil && err != io.EOF {
-			return fmt.Errorf("failed to send message to stream: %v", err)
-		}
-		// Blocks until the user clicks "close" (CloseSend) or cancels.
-		if err := call.pump(ctx, stream); err != nil {
-			a.rt.LogError(fmt.Sprintf("failed to send message to stream: %v", err))
-		}
-		recvAll(stream)
+		call.closeSending() // the call is over; stop the pump
 		return nil
 
 	case md.IsStreamingServer():
@@ -1086,6 +1110,12 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 	default:
 		resp := dynamicpb.NewMessage(md.Output())
 		if err := cl.invoke(ctx, method, req, resp); err != nil {
+			if call.ended.Load() {
+				// The RPC ran and the stats handler has shown its status
+				// (e.g. NotFound, or Canceled by the user), like for streams.
+				a.rt.LogDebug(fmt.Sprintf("RPC ended with: %v", err))
+				return nil
+			}
 			return fmt.Errorf("failed to invoke RPC: %v", err)
 		}
 		return nil

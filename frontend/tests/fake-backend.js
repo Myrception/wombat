@@ -15,6 +15,7 @@
     metadata: null, // saved request metadata [{key, val}]
     schemaDelay: 0, // ms until the services arrive (reflection time)
     responses: {}, // method full name -> response text (default: an echo)
+    connectError: "", // if set, Connect fails with this error (after saving)
     ...(window.__WOMBAT_FAKE_CONFIG__ || {}),
   };
 
@@ -108,7 +109,12 @@
     },
     DeleteWorkspace() {},
     Connect(opts, metadata, save) {
-      cfg.addr = opts.addr;
+      cfg.addr = opts.addr; // saved first, like the real one
+      if (cfg.connectError) {
+        emit("wombat:client_connect_started", opts.addr);
+        emit("wombat:error", { title: "Connection error", msg: cfg.connectError });
+        throw new Error(cfg.connectError);
+      }
       connect(opts.addr);
     },
     RetryConnection() {},

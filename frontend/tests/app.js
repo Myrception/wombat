@@ -40,6 +40,7 @@ export const METHODS = {
   Foo: "/wombat.v1.Foobar/Foo",
   WellKnown: "/wombat.v1.Foobar/WellKnown",
   SingleOneof: "/wombat.v1.Foobar/SingleOneof",
+  Recursive: "/wombat.v1.Foobar/Recursive",
   GetFeature: "/wombat.v1.RouteGuide/GetFeature",
   ListFeatures: "/wombat.v1.RouteGuide/ListFeatures",
 };

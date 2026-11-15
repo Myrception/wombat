@@ -56,6 +56,9 @@ type messageDesc struct {
 	Name     string      `json:"name"`
 	FullName string      `json:"full_name"`
 	Fields   []fieldDesc `json:"fields"`
+	// Recursive is set on a message nested inside itself. Its fields are
+	// not listed (they would repeat forever); it is edited as JSON.
+	Recursive bool `json:"recursive,omitempty"`
 }
 
 type methodInput struct {

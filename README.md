@@ -41,6 +41,14 @@
 - Support for Google Well Known Types
 - Create multiple workspaces and workspace switching
 
+### Loading the schema
+
+Wombat gets the services and messages either from the server, through the
+[reflection API](https://grpc.io/docs/guides/reflection/), or from `.proto` files. Reading `.proto` files needs
+[`protoc`](https://protobuf.dev/installation/) on the `PATH` (e.g. `sudo apt install protobuf-compiler`,
+`sudo pacman -S protobuf`, or a release from [GitHub](https://github.com/protocolbuffers/protobuf/releases) on
+Windows); reflection needs nothing extra.
+
 ## Download
 
 This is a fork of [rogchap/wombat](https://github.com/rogchap/wombat), updated to Wails v2. Visit the

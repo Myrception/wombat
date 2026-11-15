@@ -122,3 +122,24 @@ test.describe("dialogs are accessible", () => {
     await expect(dialog).toHaveCount(0);
   });
 });
+
+test.describe("a failed connect", () => {
+  test.use({ fakeConfig: { connectError: "failed to connect to server: connection refused" } });
+
+  test("closes the dialog, shows the error and keeps the settings", async ({ page }) => {
+    await page.getByRole("button", { name: "Workspace", exact: true }).click();
+    const dialog = page.locator(".workspace-options");
+    const addr = dialog.locator(".text-field input").first();
+    await expect(addr).toHaveValue("localhost:5001");
+    await addr.fill("localhost:5999");
+    await button(dialog, "Connect").click();
+
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator(".error-box")).toContainText("connection refused");
+    await button(page.locator(".error-box"), "OK").click();
+    await expect(page.locator(".error-box")).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Workspace", exact: true }).click();
+    await expect(addr).toHaveValue("localhost:5999");
+  });
+});

@@ -17,6 +17,7 @@ service Foobar {
     rpc Empty(EmptyRequest) returns (EmptyResponse) {}
     rpc WellKnown(WellKnownRequest) returns (WellKnownResponse) {}
     rpc SingleOneof(SingleOneofRequest) returns (SingleOneofResponse) {}
+    rpc Recursive(RecursiveRequest) returns (RecursiveResponse) {}
 }
 
 message Bar {
@@ -112,7 +113,11 @@ message WellKnownRequest {
     google.protobuf.StringValue string_value = 10;
     google.protobuf.BytesValue bytes_value = 11;
     google.protobuf.Struct struct_value = 12;
+    google.protobuf.Value value = 13;
+    google.protobuf.ListValue list_value = 14;
 
+    repeated google.protobuf.Timestamp timestamps = 15;
+    map<string, google.protobuf.Timestamp> timestamp_map = 16;
 }
 
 message WellKnownResponse {}
@@ -124,3 +129,19 @@ message SingleOneofRequest {
 }
 
 message SingleOneofResponse {}
+
+// Recursive message types: a tree, and a message containing itself after
+// another message field (which used to crash the cycle detection).
+message Tree {
+    string name = 1;
+    repeated Tree children = 2;
+}
+
+message RecursiveRequest {
+    Bar bar = 1;
+    RecursiveRequest self = 2;
+    Tree tree = 3;
+    map<string, Tree> forest = 4;
+}
+
+message RecursiveResponse {}

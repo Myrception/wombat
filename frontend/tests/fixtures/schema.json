@@ -2041,6 +2041,202 @@
         ]
       }
     },
+    "/wombat.v1.Foobar/Recursive": {
+      "full_name": "/wombat.v1.Foobar/Recursive",
+      "message": {
+        "name": "RecursiveRequest",
+        "full_name": "wombat.v1.RecursiveRequest",
+        "fields": [
+          {
+            "name": "bar",
+            "full_name": "wombat.v1.RecursiveRequest.bar",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Bar",
+              "full_name": "wombat.v1.Bar",
+              "fields": [
+                {
+                  "name": "id",
+                  "full_name": "wombat.v1.Bar.id",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "names",
+                  "full_name": "wombat.v1.Bar.names",
+                  "kind": "message",
+                  "repeated": true,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": {
+                    "name": "Nested",
+                    "full_name": "wombat.v1.Bar.Nested",
+                    "fields": [
+                      {
+                        "name": "name",
+                        "full_name": "wombat.v1.Bar.Nested.name",
+                        "kind": "string",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      },
+                      {
+                        "name": "is_nested",
+                        "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "kind": "bool",
+                        "repeated": false,
+                        "map_key": null,
+                        "map_value": null,
+                        "oneof": null,
+                        "enum": null,
+                        "message": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "self",
+            "full_name": "wombat.v1.RecursiveRequest.self",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "RecursiveRequest",
+              "full_name": "wombat.v1.RecursiveRequest",
+              "fields": null,
+              "recursive": true
+            }
+          },
+          {
+            "name": "tree",
+            "full_name": "wombat.v1.RecursiveRequest.tree",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Tree",
+              "full_name": "wombat.v1.Tree",
+              "fields": [
+                {
+                  "name": "name",
+                  "full_name": "wombat.v1.Tree.name",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "children",
+                  "full_name": "wombat.v1.Tree.children",
+                  "kind": "message",
+                  "repeated": true,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": {
+                    "name": "Tree",
+                    "full_name": "wombat.v1.Tree",
+                    "fields": null,
+                    "recursive": true
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "forest",
+            "full_name": "wombat.v1.RecursiveRequest.forest",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.RecursiveRequest.ForestEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.RecursiveRequest.ForestEntry.value",
+              "kind": "message",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": {
+                "name": "Tree",
+                "full_name": "wombat.v1.Tree",
+                "fields": [
+                  {
+                    "name": "name",
+                    "full_name": "wombat.v1.Tree.name",
+                    "kind": "string",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": null
+                  },
+                  {
+                    "name": "children",
+                    "full_name": "wombat.v1.Tree.children",
+                    "kind": "message",
+                    "repeated": true,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": {
+                      "name": "Tree",
+                      "full_name": "wombat.v1.Tree",
+                      "fields": null,
+                      "recursive": true
+                    }
+                  }
+                ]
+              }
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
+          }
+        ]
+      }
+    },
     "/wombat.v1.Foobar/SingleOneof": {
       "full_name": "/wombat.v1.Foobar/SingleOneof",
       "message": {
@@ -2428,6 +2624,156 @@
                 }
               ]
             }
+          },
+          {
+            "name": "value",
+            "full_name": "wombat.v1.WellKnownRequest.value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Value",
+              "full_name": "google.protobuf.Value",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.Value.value",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "list_value",
+            "full_name": "wombat.v1.WellKnownRequest.list_value",
+            "kind": "message",
+            "repeated": false,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "ListValue",
+              "full_name": "google.protobuf.ListValue",
+              "fields": [
+                {
+                  "name": "value",
+                  "full_name": "google.protobuf.ListValue.value",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "timestamps",
+            "full_name": "wombat.v1.WellKnownRequest.timestamps",
+            "kind": "message",
+            "repeated": true,
+            "map_key": null,
+            "map_value": null,
+            "oneof": null,
+            "enum": null,
+            "message": {
+              "name": "Timestamp",
+              "full_name": "google.protobuf.Timestamp",
+              "fields": [
+                {
+                  "name": "seconds",
+                  "full_name": "google.protobuf.Timestamp.seconds",
+                  "kind": "int64",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                },
+                {
+                  "name": "nanos",
+                  "full_name": "google.protobuf.Timestamp.nanos",
+                  "kind": "int32",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
+                }
+              ]
+            }
+          },
+          {
+            "name": "timestamp_map",
+            "full_name": "wombat.v1.WellKnownRequest.timestamp_map",
+            "kind": "map",
+            "repeated": false,
+            "map_key": {
+              "name": "key",
+              "full_name": "wombat.v1.WellKnownRequest.TimestampMapEntry.key",
+              "kind": "string",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": null
+            },
+            "map_value": {
+              "name": "value",
+              "full_name": "wombat.v1.WellKnownRequest.TimestampMapEntry.value",
+              "kind": "message",
+              "repeated": false,
+              "map_key": null,
+              "map_value": null,
+              "oneof": null,
+              "enum": null,
+              "message": {
+                "name": "Timestamp",
+                "full_name": "google.protobuf.Timestamp",
+                "fields": [
+                  {
+                    "name": "seconds",
+                    "full_name": "google.protobuf.Timestamp.seconds",
+                    "kind": "int64",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": null
+                  },
+                  {
+                    "name": "nanos",
+                    "full_name": "google.protobuf.Timestamp.nanos",
+                    "kind": "int32",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": null
+                  }
+                ]
+              }
+            },
+            "oneof": null,
+            "enum": null,
+            "message": null
           }
         ]
       }
@@ -2669,6 +3015,12 @@
         {
           "full_name": "/wombat.v1.Foobar/Foo",
           "name": "Foo",
+          "client_stream": false,
+          "server_stream": false
+        },
+        {
+          "full_name": "/wombat.v1.Foobar/Recursive",
+          "name": "Recursive",
           "client_stream": false,
           "server_stream": false
         },
