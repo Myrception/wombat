@@ -46,7 +46,7 @@
 
 {:else if isJSONEdited(message)}
 
-  <FieldStruct on:remove {field} {state} {key} {idx} />
+  <FieldStruct on:remove {field} {message} {state} {key} {idx} />
 
 {:else}
 

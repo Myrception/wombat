@@ -147,7 +147,7 @@ test("invalid JSON is reported next to the field, without a dialog", async ({ pa
   await optionalInput(f, "struct_value").blur();
   await expect(f.getByRole("alert")).toContainText("Invalid JSON");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect((await send(page)).body.struct_value).toBeNull();
+  expect((await send(page)).body.struct_value).toBeUndefined();
 
   await optionalInput(f, "struct_value").fill('{"ok":true}');
   await optionalInput(f, "struct_value").blur();
@@ -199,4 +199,51 @@ test("timestamp picker in a list and in a map", async ({ page }) => {
   const { body } = await send(page);
   expect(body.timestamps).toEqual(["2026-03-15T00:00:00.000Z"]);
   expect(body.timestamp_map).toEqual({ start: "2026-05-20T00:00:00.000Z" });
+});
+
+test("invalid JSON in a Value field is not sent as null", async ({ page }) => {
+  await selectMethod(page, METHODS.WellKnown);
+  const f = form(page);
+  await toggle(f, "value");
+  await optionalInput(f, "value").fill("{oops");
+  await optionalInput(f, "value").blur();
+  await expect(f.getByRole("alert")).toContainText("not sent");
+  expect("value" in (await send(page)).body).toBe(false);
+});
+
+test("JSON list items: start valid, and removing one keeps the text with its value", async ({ page }) => {
+  await selectMethod(page, METHODS.Recursive);
+  const f = form(page);
+  await toggle(f, "tree");
+  const tree = sectionBody(f, "tree");
+  await addItem(tree, "children");
+  await addItem(tree, "children");
+  const items = sectionBody(tree, "children").locator("textarea");
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toHaveValue("{}"); // not null
+  // A list item has no checkbox: it is removed with its cross.
+  await expect(sectionBody(tree, "children").locator(".checkbox")).toHaveCount(0);
+  expect((await send(page)).body.tree.children).toEqual([{}, {}]);
+
+  await items.nth(0).fill('{"name":"first"}');
+  await items.nth(0).blur();
+  await items.nth(1).fill('{"name":"second"}');
+  await items.nth(1).blur();
+  await sectionBody(tree, "children").getByRole("button", { name: "Remove" }).first().click();
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toHaveValue('{"name":"second"}');
+  expect((await send(page)).body.tree.children).toEqual([{ name: "second" }]);
+});
+
+test("unknown field names in a recursive message's JSON are reported", async ({ page }) => {
+  await selectMethod(page, METHODS.Recursive);
+  const f = form(page);
+  await toggle(f, "self");
+  await optionalInput(f, "self").fill('{"tree":{"nmae":"x","children":[{"name":"ok","childs":[]}]},"forest":{"a":{"name":"y"}}}');
+  await optionalInput(f, "self").blur();
+  await expect(f.getByRole("status")).toHaveText('Unknown fields "tree.nmae", "tree.children[0].childs", not sent');
+
+  await optionalInput(f, "self").fill('{"tree":{"name":"x","children":[]},"bar":{"id":"1"}}');
+  await optionalInput(f, "self").blur();
+  await expect(f.getByRole("status")).toHaveCount(0);
 });

@@ -21,7 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switching to an empty workspace, or deleting the current one, showed a connection error
 - A missing `protoc` gave an empty error message; the requirement is now documented
 - The date picker of a repeated or map Timestamp field did not change the value
-- Invalid JSON in a `Struct` field is shown next to the field instead of in a dialog on every change
+- Invalid JSON in a `Struct`, `Value` or `ListValue` field is shown next to the field instead of in a dialog on
+  every change, and the field is not sent while it is invalid
+- Misspelled field names in the JSON of a recursive message are reported next to the field
+- "Connect" is disabled until the workspace has an address
 
 ## [v0.6.0-rc2] - 2026-11-13
 
