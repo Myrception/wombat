@@ -16,6 +16,8 @@
     schemaDelay: 0, // ms until the services arrive (reflection time)
     responses: {}, // method full name -> response text (default: an echo)
     connectError: "", // if set, Connect fails with this error (after saving)
+    streamCount: 1, // responses per Send (a server stream when > 1)
+    workspaces: [], // more workspaces for the switcher: [{id, addr}]
     ...(window.__WOMBAT_FAKE_CONFIG__ || {}),
   };
 
@@ -103,11 +105,16 @@
       if (cfg.addr) connect(cfg.addr);
     },
     GetWorkspaceOptions: () => options(),
-    ListWorkspaces: () => [options()],
+    ListWorkspaces: () => [
+      options(),
+      ...(cfg.workspaces || []).filter(w => !(cfg.deleted || []).includes(w.id)).map(w => ({ ...options(), ...w })),
+    ],
     SelectWorkspace(id) {
       connect(cfg.addr);
     },
-    DeleteWorkspace() {},
+    DeleteWorkspace(id) {
+      cfg.deleted = [...(cfg.deleted || []), id];
+    },
     Connect(opts, metadata, save) {
       cfg.addr = opts.addr; // saved first, like the real one
       if (cfg.connectError) {
@@ -120,7 +127,12 @@
     RetryConnection() {},
     GetMetadata: () => cfg.metadata,
     GetReflectMetadata: () => null,
-    GetRawMessageState: method => cfg.saved[method] || "",
+    // rawStateDelay: method -> ms, to let a later method change overtake it.
+    GetRawMessageState: method => {
+      const delay = cfg.rawStateDelay?.[method];
+      if (!delay) return cfg.saved[method] || "";
+      return new Promise(resolve => setTimeout(() => resolve(cfg.saved[method] || ""), delay));
+    },
 
     // Mirrors api.SelectMethod.
     SelectMethod(fullname, initState, metadata) {
@@ -133,17 +145,28 @@
       emit("wombat:method_input_changed", m, initState, metadata ?? null);
     },
 
-    // Mirrors api.Send and the stats handler for a successful unary call.
+    // Mirrors api.Send and the stats handler: rpc_started on its own, the
+    // rest in batches (wombat:rpc_events) like the backend sends them.
     Send(method, json, metadata) {
       cfg.saved[method] = json;
       cfg.metadata = metadata;
       const m = methodSelect(method) || {};
       emit("wombat:rpc_started", { client_stream: !!m.client_stream, server_stream: !!m.server_stream });
-      emit("wombat:out_payload_received", prototext(schema.methods[method]?.message, JSON.parse(json)));
-      emit("wombat:in_header_received", { "content-type": ["application/grpc"] });
-      emit("wombat:in_payload_received", cfg.responses[method] ?? `echo: ${json}\n`); // text ends with \n
-      emit("wombat:in_trailer_received", {});
-      emit("wombat:rpc_ended", { status: "OK", status_code: 0, duration: "1ms" });
+      const ev = (name, ...data) => ({ name, data });
+      const events = [
+        ev("wombat:stat_begin", { BeginTime: "2026-11-16T10:00:00Z" }),
+        ev("wombat:stat_out_payload", { Payload: json, Length: json.length }),
+        ev("wombat:out_payload_received", prototext(schema.methods[method]?.message, JSON.parse(json))),
+        ev("wombat:in_header_received", { "content-type": ["application/grpc"] }),
+      ];
+      for (let i = 0; i < cfg.streamCount; i++) {
+        const text = cfg.streamCount > 1 ? `n: ${i + 1}\n` : cfg.responses[method] ?? `echo: ${json}\n`; // text ends with \n
+        events.push(ev("wombat:stat_in_payload", { Payload: text, Length: text.length }));
+        events.push(ev("wombat:in_payload_received", text));
+      }
+      events.push(ev("wombat:in_trailer_received", {}));
+      events.push(ev("wombat:rpc_ended", { status: "OK", status_code: 0, duration: "1ms" }));
+      for (let i = 0; i < events.length; i += 500) emit("wombat:rpc_events", events.slice(i, i + 500));
     },
     Cancel() {},
     CloseSend() {},
@@ -155,7 +178,8 @@
     ImportCommand(kind, command) {
       const data = (command.match(/-d '([^']*)'/) || [])[1] || "{}";
       const method = command.trim().split(/\s+/).pop();
-      emit("wombat:services_select_changed", schema.services, "/" + method, data, null);
+      const headers = [...command.matchAll(/-(?:H|rpc-header) '([^:']*):\s*([^']*)'/g)].map(([, key, val]) => ({ key, val }));
+      emit("wombat:services_select_changed", schema.services, "/" + method, data, headers);
     },
 
     FindProtoFiles: () => null,

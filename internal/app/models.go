@@ -95,11 +95,6 @@ type rpcStatOutHeader struct {
 	Header string
 }
 
-type rpcStatOutPayload struct {
-	*stats.OutPayload
-	Data string
-}
-
 type rpcStatOutTrailer struct {
 	*stats.OutTrailer
 	Trailer string
@@ -108,11 +103,6 @@ type rpcStatOutTrailer struct {
 type rpcStatInHeader struct {
 	*stats.InHeader
 	Header string
-}
-
-type rpcStatInPayload struct {
-	*stats.InPayload
-	Data string
 }
 
 type rpcStatInTrailer struct {

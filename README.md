@@ -49,10 +49,17 @@ Wombat gets the services and messages either from the server, through the
 `sudo pacman -S protobuf`, or a release from [GitHub](https://github.com/protocolbuffers/protobuf/releases) on
 Windows); reflection needs nothing extra.
 
+### Stored data
+
+Workspaces, saved requests and request metadata are stored in `~/.local/share/Wombat` (Linux) or
+`%AppData%\Wombat` (Windows). This includes client keys and metadata such as `authorization` headers, which are
+**not encrypted**; the directory is only readable by your user. Deleting a workspace also deletes its metadata.
+
 ## Download
 
 This is a fork of [rogchap/wombat](https://github.com/rogchap/wombat), updated to Wails v2. Visit the
-[Releases](https://github.com/Myrception/wombat/releases) page for the latest downloads.
+[Releases](https://github.com/Myrception/wombat/releases) page for the latest downloads. Each release has a
+`SHA256SUMS.txt`; check a download with `sha256sum -c SHA256SUMS.txt --ignore-missing`.
 
 ## Install
 

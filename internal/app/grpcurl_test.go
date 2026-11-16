@@ -90,3 +90,45 @@ func TestGrpcurlExportImportRoundTrip(t *testing.T) {
 		t.Errorf("got  %+v\nwant %+v", got, want)
 	}
 }
+
+// An export for a TLS workspace that loads .proto files runs as-is once the
+// certificates are saved, and imports back.
+func TestGrpcurlExportTLSAndProtos(t *testing.T) {
+	a, _ := newTestAPI(t)
+	a.setWorkspaceOptions(options{
+		ID: workspacePrefix + "default", Addr: "my host:443",
+		Rootca: "-----BEGIN CERTIFICATE-----", Clientcert: "c", Clientkey: "k",
+		Protos: protos{Files: []string{"/p/a b.proto"}, Roots: []string{"/p"}},
+	})
+	a.changeWorkspace(workspacePrefix + "default")
+
+	cmd := a.ExportCommands("/pkg.Svc/Do", "{}", headers{}).Grpcurl
+	t.Logf("exported:\n%s", cmd)
+	for _, want := range []string{
+		"# Save the workspace's root CA as ca.pem.",
+		"-cacert ca.pem", "-cert client.pem -key client.key",
+		"-import-path /p", "-proto '/p/a b.proto'", "'my host:443' pkg.Svc/Do",
+	} {
+		if !strings.Contains(cmd, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+
+	got, err := parseGrpcurlCommand(cmd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Target != "my host:443" || got.Method != "pkg.Svc/Do" {
+		t.Errorf("imported %+v", got)
+	}
+}
+
+func TestGrpcurlMethodForms(t *testing.T) {
+	for in, want := range map[string]string{
+		"pkg.Svc/Do": "pkg.Svc/Do", "pkg.Svc.Do": "pkg.Svc/Do", "/pkg.Svc/Do": "pkg.Svc/Do", "Do": "Do",
+	} {
+		if got := grpcurlMethod(in); got != want {
+			t.Errorf("grpcurlMethod(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

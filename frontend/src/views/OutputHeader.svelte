@@ -11,6 +11,7 @@
   export let server_stream = false;
   export let outCount = 0;
   export let inCount = 0;
+  export let removed = 0; // older messages dropped from the response
 
   const onCancelClicked = () => Cancel()
   const onCloseClicked = () => CloseSend()
@@ -25,6 +26,11 @@
   .spacer {
     flex-grow: 1;
   }
+  .removed {
+    margin: 0 var(--padding);
+    color: var(--text-color3);
+    white-space: nowrap;
+  }
 </style>
 
 <div class="output-header">
@@ -36,6 +42,11 @@
     <div>{rpc.duration}</div>
   {/if}
   <div class="spacer"></div>
+  {#if removed > 0}
+    <div class="removed" title="Change the limit in Settings">
+      {removed.toLocaleString("en")} older message{removed === 1 ? "" : "s"} removed
+    </div>
+  {/if}
   {#if inflight}
     {#if client_stream}
       <Button on:click={onCloseClicked} text={server_stream ? "Close Send" : "Close & Receive"} color="var(--primary-color)" />

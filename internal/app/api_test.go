@@ -36,8 +36,9 @@ const (
 
 // recorder is a fake wailsRuntime that records emitted events.
 type recorder struct {
-	mu     sync.Mutex
-	events []recordedEvent
+	mu      sync.Mutex
+	events  []recordedEvent
+	batches int // eventRPCEvents received
 }
 
 type recordedEvent struct {
@@ -48,6 +49,14 @@ type recordedEvent struct {
 func (r *recorder) Emit(name string, data ...interface{}) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if name == eventRPCEvents {
+		// Unpack batches, like the frontend does.
+		r.batches++
+		for _, e := range data[0].([]rpcEvent) {
+			r.events = append(r.events, recordedEvent{e.Name, e.Data})
+		}
+		return
+	}
 	r.events = append(r.events, recordedEvent{name, data})
 }
 func (r *recorder) LogDebug(string)   {}

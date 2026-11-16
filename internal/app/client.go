@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -76,8 +77,8 @@ func (c *client) connect(o options, h stats.Handler) error {
 			tlsCfg.RootCAs = x509.NewCertPool()
 		}
 
-		if o.Rootca != "" {
-			tlsCfg.RootCAs.AppendCertsFromPEM([]byte(o.Rootca))
+		if o.Rootca != "" && !tlsCfg.RootCAs.AppendCertsFromPEM([]byte(o.Rootca)) {
+			return errors.New("the root CA is not a valid PEM certificate")
 		}
 
 		opts = append(opts, grpc.WithTransportCredentials(&transportCreds{
@@ -107,14 +108,47 @@ func (c *client) connect(o options, h stats.Handler) error {
 			case err := <-handshakeErr:
 				return err
 			default:
-				return fmt.Errorf("connection in state: %s", state)
 			}
+			// gRPC does not say why; a plain dial usually does (e.g.
+			// "connection refused" or an unknown host).
+			if err := dialCheck(o.Addr); err != nil {
+				return err
+			}
+			return fmt.Errorf("connection in state: %s", state)
 		}
 		if !conn.WaitForStateChange(ctx, state) {
 			_ = conn.Close() // giving up on it; the timeout matters
 			return fmt.Errorf("timed out while in state %s: %w", state, ctx.Err())
 		}
 	}
+}
+
+// dialCheck dials the target once without gRPC and returns the error, if
+// any. It understands host:port with an optional dns:/passthrough: scheme,
+// and unix: sockets; for other targets it returns nil.
+func dialCheck(target string) error {
+	network, addr := "tcp", target
+	switch {
+	case strings.HasPrefix(target, "unix://"):
+		network, addr = "unix", strings.TrimPrefix(target, "unix://")
+	case strings.HasPrefix(target, "unix:"):
+		network, addr = "unix", strings.TrimPrefix(target, "unix:")
+	case strings.HasPrefix(target, "dns:///"), strings.HasPrefix(target, "passthrough:///"):
+		addr = target[strings.Index(target, ":///")+4:]
+	case strings.Contains(target, "://"):
+		return nil // a scheme we do not know how to dial
+	}
+	if network == "tcp" {
+		if _, _, err := net.SplitHostPort(addr); err != nil {
+			addr = net.JoinHostPort(addr, "443") // gRPC's default port
+		}
+	}
+	conn, err := net.DialTimeout(network, addr, 3*time.Second)
+	if err != nil {
+		return err
+	}
+	_ = conn.Close()
+	return nil
 }
 
 func (c *client) invoke(ctx context.Context, method string, req, resp proto.Message) error {

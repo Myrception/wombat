@@ -34,6 +34,36 @@ func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
+// shellArg quotes s for a POSIX shell, unless it only has characters that
+// need no quoting (addresses, method names and most paths).
+func shellArg(s string) string {
+	safe := func(r rune) bool {
+		return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_@%+=:,./-", r)
+	}
+	for _, r := range s {
+		if !safe(r) {
+			return shellQuote(s)
+		}
+	}
+	if s == "" {
+		return shellQuote(s)
+	}
+	return s
+}
+
+// grpcurlMethod returns method in the form pkg.Service/Method. grpcurl also
+// accepts pkg.Service.Method.
+func grpcurlMethod(method string) string {
+	method = strings.TrimPrefix(method, "/")
+	if strings.Contains(method, "/") {
+		return method
+	}
+	if i := strings.LastIndex(method, "."); i > 0 {
+		return method[:i] + "/" + method[i+1:]
+	}
+	return method
+}
+
 // parseGrpcurlCommand extracts the target, method, request data and metadata
 // from a grpcurl command line. Connection flags are accepted but ignored; the
 // workspace settings are used instead.
@@ -139,7 +169,7 @@ func parseGrpcurlCommand(command string) (*grpcurlArguments, error) {
 
 	return &grpcurlArguments{
 		Target:   grpcurlArgs[0],
-		Method:   grpcurlArgs[1],
+		Method:   grpcurlMethod(grpcurlArgs[1]),
 		Data:     data,
 		Metadata: metadata,
 	}, nil

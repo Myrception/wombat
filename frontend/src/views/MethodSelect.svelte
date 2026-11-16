@@ -27,7 +27,8 @@
   let loadedService = -1;
   let loadedMethod = undefined;
 
-  const loadMethod = (fullName, initState = "", metadata = []) => {
+  // metadata: the headers of an imported command; null keeps the current ones.
+  const loadMethod = (fullName, initState = "", metadata = null) => {
     loadedMethod = fullName;
     return SelectMethod(fullName, initState, metadata);
   }
@@ -54,7 +55,7 @@
       loadedService = serviceOptions.indexOf(serviceSelected)
       initServiceSelection(loadedService)
       methodSelected = methodOptions.find(it => it.value == methodFullName)
-      await loadMethod(methodSelected.value, initState ?? "{}", metadata ?? []);
+      await loadMethod(methodSelected.value, initState || "{}", metadata ?? []);
     } else if (serviceOptions.length > 0) {
       selectService(0);
     }
@@ -76,6 +77,7 @@
 
   const dispatch = createEventDispatcher();
   const onSend = () => {
+    if (!methodSelected) return; // not connected yet
     dispatch("send", { method: methodSelected.value });
   }
 
@@ -113,6 +115,7 @@
   <Button 
     text="Send"
     color="var(--primary-color)"
+    disabled={!methodSelected}
     on:click={onSend}
   />
 </div>

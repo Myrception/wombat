@@ -46,6 +46,7 @@ func checkForUpdate() (*releaseInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %v", resp.StatusCode)
@@ -60,7 +61,7 @@ func checkForUpdate() (*releaseInfo, error) {
 		return nil, err
 	}
 
-	if versionGreaterThanOrEqual(semver, r.TagName) {
+	if !isNewerVersion(r.TagName, semver) {
 		return nil, errNoUpdate
 	}
 
@@ -71,9 +72,10 @@ func checkForUpdate() (*releaseInfo, error) {
 	}, nil
 }
 
-func versionGreaterThanOrEqual(v, w string) bool {
-	vv, ve := version.NewVersion(v)
-	vw, we := version.NewVersion(w)
-
-	return ve == nil && we == nil && vv.GreaterThanOrEqual(vw)
+// isNewerVersion reports whether latest is a newer version than current. If
+// either cannot be parsed there is no (known) update.
+func isNewerVersion(latest, current string) bool {
+	vl, el := version.NewVersion(latest)
+	vc, ec := version.NewVersion(current)
+	return el == nil && ec == nil && vl.GreaterThan(vc)
 }

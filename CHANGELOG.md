@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Settings (the gear in the header): how many messages of a call the response keeps, 1000 by default
+- Deleting a workspace asks for confirmation
+- Releases come with a `SHA256SUMS.txt`
+
+### Changed
+- Long or fast streams stay responsive: the backend sends a call's events in batches, and the response and
+  statistics keep only the last messages (the header says how many older ones were removed)
+- Exported grpcurl commands quote the address and method when needed, and include `-cacert`/`-cert`/`-key` and the
+  `.proto` files and import paths of workspaces that use them
+- Deleting a workspace also deletes its stored metadata (unless another workspace has the same address)
+- Releases are only built when the tests pass for the tagged commit; CI also runs `svelte-check`
+
+### Fixed
+- Connection errors give the cause (e.g. "connection refused") instead of only `TRANSIENT_FAILURE`
+- An invalid root CA certificate is reported instead of being ignored
+- An unreadable version on GitHub could show the update banner; the update check also closed no connections
+- Importing a grpcurl command with the method as `pkg.Service.Method` (which grpcurl accepts) failed
+- Importing a command without `-d` loaded the saved request and ignored the command's headers; invalid `-d` JSON is
+  reported
+- Two quick method changes could mix up their requests
+- "Send" before connecting raised an error; it is disabled until a method is selected
+- The statistics showed every payload twice ("Binary data" was the same text)
+
 ## [v0.6.0] - 2026-11-16
 
 The first release of this fork: Wombat on Wails v2, with Linux and Windows packages. Changes since v0.5.0

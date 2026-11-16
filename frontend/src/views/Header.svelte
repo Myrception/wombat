@@ -4,6 +4,7 @@
   import WorkspaceOptions from "./WorkspaceOptions.svelte";
   import WorkspaceSwitcher from "./WorkspaceSwitcher.svelte";
   import ZoomControls from "./ZoomControls.svelte"; // Import the new zoom controls
+  import Settings from "./Settings.svelte";
   import { EventsOn } from '../../wailsjs/runtime/runtime';
 
   let addr = "";
@@ -91,12 +92,6 @@
     color: var(--red-color);
   }
 
-  .hitem {
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-
   line {
     stroke: var(--accent-color3);
     stroke-width: 2;
@@ -125,6 +120,23 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
+  }
+  .settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 calc(var(--padding) * 0.5);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-color2);
+    cursor: pointer;
+  }
+  .settings-button:hover,
+  .settings-button:focus-visible {
+    color: var(--primary-color);
   }
   
   /* Responsive styles */
@@ -184,6 +196,13 @@
   <!-- Add the zoom controls to the right side -->
   <div class="right-section">
     <ZoomControls />
+    <button class="settings-button" title="Settings" aria-label="Settings" on:click={() => open(Settings)}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+      </svg>
+    </button>
   </div>
 </div>
 

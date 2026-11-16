@@ -12,7 +12,12 @@ env:
   WAILS_VERSION: v2.17.1
 
 jobs:
+  # The same tests as for every push, for exactly the tagged commit.
+  tests:
+    uses: ./.github/workflows/ci.yml
+
   package:
+    needs: tests
     # macOS is not built for now: GitHub's macOS runners were often not
     # available (capacity). build/darwin still holds the bundle settings; to
     # add it back, add a macos-15 / darwin/universal entry and a create-dmg
@@ -107,6 +112,10 @@ jobs:
           awk -v h="$heading" '$0 == h {on=1; next} on && /^## \[/ {exit} on' CHANGELOG.md > notes.md
           printf '\nFull changelog ⇒ [CHANGELOG.md](%s/%s/blob/%s/CHANGELOG.md#%s)\n' \
             "$SERVER" "$REPO" "$TAG" "$anchor" >> notes.md
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum Wombat_* > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       # Tags with a suffix (v0.6.0-rc1, v0.6.0-beta.2) are pre-releases, which
       # the in-app update check (releases/latest) does not offer.

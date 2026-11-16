@@ -1,7 +1,6 @@
 package app
 
 const (
-	eventInit                  = "wombat:init"
 	eventError                 = "wombat:error"
 	eventClientConnectStarted  = "wombat:client_connect_started"
 	eventClientConnected       = "wombat:client_connected"
