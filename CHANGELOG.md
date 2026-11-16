@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.0-rc3] - 2026-11-16
+
 ### Added
 - `google.protobuf.Value` and `ListValue` fields are edited as JSON, like `Struct`
 - Recursive message types (trees, expressions) can be used: where a message would contain itself, it is edited as
