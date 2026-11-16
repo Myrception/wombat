@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -44,10 +45,12 @@ const (
 )
 
 type api struct {
-	ctx     context.Context
-	rt      wailsRuntime
-	appData string
-	store   *store
+	ctx context.Context
+	rt  wailsRuntime
+	// rpcEvents batches the events of a call (see batch.go).
+	rpcEvents *eventBatcher
+	appData   string
+	store     *store
 
 	// startupErr is reported to the user once the frontend is ready.
 	startupErr error
@@ -114,7 +117,9 @@ func (s *storeLogger) Errorf(format string, args ...interface{}) {
 }
 
 func NewApp() *api {
-	return &api{state: &workspaceState{CurrentID: defaultWorkspaceKey}}
+	a := &api{state: &workspaceState{CurrentID: defaultWorkspaceKey}}
+	a.rpcEvents = newEventBatcher(batchInterval, func(evs []rpcEvent) { a.rt.Emit(eventRPCEvents, evs) })
+	return a
 }
 
 // Startup is the initialization function for the Wails v2 runtime.
@@ -382,9 +387,38 @@ func (a *api) SelectWorkspace(id string) (rerr error) {
 
 // DeleteWorkspace will remove a workspace from the store and switch to
 // the default workspace, if the deleted workspace is current.
+//
+// The workspace's metadata (request and reflection headers, often tokens) is
+// deleted too, unless another workspace uses the same address. Saved
+// requests are kept: they belong to the address, not the workspace, and come
+// back when a workspace for that address is added again.
 func (a *api) DeleteWorkspace(id string) error {
+	if !strings.HasPrefix(id, workspacePrefix) {
+		return fmt.Errorf("%q is not a workspace", id)
+	}
+	all, err := a.ListWorkspaces()
+	if err != nil {
+		return err
+	}
+	addr, shared := "", false
+	for _, w := range all {
+		if w.ID == id {
+			addr = w.Addr
+		}
+	}
+	for _, w := range all {
+		shared = shared || (w.ID != id && w.Addr == addr)
+	}
+
 	if err := a.store.del([]byte(id)); err != nil {
 		return err
+	}
+	if addr != "" && !shared {
+		for _, k := range []string{metadataKeyPrefix + hash(addr), reflectMetadataKeyPrefix + hash(addr)} {
+			if err := a.store.del([]byte(k)); err != nil && err != errKeyNotFound {
+				a.rt.LogWarning(fmt.Sprintf("failed to delete %s: %v", k, err))
+			}
+		}
 	}
 	if a.currentWorkspaceID() == id {
 		// SelectWorkspace reports its own errors to the frontend.
@@ -1054,18 +1088,20 @@ func (a *api) Send(method string, stringJSON string, rawHeaders interface{}) (re
 			// gRPC never reported the end of the RPC (e.g. the stream
 			// could not be created), so tell the frontend ourselves.
 			st := status.Convert(rerr)
-			a.rt.Emit(eventRPCEnded, rpcEnd{
+			a.rpcEvents.emit(eventRPCEnded, rpcEnd{
 				StatusCode: int32(st.Code()),
 				Status:     st.Code().String(),
 				Duration:   "0s",
 			})
 		}
+		a.rpcEvents.flush()
 	}()
 
-	a.rt.Emit(eventRPCStarted, rpcStart{
+	a.rpcEvents.emit(eventRPCStarted, rpcStart{
 		ClientStream: md.IsStreamingClient(),
 		ServerStream: md.IsStreamingServer(),
 	})
+	a.rpcEvents.flush() // show the call as started right away
 
 	// Responses and status are delivered to the frontend by the stats
 	// handler, so receive errors are only logged here.
@@ -1154,20 +1190,20 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 
 	switch s := stat.(type) {
 	case *stats.Begin:
-		a.rt.Emit(eventStatBegin, s)
+		a.rpcEvents.emit(eventStatBegin, s)
 	case *stats.OutHeader:
-		a.rt.Emit(eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
+		a.rpcEvents.emit(eventStatOutHeader, rpcStatOutHeader{s, fmt.Sprintf("%+v", s.Header)})
 	case *stats.OutPayload:
 		if p, err := formatPayload(s.Payload); err == nil {
 			s.Payload = p
 		}
-		a.rt.Emit(eventStatOutPayload, rpcStatOutPayload{s, fmt.Sprintf("%+v", s.Payload)})
-		a.rt.Emit(eventOutPayloadReceived, s.Payload)
+		a.rpcEvents.emit(eventStatOutPayload, s)
+		a.rpcEvents.emit(eventOutPayloadReceived, s.Payload)
 	case *stats.OutTrailer:
-		a.rt.Emit(eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		a.rpcEvents.emit(eventStatOutTrailer, rpcStatOutTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
 	case *stats.InHeader:
-		a.rt.Emit(eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
-		a.rt.Emit(eventInHeaderReceived, s.Header)
+		a.rpcEvents.emit(eventStatInHeader, rpcStatInHeader{s, fmt.Sprintf("%+v", s.Header)})
+		a.rpcEvents.emit(eventInHeaderReceived, s.Header)
 	case *stats.InPayload:
 		txt, err := formatPayload(s.Payload)
 		if err != nil {
@@ -1175,11 +1211,11 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 			return
 		}
 		s.Payload = txt
-		a.rt.Emit(eventStatInPayload, rpcStatInPayload{s, fmt.Sprintf("%+v", s.Payload)})
-		a.rt.Emit(eventInPayloadReceived, txt)
+		a.rpcEvents.emit(eventStatInPayload, s)
+		a.rpcEvents.emit(eventInPayloadReceived, txt)
 	case *stats.InTrailer:
-		a.rt.Emit(eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
-		a.rt.Emit(eventInTrailerReceived, s.Trailer)
+		a.rpcEvents.emit(eventStatInTrailer, rpcStatInTrailer{s, fmt.Sprintf("%+v", s.Trailer)})
+		a.rpcEvents.emit(eventInTrailerReceived, s.Trailer)
 	case *stats.End:
 		if c, ok := ctx.Value(ctxCallKey{}).(*rpcCall); ok {
 			c.ended.Store(true)
@@ -1194,16 +1230,17 @@ func (a statsHandler) HandleRPC(ctx context.Context, stat stats.RPCStats) {
 				a.rt.LogError(fmt.Errorf("failed to marshal in payload to proto text: %v", err).Error())
 			}
 			if errProtoStr != "" {
-				a.rt.Emit(eventErrorReceived, errProtoStr)
+				a.rpcEvents.emit(eventErrorReceived, errProtoStr)
 			}
 		}
-		a.rt.Emit(eventStatEnd, rpcStatEnd{s, errProtoStr})
+		a.rpcEvents.emit(eventStatEnd, rpcStatEnd{s, errProtoStr})
 
 		var end rpcEnd
 		end.StatusCode = int32(stus.Code())
 		end.Status = stus.Code().String()
 		end.Duration = s.EndTime.Sub(s.BeginTime).String()
-		a.rt.Emit(eventRPCEnded, end)
+		a.rpcEvents.emit(eventRPCEnded, end)
+		a.rpcEvents.flush()
 	}
 }
 
@@ -1280,11 +1317,35 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 		}
 	}
 
+	var notes []string // shell comments put above the command
 	if option.Plaintext {
 		sb.WriteString("    -plaintext \\\n")
+	} else {
+		if option.Insecure {
+			sb.WriteString("    -insecure \\\n")
+		}
+		// The workspace holds the certificates themselves; grpcurl wants
+		// files.
+		if option.Rootca != "" {
+			notes = append(notes, "# Save the workspace's root CA as ca.pem.")
+			sb.WriteString("    -cacert ca.pem \\\n")
+		}
+		if option.Clientcert != "" {
+			notes = append(notes, "# Save the workspace's client certificate as client.pem and its key as client.key.")
+			sb.WriteString("    -cert client.pem -key client.key \\\n")
+		}
 	}
-	if option.Insecure {
-		sb.WriteString("    -insecure \\\n")
+	if !option.Reflect {
+		for _, p := range option.Protos.Roots {
+			sb.WriteString("    -import-path ")
+			sb.WriteString(shellArg(p))
+			sb.WriteString(" \\\n")
+		}
+		for _, p := range option.Protos.Files {
+			sb.WriteString("    -proto ")
+			sb.WriteString(shellArg(p))
+			sb.WriteString(" \\\n")
+		}
 	}
 
 	hds, err := a.GetReflectMetadata(option.Addr)
@@ -1302,12 +1363,16 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 	}
 
 	sb.WriteString("    ")
-	sb.WriteString(option.Addr)
+	sb.WriteString(shellArg(option.Addr))
 	sb.WriteString(" ")
-	sb.WriteString(strings.TrimPrefix(method, "/"))
+	sb.WriteString(shellArg(strings.TrimPrefix(method, "/")))
 
+	cmd := sb.String()
+	if len(notes) > 0 {
+		cmd = strings.Join(notes, "\n") + "\n" + cmd
+	}
 	return &commands{
-		Grpcurl: sb.String(),
+		Grpcurl: cmd,
 	}
 }
 
@@ -1342,6 +1407,14 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 		}
 
 		a.rt.LogInfo(fmt.Sprintf("importing grpcurl command for method: %s", args.Method))
+		if strings.TrimSpace(args.Data) == "" {
+			args.Data = "{}" // grpcurl sends an empty request without -d
+		} else if !json.Valid([]byte(args.Data)) {
+			return errors.New("the request data (-d) is not valid JSON")
+		}
+		if args.Metadata == nil {
+			args.Metadata = headers{} // the command's headers replace the current ones
+		}
 		if err := a.emitServicesSelect("/"+args.Method, args.Data, args.Metadata); err != nil {
 			return err
 		}

@@ -1,5 +1,6 @@
 <script>
   export let stats;
+  export let removed = 0; // payload statistics of older messages that were dropped
 </script>
 
 <style>
@@ -34,9 +35,15 @@
   .error {
     color: var(--red-color);
   }
+  .removed {
+    margin-bottom: var(--padding);
+  }
 </style>
 
 <div class="stats">
+  {#if removed > 0}
+    <div class="removed">{removed.toLocaleString("en")} older payload statistics removed</div>
+  {/if}
   {#each stats as stat}
     <div class:out={stat.type.startsWith("out")} class:in={stat.type.startsWith("in")}>
     {#if stat.type === "begin"}
@@ -54,7 +61,6 @@
     {#if stat.type === "outPayload"}
       <h3>» Out Payload</h3>
       <div>» Payload: {stat.Payload}</div>
-      <div>» Binary data: {stat.Data}</div>
       <div>» Length: {stat.Length}</div>
       <div>» Wire length: {stat.WireLength}</div>
       <div>» Sent time: {stat.SentTime}</div>
@@ -72,7 +78,6 @@
     {#if stat.type === "inPayload"}
       <h3>« In Payload</h3>
       <div>« Payload: {stat.Payload}</div>
-      <div>« Binary data: {stat.Data}</div>
       <div>« Length: {stat.Length}</div>
       <div>« Wire length: {stat.WireLength}</div>
       <div>« Received time: {stat.RecvTime}</div>

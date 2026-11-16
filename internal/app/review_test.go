@@ -189,3 +189,106 @@ func TestImportUnknownFieldNotice(t *testing.T) {
 		t.Fatalf("want one notice naming lattitude, got %+v", errs)
 	}
 }
+
+// Deleting a workspace deletes its metadata unless another workspace has the
+// same address, and only workspaces can be deleted.
+func TestDeleteWorkspaceMetadata(t *testing.T) {
+	a, _ := newTestAPI(t)
+	md := headers{{Key: "authorization", Val: "Bearer secret"}}
+	for id, addr := range map[string]string{"a": "only:1", "b": "shared:1", "c": "shared:1"} {
+		a.setWorkspaceOptions(options{ID: workspacePrefix + id, Addr: addr})
+		a.setMetadata(metadataKeyPrefix+hash(addr), md)
+		a.setMetadata(reflectMetadataKeyPrefix+hash(addr), md)
+	}
+
+	if err := a.DeleteWorkspace(workspacePrefix + "a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.DeleteWorkspace(workspacePrefix + "b"); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := a.GetMetadata("only:1"); len(got) != 0 {
+		t.Errorf("metadata of the deleted workspace kept: %+v", got)
+	}
+	if got, _ := a.GetReflectMetadata("only:1"); len(got) != 0 {
+		t.Errorf("reflection metadata of the deleted workspace kept: %+v", got)
+	}
+	if got, _ := a.GetMetadata("shared:1"); len(got) != 1 {
+		t.Errorf("metadata still used by workspace c was deleted: %+v", got)
+	}
+
+	if err := a.DeleteWorkspace(metadataKeyPrefix + hash("shared:1")); err == nil {
+		t.Error("deleted a key that is not a workspace")
+	}
+	if got, _ := a.GetMetadata("shared:1"); len(got) != 1 {
+		t.Errorf("metadata deleted through DeleteWorkspace: %+v", got)
+	}
+}
+
+func TestIsNewerVersion(t *testing.T) {
+	for _, c := range []struct {
+		latest, current string
+		want            bool
+	}{
+		{"v0.6.1", "v0.6.0", true},
+		{"v0.6.0", "v0.6.0", false},
+		{"v0.6.0", "v0.6.0-rc3", true},
+		{"v0.5.0", "v0.6.0", false},
+		{"not-a-version", "v0.6.0", false}, // used to show the update banner
+		{"v0.7.0", "garbage", false},
+	} {
+		if got := isNewerVersion(c.latest, c.current); got != c.want {
+			t.Errorf("isNewerVersion(%q, %q) = %v, want %v", c.latest, c.current, got, c.want)
+		}
+	}
+}
+
+// A failed connection reports why, not only the connectivity state.
+func TestConnectErrorHasCause(t *testing.T) {
+	a, _ := newTestAPI(t)
+	err := a.Connect(options{Addr: closedAddr(t), Plaintext: true}, headers{}, false)
+	if err == nil || !strings.Contains(err.Error(), "refused") {
+		t.Fatalf("got %v, want the dial error (connection refused)", err)
+	}
+	err = a.Connect(options{Addr: "localhost:1", Rootca: "not a certificate"}, headers{}, false)
+	if err == nil || !strings.Contains(err.Error(), "root CA") {
+		t.Fatalf("got %v, want an invalid root CA error", err)
+	}
+}
+
+func TestDialCheckTargets(t *testing.T) {
+	addr, _ := startServer(t)
+	for _, target := range []string{addr, "dns:///" + addr, "passthrough:///" + addr} {
+		if err := dialCheck(target); err != nil {
+			t.Errorf("dialCheck(%q) = %v", target, err)
+		}
+	}
+	if err := dialCheck("unix:///no/such/socket"); err == nil {
+		t.Error("dialCheck of a missing unix socket succeeded")
+	}
+	if err := dialCheck("xds:///whatever"); err != nil {
+		t.Errorf("unknown scheme: %v, want nil", err)
+	}
+}
+
+// An imported command without -d is an empty request with the command's
+// (possibly no) headers; invalid -d data is reported.
+func TestImportDataForms(t *testing.T) {
+	a, rec := newConnectedAPI(t)
+	last := func() recordedEvent {
+		evs := rec.all(eventServicesSelectChanged)
+		return evs[len(evs)-1]
+	}
+
+	if err := a.ImportCommand("grpcurl", `grpcurl -plaintext localhost:1 wombat.v1.RouteGuide.GetFeature`); err != nil {
+		t.Fatal(err)
+	}
+	ev := last()
+	if ev.data[1] != methodGetFeature || ev.data[2] != "{}" || ev.data[3] == nil {
+		t.Fatalf("import without -d emitted %v, want %s, {} and empty headers", ev.data[1:], methodGetFeature)
+	}
+
+	if err := a.ImportCommand("grpcurl", `grpcurl -d '{"latitude":' localhost:1 wombat.v1.RouteGuide/GetFeature`); err == nil || !strings.Contains(err.Error(), "not valid JSON") {
+		t.Fatalf("got %v, want an invalid JSON error", err)
+	}
+}

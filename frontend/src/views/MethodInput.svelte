@@ -13,8 +13,6 @@
   export let state;
   export let mapItems;
 
-  let methodSelected;
-
   // Every message type of the request by full name, so JSON-edited
   // recursive messages can be checked (see FieldStruct.svelte).
   const messages = writable(new Map());

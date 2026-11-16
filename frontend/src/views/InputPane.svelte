@@ -37,19 +37,37 @@
   }
 
   // Set up event listeners with cleanup
+  // Parses a request; a broken one (e.g. saved by an older version) starts
+  // the form empty instead of breaking it.
+  const parseState = text => {
+    try {
+      const v = JSON.parse(text);
+      return v !== null && typeof v === "object" && !Array.isArray(v) ? v : {};
+    } catch (e) {
+      console.warn("ignoring an invalid request:", e);
+      return {};
+    }
+  };
+
+  // Each method change gets a number; the async steps of an older one stop
+  // when a newer one has started, so quick changes cannot mix their state.
+  let methodChange = 0;
   const unsubscribeMethodInput = EventsOn("wombat:method_input_changed", async (data, initState, m) => {
+    const change = ++methodChange;
     await reset();
-    if (!data) {
+    if (change !== methodChange || !data) {
       return
     }
     methodInput = data.message;
+    if (Array.isArray(m)) {
+      metadata = m; // an imported command's headers
+    }
     if (initState) {
-      state = JSON.parse(initState);
-      metadata = m;
+      state = parseState(initState);
     } else {
       const rawState = await GetRawMessageState(data.full_name);
-      if (rawState) {
-        state = JSON.parse(rawState);
+      if (change === methodChange && rawState) {
+        state = parseState(rawState);
       }
     }
   });

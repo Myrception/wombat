@@ -6,23 +6,29 @@
 
   let workspaces = [];
   let current = undefined;
+  // The backend reports its own errors (as a dialog); a failed call only
+  // leaves the list as it is.
   const loadWorkspacesList = async () => {
-      workspaces = [];
-      current = await GetWorkspaceOptions()
-      workspaces = await ListWorkspaces() 
-  }
+    workspaces = [];
+    try {
+      current = await GetWorkspaceOptions();
+      workspaces = await ListWorkspaces();
+    } catch (e) {
+      console.warn("failed to list workspaces:", e);
+    }
+  };
 
   $: visible && loadWorkspacesList();
 
   const onWorkspaceSelected = ({detail: wksp}) => {
-    SelectWorkspace(wksp.id);
+    SelectWorkspace(wksp.id).catch(e => console.warn("failed to select workspace:", e));
     visible = false;
-  }
+  };
 
   const onWorkspaceDeleted = ({detail:wksp}) => {
-    DeleteWorkspace(wksp.id);
+    DeleteWorkspace(wksp.id).catch(e => console.warn("failed to delete workspace:", e));
     visible = false;
-  }
+  };
 
 </script>
 

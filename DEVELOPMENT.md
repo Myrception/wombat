@@ -101,6 +101,7 @@ $ npm test                                 # both engines
 $ npm run test:chromium                    # Chromium only
 $ npx playwright test --ui                 # interactive runner
 $ npm run test:dev                         # against the dev server: also fails on Svelte runtime warnings
+$ npm run check                            # svelte-check: compiler errors and warnings (run in CI)
 ```
 
 Playwright's WebKit build needs Ubuntu/Debian libraries. On other distributions run the WebKit tests in Playwright's
@@ -129,8 +130,9 @@ production builds. Note that the built-in gRPC server only runs under `wails dev
 1. Move the `[Unreleased]` entries in `CHANGELOG.md` into a new section, e.g. `## [v0.6.0] - 2026-11-13`.
 2. Tag the commit and push the tag: `git tag -a v0.6.0 -m "Wombat v0.6.0" && git push origin v0.6.0`.
 
-The tag runs `.github/workflows/package.yml`, which builds Linux and Windows packages and attaches
-them to a **draft** GitHub release whose text is the tag's `CHANGELOG.md` section (the workflow fails if there is none).
+The tag runs `.github/workflows/package.yml`. It first runs the CI tests for the tagged commit, then builds Linux and
+Windows packages and attaches them, with a `SHA256SUMS.txt`, to a **draft** GitHub release whose text is the tag's
+`CHANGELOG.md` section (the workflow fails if there is none).
 Review and publish the draft on GitHub. Tags with a suffix (`v0.6.0-rc1`) become pre-releases.
 
 The tag becomes the app version. The in-app update check compares it against the latest published, non-pre-release

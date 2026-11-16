@@ -4,6 +4,8 @@ on:
   push:
     branches: [master]
   pull_request:
+  # The release workflow runs the tests before packaging.
+  workflow_call:
 
 permissions:
   contents: read
@@ -33,6 +35,11 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      # Svelte compiler errors and warnings (a11y, unused CSS, ...).
+      - name: svelte-check
+        working-directory: frontend
+        run: npm run check
 
       # gofmt, go vet, errcheck, staticcheck, ... (see .golangci.yml)
       - name: golangci-lint
