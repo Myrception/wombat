@@ -6,79 +6,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- An invalid JSON list item lost its text and error when an item before it was removed, and Send failed with an
-  unclear error; Send now names the invalid item instead
-- The field-name check for recursive messages uses the real JSON names (including `json_name`) and skips
-  `google.protobuf.Any`
-- Importing a grpcurl command whose data has a field the method does not have says that the field is ignored
+## [v0.6.0] - 2026-11-16
 
-## [v0.6.0-rc3] - 2026-11-16
-
-### Added
-- `google.protobuf.Value` and `ListValue` fields are edited as JSON, like `Struct`
-- Recursive message types (trees, expressions) can be used: where a message would contain itself, it is edited as
-  JSON
-
-### Fixed
-- A recursive message type could crash Wombat when its method was selected (or on start, when it was the first
-  method)
-- A client stream the server ended early (e.g. with an error) kept waiting for "Close & Receive" instead of showing
-  the status
-- A unary call with a non-OK status, or a cancelled one, also showed an error dialog on top of the status
-- Workspace settings were lost when the server could not be reached; they are now saved anyway
-- Switching to an empty workspace, or deleting the current one, showed a connection error
-- A missing `protoc` gave an empty error message; the requirement is now documented
-- The date picker of a repeated or map Timestamp field did not change the value
-- Invalid JSON in a `Struct`, `Value` or `ListValue` field is shown next to the field instead of in a dialog on
-  every change, and the field is not sent while it is invalid
-- Misspelled field names in the JSON of a recursive message are reported next to the field
-- "Connect" is disabled until the workspace has an address
-
-## [v0.6.0-rc2] - 2026-11-13
-
-### Changed
-- Dialogs are accessible: screen readers see them (named after their heading), focus moves into the dialog and stays
-  there, the page behind is inert, and focus returns when the dialog closes
-- Updated Go dependencies (gRPC 1.85, protobuf 1.36.12, Badger 4.9) and the frontend build (Vite 8)
-
-### Fixed
-- The response panel extended past the window, cutting off long lines and the last line of a response
-- A failed write to `crash.log` is no longer reported as a written crash log
-
-## [v0.6.0-rc1] - 2026-11-13
+The first release of this fork: Wombat on Wails v2, with Linux and Windows packages. Changes since v0.5.0
+(including the release candidates v0.6.0-rc1 to rc3):
 
 ### Added
 - Support for connecting to unix sockets. Thanks to [@aschey](https://github.com/aschey)
 - Support google.protobuf.Struct. Thanks to [@n0trace](https://github.com/n0trace)
+- `google.protobuf.Value` and `ListValue` fields are edited as JSON, like `Struct`
+- Recursive message types (trees, expressions) can be used: where a message would contain itself, it is edited as
+  JSON, and misspelled field names in that JSON are reported next to the field
 - UI zoom (Ctrl/Cmd `+`, `-`, `0`) with a larger default on high resolution screens
 - Starting Wombat a second time focuses the running window
 - Unexpected panics are written to `crash.log` in the app data directory
 
 ### Changed
 - Upgraded to Wails v2 (WebView2 on Windows, WebKitGTK 4.1 on Linux) and Go 1.27
-- Frontend is built with Vite and Svelte 5
-- Dropdowns use svelte-select 6, dialogs svelte-simple-modal 2
+- Frontend is built with Vite 8 and Svelte 5; dropdowns use svelte-select 6
 - Monaco editor 0.56 (handles UI zoom natively; clicks land on the right character at any zoom level)
+- Dialogs are accessible: screen readers see them (named after their heading), focus moves into the dialog and stays
+  there, the page behind is inert, and focus returns when the dialog closes
+- Updated Go dependencies (gRPC 1.85, protobuf 1.36.12, Badger 4.9)
+- Workspace settings are saved even when the server cannot be reached; "Connect" is disabled until there is an
+  address
 - Release packages for Linux and Windows (no macOS package for now)
 
 ### Fixed
+- A recursive message type could crash Wombat when its method was selected (or on start, when it was the first
+  method)
 - Crash when a TLS connection failed during reconnect
 - Workspace not connecting on startup because events were sent before the UI was ready
 - Races between sending, cancelling and closing streaming requests
+- A client stream the server ended early (e.g. with an error) kept waiting for "Close & Receive" instead of showing
+  the status
+- A unary call with a non-OK status, or a cancelled one, also showed an error dialog on top of the status
 - Connection state no longer stops updating after a few seconds
+- Switching to an empty workspace, or deleting the current one, showed a connection error
 - Loading services via reflection makes fewer round trips (faster on remote servers)
 - Servers that only support reflection v1alpha can be used again
 - Errors while loading services via reflection are reported with their cause
+- A missing `protoc` gave an empty error message; the requirement is now documented
 - Importing a grpcurl command with an unknown flag no longer quits Wombat
 - grpcurl import: `-format text`, `-d @` and malformed quoting are reported instead of being misread
-- grpcurl import keeps headers whose value contains a colon
+- grpcurl import keeps headers whose value contains a colon, and reports fields the method does not have
 - Exported grpcurl commands quote request data containing `'` correctly
+- Well-known types (Timestamp, Duration, wrappers, Struct) get their dedicated inputs again instead of a generic
+  message form
+- The date picker of a repeated or map Timestamp field did not change the value
+- Invalid JSON in a `Struct`, `Value`, `ListValue` or recursive field is shown next to the field instead of in a
+  dialog, is not sent, and keeps its text when list items move; Send names an invalid list item
 - Cancelling the proto file or import path dialog no longer shows an error or adds an empty path
 - Client certificate and key fields sit side by side on wide windows again
-- Well-known types (Timestamp, Duration, wrappers, Struct) get their dedicated inputs again instead of a generic message form
 - Reflection services are listed after the application's own services
 - The "Edit as GRPCURL" dialog fits on screen when zoomed in
+- The response panel extended past the window, cutting off long lines and the last line of a response
+- A failed write to `crash.log` is no longer reported as a written crash log
 
 ## [v0.5.0] - 2021-04-26
 
