@@ -9,7 +9,8 @@
   import RequestMetadata from "./RequestMetadata.svelte";
   import CodeEditPanel from "./CodeEditPanel.svelte";
   import { getContext, tick } from 'svelte';
-  import { EventsOn } from '../../wailsjs/runtime/runtime';
+  import { EventsOn, EventsEmit } from '../../wailsjs/runtime/runtime';
+  import { invalidListItems } from "./invalidJSON";
   import { GetRawMessageState, GetMetadata, Send, ExportCommands } from '../../wailsjs/go/app/api';
 
   let methodInput = {
@@ -68,13 +69,21 @@
   });
 
   const onSend = async ({ detail: { method } }) => {
-      try {
-  //console.log(method, state, metadata);
-  await Send(method, JSON.stringify(state), metadata);
-  } catch (error) {
-    console.error("Error sending request:", error);
-  }
-} 
+    // An invalid list item would be sent as null, which the server rejects.
+    const invalid = invalidListItems(state);
+    if (invalid.length) {
+      EventsEmit("wombat:error", {
+        title: "Cannot send the request",
+        msg: `Invalid JSON in ${invalid.join(", ")}. Fix or remove ${invalid.length > 1 ? "these items" : "this item"} first.`,
+      });
+      return;
+    }
+    try {
+      await Send(method, JSON.stringify(state), metadata);
+    } catch (error) {
+      console.error("Error sending request:", error);
+    }
+  };
 
   const onSelected = ({ detail: { method } }) => methodSelected = method;
 

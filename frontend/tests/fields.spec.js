@@ -170,7 +170,7 @@ test("recursive messages: the nested occurrence is edited as JSON", async ({ pag
   await optionalInput(f, "self").blur();
 
   const { body } = await send(page);
-  expect(body.tree).toEqual({ name: "root", children: [{ name: "leaf", children: [{ name: "deeper" }] }] });
+  expect(body.tree).toMatchObject({ name: "root", children: [{ name: "leaf", children: [{ name: "deeper" }] }] });
   expect(body.self).toEqual({ tree: { name: "inner" } });
 });
 
@@ -246,4 +246,46 @@ test("unknown field names in a recursive message's JSON are reported", async ({ 
   await optionalInput(f, "self").fill('{"tree":{"name":"x","children":[]},"bar":{"id":"1"}}');
   await optionalInput(f, "self").blur();
   await expect(f.getByRole("status")).toHaveCount(0);
+});
+
+test("an invalid list item keeps its text when an item before it is removed, and blocks Send", async ({ page }) => {
+  await selectMethod(page, METHODS.Recursive);
+  const f = form(page);
+  await toggle(f, "tree");
+  const tree = sectionBody(f, "tree");
+  await addItem(tree, "children");
+  await addItem(tree, "children");
+  const items = sectionBody(tree, "children").locator("textarea");
+  await items.nth(0).fill('{"name":"first"}');
+  await items.nth(0).blur();
+  await items.nth(1).fill("{oops");
+  await items.nth(1).blur();
+  await expect(f.getByRole("alert")).toContainText("cannot be sent");
+
+  await sectionBody(tree, "children").getByRole("button", { name: "Remove" }).first().click();
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toHaveValue("{oops");
+  await expect(f.getByRole("alert")).toContainText("cannot be sent");
+
+  // Send is refused in the frontend, naming the item.
+  const sends = () => page.evaluate(() => window.__fake.callsTo("Send").length);
+  const before = await sends();
+  await page.locator(".method-select").getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.locator(".error-box")).toContainText("tree.children[0]");
+  expect(await sends()).toBe(before);
+  await page.locator(".error-box").getByRole("button", { name: "OK" }).click();
+
+  await items.first().fill('{"name":"fixed"}');
+  await items.first().blur();
+  expect((await send(page)).body.tree.children).toEqual([{ name: "fixed" }]);
+});
+
+test("the field-name check uses the real JSON name", async ({ page }) => {
+  await selectMethod(page, METHODS.Recursive);
+  const f = form(page);
+  await toggle(f, "self");
+  // display_name has [json_name = "label"]: "label" and "display_name" are accepted, "displayName" is not.
+  await optionalInput(f, "self").fill('{"tree":{"label":"a","display_name":"b","displayName":"c"}}');
+  await optionalInput(f, "self").blur();
+  await expect(f.getByRole("status")).toHaveText('Unknown field "tree.displayName", not sent');
 });

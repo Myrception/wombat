@@ -135,6 +135,7 @@ message SingleOneofResponse {}
 message Tree {
     string name = 1;
     repeated Tree children = 2;
+    string display_name = 3 [json_name = "label"];
 }
 
 message RecursiveRequest {

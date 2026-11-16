@@ -16,8 +16,9 @@ export function collectMessages(message, map = new Map()) {
   return map;
 }
 
-// protoc's default JSON name: lowerCamelCase of the field name.
-const jsonName = name => name.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+// Not checked: their JSON form does not follow their fields (Any holds
+// "@type" plus the fields of the message it packs).
+const UNCHECKED = new Set(["google.protobuf.Any"]);
 
 const isObject = v => v !== null && typeof v === "object" && !Array.isArray(v);
 
@@ -27,13 +28,15 @@ const isObject = v => v !== null && typeof v === "object" && !Array.isArray(v);
  */
 export function unknownFields(value, message, messages, path = "") {
   if (message?.recursive || (message && !message.fields)) message = messages.get(message.full_name);
-  if (!message || !isObject(value) || isWellKnown(message.full_name) || isJSONEdited(message)) return [];
+  if (!message || !isObject(value) || isWellKnown(message.full_name) || isJSONEdited(message) || UNCHECKED.has(message.full_name)) return [];
 
   const fields = new Map();
   for (const f of message.fields || []) {
     for (const m of f.kind === "oneof" ? f.oneof : [f]) {
+      // The backend accepts the proto name and the JSON name (its
+      // json_name option, or lowerCamelCase by default).
       fields.set(m.name, m);
-      fields.set(jsonName(m.name), m);
+      if (m.json_name) fields.set(m.json_name, m);
     }
   }
 

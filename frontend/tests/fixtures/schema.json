@@ -9,6 +9,7 @@
           {
             "name": "host",
             "full_name": "grpc.reflection.v1.ServerReflectionRequest.host",
+            "json_name": "host",
             "kind": "string",
             "repeated": false,
             "map_key": null,
@@ -28,6 +29,7 @@
               {
                 "name": "file_by_filename",
                 "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_by_filename",
+                "json_name": "fileByFilename",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -39,6 +41,7 @@
               {
                 "name": "file_containing_symbol",
                 "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_containing_symbol",
+                "json_name": "fileContainingSymbol",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -50,6 +53,7 @@
               {
                 "name": "file_containing_extension",
                 "full_name": "grpc.reflection.v1.ServerReflectionRequest.file_containing_extension",
+                "json_name": "fileContainingExtension",
                 "kind": "message",
                 "repeated": false,
                 "map_key": null,
@@ -63,6 +67,7 @@
                     {
                       "name": "containing_type",
                       "full_name": "grpc.reflection.v1.ExtensionRequest.containing_type",
+                      "json_name": "containingType",
                       "kind": "string",
                       "repeated": false,
                       "map_key": null,
@@ -74,6 +79,7 @@
                     {
                       "name": "extension_number",
                       "full_name": "grpc.reflection.v1.ExtensionRequest.extension_number",
+                      "json_name": "extensionNumber",
                       "kind": "int32",
                       "repeated": false,
                       "map_key": null,
@@ -88,6 +94,7 @@
               {
                 "name": "all_extension_numbers_of_type",
                 "full_name": "grpc.reflection.v1.ServerReflectionRequest.all_extension_numbers_of_type",
+                "json_name": "allExtensionNumbersOfType",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -99,6 +106,7 @@
               {
                 "name": "list_services",
                 "full_name": "grpc.reflection.v1.ServerReflectionRequest.list_services",
+                "json_name": "listServices",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -123,6 +131,7 @@
           {
             "name": "host",
             "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.host",
+            "json_name": "host",
             "kind": "string",
             "repeated": false,
             "map_key": null,
@@ -142,6 +151,7 @@
               {
                 "name": "file_by_filename",
                 "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_by_filename",
+                "json_name": "fileByFilename",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -153,6 +163,7 @@
               {
                 "name": "file_containing_symbol",
                 "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_containing_symbol",
+                "json_name": "fileContainingSymbol",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -164,6 +175,7 @@
               {
                 "name": "file_containing_extension",
                 "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.file_containing_extension",
+                "json_name": "fileContainingExtension",
                 "kind": "message",
                 "repeated": false,
                 "map_key": null,
@@ -177,6 +189,7 @@
                     {
                       "name": "containing_type",
                       "full_name": "grpc.reflection.v1alpha.ExtensionRequest.containing_type",
+                      "json_name": "containingType",
                       "kind": "string",
                       "repeated": false,
                       "map_key": null,
@@ -188,6 +201,7 @@
                     {
                       "name": "extension_number",
                       "full_name": "grpc.reflection.v1alpha.ExtensionRequest.extension_number",
+                      "json_name": "extensionNumber",
                       "kind": "int32",
                       "repeated": false,
                       "map_key": null,
@@ -202,6 +216,7 @@
               {
                 "name": "all_extension_numbers_of_type",
                 "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.all_extension_numbers_of_type",
+                "json_name": "allExtensionNumbersOfType",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -213,6 +228,7 @@
               {
                 "name": "list_services",
                 "full_name": "grpc.reflection.v1alpha.ServerReflectionRequest.list_services",
+                "json_name": "listServices",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -237,11 +253,13 @@
           {
             "name": "map_string_string",
             "full_name": "wombat.v1.AFooRequest.map_string_string",
+            "json_name": "mapStringString",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.AFooRequest.MapStringStringEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -253,6 +271,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.AFooRequest.MapStringStringEntry.value",
+              "json_name": "value",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -268,11 +287,13 @@
           {
             "name": "map_int32_bytes",
             "full_name": "wombat.v1.AFooRequest.map_int32_bytes",
+            "json_name": "mapInt32Bytes",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.AFooRequest.MapInt32BytesEntry.key",
+              "json_name": "key",
               "kind": "int32",
               "repeated": false,
               "map_key": null,
@@ -284,6 +305,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.AFooRequest.MapInt32BytesEntry.value",
+              "json_name": "value",
               "kind": "bytes",
               "repeated": false,
               "map_key": null,
@@ -299,11 +321,13 @@
           {
             "name": "map_string_enum",
             "full_name": "wombat.v1.AFooRequest.map_string_enum",
+            "json_name": "mapStringEnum",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.AFooRequest.MapStringEnumEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -315,6 +339,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.AFooRequest.MapStringEnumEntry.value",
+              "json_name": "value",
               "kind": "enum",
               "repeated": false,
               "map_key": null,
@@ -335,11 +360,13 @@
           {
             "name": "map_string_bool",
             "full_name": "wombat.v1.AFooRequest.map_string_bool",
+            "json_name": "mapStringBool",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.AFooRequest.MapStringBoolEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -351,6 +378,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.AFooRequest.MapStringBoolEntry.value",
+              "json_name": "value",
               "kind": "bool",
               "repeated": false,
               "map_key": null,
@@ -366,11 +394,13 @@
           {
             "name": "map_int32_message",
             "full_name": "wombat.v1.AFooRequest.map_int32_message",
+            "json_name": "mapInt32Message",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.AFooRequest.MapInt32MessageEntry.key",
+              "json_name": "key",
               "kind": "int32",
               "repeated": false,
               "map_key": null,
@@ -382,6 +412,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.AFooRequest.MapInt32MessageEntry.value",
+              "json_name": "value",
               "kind": "message",
               "repeated": false,
               "map_key": null,
@@ -403,6 +434,7 @@
                       {
                         "name": "foo",
                         "full_name": "wombat.v1.BazRequest.foo",
+                        "json_name": "foo",
                         "kind": "message",
                         "repeated": false,
                         "map_key": null,
@@ -416,6 +448,7 @@
                             {
                               "name": "type_double",
                               "full_name": "wombat.v1.FooRequest.type_double",
+                              "json_name": "typeDouble",
                               "kind": "double",
                               "repeated": false,
                               "map_key": null,
@@ -427,6 +460,7 @@
                             {
                               "name": "type_float",
                               "full_name": "wombat.v1.FooRequest.type_float",
+                              "json_name": "typeFloat",
                               "kind": "float",
                               "repeated": false,
                               "map_key": null,
@@ -438,6 +472,7 @@
                             {
                               "name": "type_int64",
                               "full_name": "wombat.v1.FooRequest.type_int64",
+                              "json_name": "typeInt64",
                               "kind": "int64",
                               "repeated": false,
                               "map_key": null,
@@ -449,6 +484,7 @@
                             {
                               "name": "type_uint64",
                               "full_name": "wombat.v1.FooRequest.type_uint64",
+                              "json_name": "typeUint64",
                               "kind": "uint64",
                               "repeated": false,
                               "map_key": null,
@@ -460,6 +496,7 @@
                             {
                               "name": "type_int32",
                               "full_name": "wombat.v1.FooRequest.type_int32",
+                              "json_name": "typeInt32",
                               "kind": "int32",
                               "repeated": false,
                               "map_key": null,
@@ -471,6 +508,7 @@
                             {
                               "name": "type_fixed64",
                               "full_name": "wombat.v1.FooRequest.type_fixed64",
+                              "json_name": "typeFixed64",
                               "kind": "fixed64",
                               "repeated": false,
                               "map_key": null,
@@ -482,6 +520,7 @@
                             {
                               "name": "type_fixed32",
                               "full_name": "wombat.v1.FooRequest.type_fixed32",
+                              "json_name": "typeFixed32",
                               "kind": "fixed32",
                               "repeated": false,
                               "map_key": null,
@@ -493,6 +532,7 @@
                             {
                               "name": "type_bool",
                               "full_name": "wombat.v1.FooRequest.type_bool",
+                              "json_name": "typeBool",
                               "kind": "bool",
                               "repeated": false,
                               "map_key": null,
@@ -504,6 +544,7 @@
                             {
                               "name": "type_string",
                               "full_name": "wombat.v1.FooRequest.type_string",
+                              "json_name": "typeString",
                               "kind": "string",
                               "repeated": false,
                               "map_key": null,
@@ -515,6 +556,7 @@
                             {
                               "name": "type_message",
                               "full_name": "wombat.v1.FooRequest.type_message",
+                              "json_name": "typeMessage",
                               "kind": "message",
                               "repeated": false,
                               "map_key": null,
@@ -528,6 +570,7 @@
                                   {
                                     "name": "id",
                                     "full_name": "wombat.v1.Bar.id",
+                                    "json_name": "id",
                                     "kind": "string",
                                     "repeated": false,
                                     "map_key": null,
@@ -539,6 +582,7 @@
                                   {
                                     "name": "names",
                                     "full_name": "wombat.v1.Bar.names",
+                                    "json_name": "names",
                                     "kind": "message",
                                     "repeated": true,
                                     "map_key": null,
@@ -552,6 +596,7 @@
                                         {
                                           "name": "name",
                                           "full_name": "wombat.v1.Bar.Nested.name",
+                                          "json_name": "name",
                                           "kind": "string",
                                           "repeated": false,
                                           "map_key": null,
@@ -563,6 +608,7 @@
                                         {
                                           "name": "is_nested",
                                           "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                          "json_name": "isNested",
                                           "kind": "bool",
                                           "repeated": false,
                                           "map_key": null,
@@ -580,6 +626,7 @@
                             {
                               "name": "type_bytes",
                               "full_name": "wombat.v1.FooRequest.type_bytes",
+                              "json_name": "typeBytes",
                               "kind": "bytes",
                               "repeated": false,
                               "map_key": null,
@@ -591,6 +638,7 @@
                             {
                               "name": "type_uint32",
                               "full_name": "wombat.v1.FooRequest.type_uint32",
+                              "json_name": "typeUint32",
                               "kind": "uint32",
                               "repeated": false,
                               "map_key": null,
@@ -602,6 +650,7 @@
                             {
                               "name": "type_enum",
                               "full_name": "wombat.v1.FooRequest.type_enum",
+                              "json_name": "typeEnum",
                               "kind": "enum",
                               "repeated": false,
                               "map_key": null,
@@ -618,6 +667,7 @@
                             {
                               "name": "type_sfixed32",
                               "full_name": "wombat.v1.FooRequest.type_sfixed32",
+                              "json_name": "typeSfixed32",
                               "kind": "sfixed32",
                               "repeated": false,
                               "map_key": null,
@@ -629,6 +679,7 @@
                             {
                               "name": "type_sfixed64",
                               "full_name": "wombat.v1.FooRequest.type_sfixed64",
+                              "json_name": "typeSfixed64",
                               "kind": "sfixed64",
                               "repeated": false,
                               "map_key": null,
@@ -640,6 +691,7 @@
                             {
                               "name": "type_sint32",
                               "full_name": "wombat.v1.FooRequest.type_sint32",
+                              "json_name": "typeSint32",
                               "kind": "sint32",
                               "repeated": false,
                               "map_key": null,
@@ -651,6 +703,7 @@
                             {
                               "name": "type_sint64",
                               "full_name": "wombat.v1.FooRequest.type_sint64",
+                              "json_name": "typeSint64",
                               "kind": "sint64",
                               "repeated": false,
                               "map_key": null,
@@ -662,11 +715,13 @@
                             {
                               "name": "type_string_map",
                               "full_name": "wombat.v1.FooRequest.type_string_map",
+                              "json_name": "typeStringMap",
                               "kind": "map",
                               "repeated": false,
                               "map_key": {
                                 "name": "key",
                                 "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+                                "json_name": "key",
                                 "kind": "string",
                                 "repeated": false,
                                 "map_key": null,
@@ -678,6 +733,7 @@
                               "map_value": {
                                 "name": "value",
                                 "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+                                "json_name": "value",
                                 "kind": "string",
                                 "repeated": false,
                                 "map_key": null,
@@ -693,11 +749,13 @@
                             {
                               "name": "type_complex_map",
                               "full_name": "wombat.v1.FooRequest.type_complex_map",
+                              "json_name": "typeComplexMap",
                               "kind": "map",
                               "repeated": false,
                               "map_key": {
                                 "name": "key",
                                 "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+                                "json_name": "key",
                                 "kind": "string",
                                 "repeated": false,
                                 "map_key": null,
@@ -709,6 +767,7 @@
                               "map_value": {
                                 "name": "value",
                                 "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+                                "json_name": "value",
                                 "kind": "message",
                                 "repeated": false,
                                 "map_key": null,
@@ -722,6 +781,7 @@
                                     {
                                       "name": "id",
                                       "full_name": "wombat.v1.Bar.id",
+                                      "json_name": "id",
                                       "kind": "string",
                                       "repeated": false,
                                       "map_key": null,
@@ -733,6 +793,7 @@
                                     {
                                       "name": "names",
                                       "full_name": "wombat.v1.Bar.names",
+                                      "json_name": "names",
                                       "kind": "message",
                                       "repeated": true,
                                       "map_key": null,
@@ -746,6 +807,7 @@
                                           {
                                             "name": "name",
                                             "full_name": "wombat.v1.Bar.Nested.name",
+                                            "json_name": "name",
                                             "kind": "string",
                                             "repeated": false,
                                             "map_key": null,
@@ -757,6 +819,7 @@
                                           {
                                             "name": "is_nested",
                                             "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                            "json_name": "isNested",
                                             "kind": "bool",
                                             "repeated": false,
                                             "map_key": null,
@@ -781,6 +844,7 @@
                       {
                         "name": "bar",
                         "full_name": "wombat.v1.BazRequest.bar",
+                        "json_name": "bar",
                         "kind": "message",
                         "repeated": false,
                         "map_key": null,
@@ -794,6 +858,7 @@
                             {
                               "name": "type_repeated_string",
                               "full_name": "wombat.v1.BarRequest.type_repeated_string",
+                              "json_name": "typeRepeatedString",
                               "kind": "string",
                               "repeated": true,
                               "map_key": null,
@@ -805,6 +870,7 @@
                             {
                               "name": "type_repeated_float",
                               "full_name": "wombat.v1.BarRequest.type_repeated_float",
+                              "json_name": "typeRepeatedFloat",
                               "kind": "float",
                               "repeated": true,
                               "map_key": null,
@@ -816,6 +882,7 @@
                             {
                               "name": "type_repeated_bool",
                               "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+                              "json_name": "typeRepeatedBool",
                               "kind": "bool",
                               "repeated": true,
                               "map_key": null,
@@ -827,6 +894,7 @@
                             {
                               "name": "type_repeated_enum",
                               "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+                              "json_name": "typeRepeatedEnum",
                               "kind": "enum",
                               "repeated": true,
                               "map_key": null,
@@ -843,6 +911,7 @@
                             {
                               "name": "type_repeated_bytes",
                               "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+                              "json_name": "typeRepeatedBytes",
                               "kind": "bytes",
                               "repeated": true,
                               "map_key": null,
@@ -854,6 +923,7 @@
                             {
                               "name": "type_repeated_message",
                               "full_name": "wombat.v1.BarRequest.type_repeated_message",
+                              "json_name": "typeRepeatedMessage",
                               "kind": "message",
                               "repeated": true,
                               "map_key": null,
@@ -867,6 +937,7 @@
                                   {
                                     "name": "id",
                                     "full_name": "wombat.v1.Bar.id",
+                                    "json_name": "id",
                                     "kind": "string",
                                     "repeated": false,
                                     "map_key": null,
@@ -878,6 +949,7 @@
                                   {
                                     "name": "names",
                                     "full_name": "wombat.v1.Bar.names",
+                                    "json_name": "names",
                                     "kind": "message",
                                     "repeated": true,
                                     "map_key": null,
@@ -891,6 +963,7 @@
                                         {
                                           "name": "name",
                                           "full_name": "wombat.v1.Bar.Nested.name",
+                                          "json_name": "name",
                                           "kind": "string",
                                           "repeated": false,
                                           "map_key": null,
@@ -902,6 +975,7 @@
                                         {
                                           "name": "is_nested",
                                           "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                          "json_name": "isNested",
                                           "kind": "bool",
                                           "repeated": false,
                                           "map_key": null,
@@ -919,6 +993,7 @@
                             {
                               "name": "uint32repeated",
                               "full_name": "wombat.v1.BarRequest.uint32repeated",
+                              "json_name": "uint32repeated",
                               "kind": "uint32",
                               "repeated": true,
                               "map_key": null,
@@ -933,6 +1008,7 @@
                       {
                         "name": "baz",
                         "full_name": "wombat.v1.BazRequest.baz",
+                        "json_name": "baz",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -964,6 +1040,7 @@
           {
             "name": "type_repeated_string",
             "full_name": "wombat.v1.BarRequest.type_repeated_string",
+            "json_name": "typeRepeatedString",
             "kind": "string",
             "repeated": true,
             "map_key": null,
@@ -975,6 +1052,7 @@
           {
             "name": "type_repeated_float",
             "full_name": "wombat.v1.BarRequest.type_repeated_float",
+            "json_name": "typeRepeatedFloat",
             "kind": "float",
             "repeated": true,
             "map_key": null,
@@ -986,6 +1064,7 @@
           {
             "name": "type_repeated_bool",
             "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+            "json_name": "typeRepeatedBool",
             "kind": "bool",
             "repeated": true,
             "map_key": null,
@@ -997,6 +1076,7 @@
           {
             "name": "type_repeated_enum",
             "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+            "json_name": "typeRepeatedEnum",
             "kind": "enum",
             "repeated": true,
             "map_key": null,
@@ -1013,6 +1093,7 @@
           {
             "name": "type_repeated_bytes",
             "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+            "json_name": "typeRepeatedBytes",
             "kind": "bytes",
             "repeated": true,
             "map_key": null,
@@ -1024,6 +1105,7 @@
           {
             "name": "type_repeated_message",
             "full_name": "wombat.v1.BarRequest.type_repeated_message",
+            "json_name": "typeRepeatedMessage",
             "kind": "message",
             "repeated": true,
             "map_key": null,
@@ -1037,6 +1119,7 @@
                 {
                   "name": "id",
                   "full_name": "wombat.v1.Bar.id",
+                  "json_name": "id",
                   "kind": "string",
                   "repeated": false,
                   "map_key": null,
@@ -1048,6 +1131,7 @@
                 {
                   "name": "names",
                   "full_name": "wombat.v1.Bar.names",
+                  "json_name": "names",
                   "kind": "message",
                   "repeated": true,
                   "map_key": null,
@@ -1061,6 +1145,7 @@
                       {
                         "name": "name",
                         "full_name": "wombat.v1.Bar.Nested.name",
+                        "json_name": "name",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -1072,6 +1157,7 @@
                       {
                         "name": "is_nested",
                         "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "json_name": "isNested",
                         "kind": "bool",
                         "repeated": false,
                         "map_key": null,
@@ -1089,6 +1175,7 @@
           {
             "name": "uint32repeated",
             "full_name": "wombat.v1.BarRequest.uint32repeated",
+            "json_name": "uint32repeated",
             "kind": "uint32",
             "repeated": true,
             "map_key": null,
@@ -1117,6 +1204,7 @@
               {
                 "name": "foo",
                 "full_name": "wombat.v1.BazRequest.foo",
+                "json_name": "foo",
                 "kind": "message",
                 "repeated": false,
                 "map_key": null,
@@ -1130,6 +1218,7 @@
                     {
                       "name": "type_double",
                       "full_name": "wombat.v1.FooRequest.type_double",
+                      "json_name": "typeDouble",
                       "kind": "double",
                       "repeated": false,
                       "map_key": null,
@@ -1141,6 +1230,7 @@
                     {
                       "name": "type_float",
                       "full_name": "wombat.v1.FooRequest.type_float",
+                      "json_name": "typeFloat",
                       "kind": "float",
                       "repeated": false,
                       "map_key": null,
@@ -1152,6 +1242,7 @@
                     {
                       "name": "type_int64",
                       "full_name": "wombat.v1.FooRequest.type_int64",
+                      "json_name": "typeInt64",
                       "kind": "int64",
                       "repeated": false,
                       "map_key": null,
@@ -1163,6 +1254,7 @@
                     {
                       "name": "type_uint64",
                       "full_name": "wombat.v1.FooRequest.type_uint64",
+                      "json_name": "typeUint64",
                       "kind": "uint64",
                       "repeated": false,
                       "map_key": null,
@@ -1174,6 +1266,7 @@
                     {
                       "name": "type_int32",
                       "full_name": "wombat.v1.FooRequest.type_int32",
+                      "json_name": "typeInt32",
                       "kind": "int32",
                       "repeated": false,
                       "map_key": null,
@@ -1185,6 +1278,7 @@
                     {
                       "name": "type_fixed64",
                       "full_name": "wombat.v1.FooRequest.type_fixed64",
+                      "json_name": "typeFixed64",
                       "kind": "fixed64",
                       "repeated": false,
                       "map_key": null,
@@ -1196,6 +1290,7 @@
                     {
                       "name": "type_fixed32",
                       "full_name": "wombat.v1.FooRequest.type_fixed32",
+                      "json_name": "typeFixed32",
                       "kind": "fixed32",
                       "repeated": false,
                       "map_key": null,
@@ -1207,6 +1302,7 @@
                     {
                       "name": "type_bool",
                       "full_name": "wombat.v1.FooRequest.type_bool",
+                      "json_name": "typeBool",
                       "kind": "bool",
                       "repeated": false,
                       "map_key": null,
@@ -1218,6 +1314,7 @@
                     {
                       "name": "type_string",
                       "full_name": "wombat.v1.FooRequest.type_string",
+                      "json_name": "typeString",
                       "kind": "string",
                       "repeated": false,
                       "map_key": null,
@@ -1229,6 +1326,7 @@
                     {
                       "name": "type_message",
                       "full_name": "wombat.v1.FooRequest.type_message",
+                      "json_name": "typeMessage",
                       "kind": "message",
                       "repeated": false,
                       "map_key": null,
@@ -1242,6 +1340,7 @@
                           {
                             "name": "id",
                             "full_name": "wombat.v1.Bar.id",
+                            "json_name": "id",
                             "kind": "string",
                             "repeated": false,
                             "map_key": null,
@@ -1253,6 +1352,7 @@
                           {
                             "name": "names",
                             "full_name": "wombat.v1.Bar.names",
+                            "json_name": "names",
                             "kind": "message",
                             "repeated": true,
                             "map_key": null,
@@ -1266,6 +1366,7 @@
                                 {
                                   "name": "name",
                                   "full_name": "wombat.v1.Bar.Nested.name",
+                                  "json_name": "name",
                                   "kind": "string",
                                   "repeated": false,
                                   "map_key": null,
@@ -1277,6 +1378,7 @@
                                 {
                                   "name": "is_nested",
                                   "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                  "json_name": "isNested",
                                   "kind": "bool",
                                   "repeated": false,
                                   "map_key": null,
@@ -1294,6 +1396,7 @@
                     {
                       "name": "type_bytes",
                       "full_name": "wombat.v1.FooRequest.type_bytes",
+                      "json_name": "typeBytes",
                       "kind": "bytes",
                       "repeated": false,
                       "map_key": null,
@@ -1305,6 +1408,7 @@
                     {
                       "name": "type_uint32",
                       "full_name": "wombat.v1.FooRequest.type_uint32",
+                      "json_name": "typeUint32",
                       "kind": "uint32",
                       "repeated": false,
                       "map_key": null,
@@ -1316,6 +1420,7 @@
                     {
                       "name": "type_enum",
                       "full_name": "wombat.v1.FooRequest.type_enum",
+                      "json_name": "typeEnum",
                       "kind": "enum",
                       "repeated": false,
                       "map_key": null,
@@ -1332,6 +1437,7 @@
                     {
                       "name": "type_sfixed32",
                       "full_name": "wombat.v1.FooRequest.type_sfixed32",
+                      "json_name": "typeSfixed32",
                       "kind": "sfixed32",
                       "repeated": false,
                       "map_key": null,
@@ -1343,6 +1449,7 @@
                     {
                       "name": "type_sfixed64",
                       "full_name": "wombat.v1.FooRequest.type_sfixed64",
+                      "json_name": "typeSfixed64",
                       "kind": "sfixed64",
                       "repeated": false,
                       "map_key": null,
@@ -1354,6 +1461,7 @@
                     {
                       "name": "type_sint32",
                       "full_name": "wombat.v1.FooRequest.type_sint32",
+                      "json_name": "typeSint32",
                       "kind": "sint32",
                       "repeated": false,
                       "map_key": null,
@@ -1365,6 +1473,7 @@
                     {
                       "name": "type_sint64",
                       "full_name": "wombat.v1.FooRequest.type_sint64",
+                      "json_name": "typeSint64",
                       "kind": "sint64",
                       "repeated": false,
                       "map_key": null,
@@ -1376,11 +1485,13 @@
                     {
                       "name": "type_string_map",
                       "full_name": "wombat.v1.FooRequest.type_string_map",
+                      "json_name": "typeStringMap",
                       "kind": "map",
                       "repeated": false,
                       "map_key": {
                         "name": "key",
                         "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+                        "json_name": "key",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -1392,6 +1503,7 @@
                       "map_value": {
                         "name": "value",
                         "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+                        "json_name": "value",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -1407,11 +1519,13 @@
                     {
                       "name": "type_complex_map",
                       "full_name": "wombat.v1.FooRequest.type_complex_map",
+                      "json_name": "typeComplexMap",
                       "kind": "map",
                       "repeated": false,
                       "map_key": {
                         "name": "key",
                         "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+                        "json_name": "key",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -1423,6 +1537,7 @@
                       "map_value": {
                         "name": "value",
                         "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+                        "json_name": "value",
                         "kind": "message",
                         "repeated": false,
                         "map_key": null,
@@ -1436,6 +1551,7 @@
                             {
                               "name": "id",
                               "full_name": "wombat.v1.Bar.id",
+                              "json_name": "id",
                               "kind": "string",
                               "repeated": false,
                               "map_key": null,
@@ -1447,6 +1563,7 @@
                             {
                               "name": "names",
                               "full_name": "wombat.v1.Bar.names",
+                              "json_name": "names",
                               "kind": "message",
                               "repeated": true,
                               "map_key": null,
@@ -1460,6 +1577,7 @@
                                   {
                                     "name": "name",
                                     "full_name": "wombat.v1.Bar.Nested.name",
+                                    "json_name": "name",
                                     "kind": "string",
                                     "repeated": false,
                                     "map_key": null,
@@ -1471,6 +1589,7 @@
                                   {
                                     "name": "is_nested",
                                     "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                    "json_name": "isNested",
                                     "kind": "bool",
                                     "repeated": false,
                                     "map_key": null,
@@ -1495,6 +1614,7 @@
               {
                 "name": "bar",
                 "full_name": "wombat.v1.BazRequest.bar",
+                "json_name": "bar",
                 "kind": "message",
                 "repeated": false,
                 "map_key": null,
@@ -1508,6 +1628,7 @@
                     {
                       "name": "type_repeated_string",
                       "full_name": "wombat.v1.BarRequest.type_repeated_string",
+                      "json_name": "typeRepeatedString",
                       "kind": "string",
                       "repeated": true,
                       "map_key": null,
@@ -1519,6 +1640,7 @@
                     {
                       "name": "type_repeated_float",
                       "full_name": "wombat.v1.BarRequest.type_repeated_float",
+                      "json_name": "typeRepeatedFloat",
                       "kind": "float",
                       "repeated": true,
                       "map_key": null,
@@ -1530,6 +1652,7 @@
                     {
                       "name": "type_repeated_bool",
                       "full_name": "wombat.v1.BarRequest.type_repeated_bool",
+                      "json_name": "typeRepeatedBool",
                       "kind": "bool",
                       "repeated": true,
                       "map_key": null,
@@ -1541,6 +1664,7 @@
                     {
                       "name": "type_repeated_enum",
                       "full_name": "wombat.v1.BarRequest.type_repeated_enum",
+                      "json_name": "typeRepeatedEnum",
                       "kind": "enum",
                       "repeated": true,
                       "map_key": null,
@@ -1557,6 +1681,7 @@
                     {
                       "name": "type_repeated_bytes",
                       "full_name": "wombat.v1.BarRequest.type_repeated_bytes",
+                      "json_name": "typeRepeatedBytes",
                       "kind": "bytes",
                       "repeated": true,
                       "map_key": null,
@@ -1568,6 +1693,7 @@
                     {
                       "name": "type_repeated_message",
                       "full_name": "wombat.v1.BarRequest.type_repeated_message",
+                      "json_name": "typeRepeatedMessage",
                       "kind": "message",
                       "repeated": true,
                       "map_key": null,
@@ -1581,6 +1707,7 @@
                           {
                             "name": "id",
                             "full_name": "wombat.v1.Bar.id",
+                            "json_name": "id",
                             "kind": "string",
                             "repeated": false,
                             "map_key": null,
@@ -1592,6 +1719,7 @@
                           {
                             "name": "names",
                             "full_name": "wombat.v1.Bar.names",
+                            "json_name": "names",
                             "kind": "message",
                             "repeated": true,
                             "map_key": null,
@@ -1605,6 +1733,7 @@
                                 {
                                   "name": "name",
                                   "full_name": "wombat.v1.Bar.Nested.name",
+                                  "json_name": "name",
                                   "kind": "string",
                                   "repeated": false,
                                   "map_key": null,
@@ -1616,6 +1745,7 @@
                                 {
                                   "name": "is_nested",
                                   "full_name": "wombat.v1.Bar.Nested.is_nested",
+                                  "json_name": "isNested",
                                   "kind": "bool",
                                   "repeated": false,
                                   "map_key": null,
@@ -1633,6 +1763,7 @@
                     {
                       "name": "uint32repeated",
                       "full_name": "wombat.v1.BarRequest.uint32repeated",
+                      "json_name": "uint32repeated",
                       "kind": "uint32",
                       "repeated": true,
                       "map_key": null,
@@ -1647,6 +1778,7 @@
               {
                 "name": "baz",
                 "full_name": "wombat.v1.BazRequest.baz",
+                "json_name": "baz",
                 "kind": "string",
                 "repeated": false,
                 "map_key": null,
@@ -1679,6 +1811,7 @@
           {
             "name": "type_double",
             "full_name": "wombat.v1.FooRequest.type_double",
+            "json_name": "typeDouble",
             "kind": "double",
             "repeated": false,
             "map_key": null,
@@ -1690,6 +1823,7 @@
           {
             "name": "type_float",
             "full_name": "wombat.v1.FooRequest.type_float",
+            "json_name": "typeFloat",
             "kind": "float",
             "repeated": false,
             "map_key": null,
@@ -1701,6 +1835,7 @@
           {
             "name": "type_int64",
             "full_name": "wombat.v1.FooRequest.type_int64",
+            "json_name": "typeInt64",
             "kind": "int64",
             "repeated": false,
             "map_key": null,
@@ -1712,6 +1847,7 @@
           {
             "name": "type_uint64",
             "full_name": "wombat.v1.FooRequest.type_uint64",
+            "json_name": "typeUint64",
             "kind": "uint64",
             "repeated": false,
             "map_key": null,
@@ -1723,6 +1859,7 @@
           {
             "name": "type_int32",
             "full_name": "wombat.v1.FooRequest.type_int32",
+            "json_name": "typeInt32",
             "kind": "int32",
             "repeated": false,
             "map_key": null,
@@ -1734,6 +1871,7 @@
           {
             "name": "type_fixed64",
             "full_name": "wombat.v1.FooRequest.type_fixed64",
+            "json_name": "typeFixed64",
             "kind": "fixed64",
             "repeated": false,
             "map_key": null,
@@ -1745,6 +1883,7 @@
           {
             "name": "type_fixed32",
             "full_name": "wombat.v1.FooRequest.type_fixed32",
+            "json_name": "typeFixed32",
             "kind": "fixed32",
             "repeated": false,
             "map_key": null,
@@ -1756,6 +1895,7 @@
           {
             "name": "type_bool",
             "full_name": "wombat.v1.FooRequest.type_bool",
+            "json_name": "typeBool",
             "kind": "bool",
             "repeated": false,
             "map_key": null,
@@ -1767,6 +1907,7 @@
           {
             "name": "type_string",
             "full_name": "wombat.v1.FooRequest.type_string",
+            "json_name": "typeString",
             "kind": "string",
             "repeated": false,
             "map_key": null,
@@ -1778,6 +1919,7 @@
           {
             "name": "type_message",
             "full_name": "wombat.v1.FooRequest.type_message",
+            "json_name": "typeMessage",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -1791,6 +1933,7 @@
                 {
                   "name": "id",
                   "full_name": "wombat.v1.Bar.id",
+                  "json_name": "id",
                   "kind": "string",
                   "repeated": false,
                   "map_key": null,
@@ -1802,6 +1945,7 @@
                 {
                   "name": "names",
                   "full_name": "wombat.v1.Bar.names",
+                  "json_name": "names",
                   "kind": "message",
                   "repeated": true,
                   "map_key": null,
@@ -1815,6 +1959,7 @@
                       {
                         "name": "name",
                         "full_name": "wombat.v1.Bar.Nested.name",
+                        "json_name": "name",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -1826,6 +1971,7 @@
                       {
                         "name": "is_nested",
                         "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "json_name": "isNested",
                         "kind": "bool",
                         "repeated": false,
                         "map_key": null,
@@ -1843,6 +1989,7 @@
           {
             "name": "type_bytes",
             "full_name": "wombat.v1.FooRequest.type_bytes",
+            "json_name": "typeBytes",
             "kind": "bytes",
             "repeated": false,
             "map_key": null,
@@ -1854,6 +2001,7 @@
           {
             "name": "type_uint32",
             "full_name": "wombat.v1.FooRequest.type_uint32",
+            "json_name": "typeUint32",
             "kind": "uint32",
             "repeated": false,
             "map_key": null,
@@ -1865,6 +2013,7 @@
           {
             "name": "type_enum",
             "full_name": "wombat.v1.FooRequest.type_enum",
+            "json_name": "typeEnum",
             "kind": "enum",
             "repeated": false,
             "map_key": null,
@@ -1881,6 +2030,7 @@
           {
             "name": "type_sfixed32",
             "full_name": "wombat.v1.FooRequest.type_sfixed32",
+            "json_name": "typeSfixed32",
             "kind": "sfixed32",
             "repeated": false,
             "map_key": null,
@@ -1892,6 +2042,7 @@
           {
             "name": "type_sfixed64",
             "full_name": "wombat.v1.FooRequest.type_sfixed64",
+            "json_name": "typeSfixed64",
             "kind": "sfixed64",
             "repeated": false,
             "map_key": null,
@@ -1903,6 +2054,7 @@
           {
             "name": "type_sint32",
             "full_name": "wombat.v1.FooRequest.type_sint32",
+            "json_name": "typeSint32",
             "kind": "sint32",
             "repeated": false,
             "map_key": null,
@@ -1914,6 +2066,7 @@
           {
             "name": "type_sint64",
             "full_name": "wombat.v1.FooRequest.type_sint64",
+            "json_name": "typeSint64",
             "kind": "sint64",
             "repeated": false,
             "map_key": null,
@@ -1925,11 +2078,13 @@
           {
             "name": "type_string_map",
             "full_name": "wombat.v1.FooRequest.type_string_map",
+            "json_name": "typeStringMap",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -1941,6 +2096,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.FooRequest.TypeStringMapEntry.value",
+              "json_name": "value",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -1956,11 +2112,13 @@
           {
             "name": "type_complex_map",
             "full_name": "wombat.v1.FooRequest.type_complex_map",
+            "json_name": "typeComplexMap",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -1972,6 +2130,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.FooRequest.TypeComplexMapEntry.value",
+              "json_name": "value",
               "kind": "message",
               "repeated": false,
               "map_key": null,
@@ -1985,6 +2144,7 @@
                   {
                     "name": "id",
                     "full_name": "wombat.v1.Bar.id",
+                    "json_name": "id",
                     "kind": "string",
                     "repeated": false,
                     "map_key": null,
@@ -1996,6 +2156,7 @@
                   {
                     "name": "names",
                     "full_name": "wombat.v1.Bar.names",
+                    "json_name": "names",
                     "kind": "message",
                     "repeated": true,
                     "map_key": null,
@@ -2009,6 +2170,7 @@
                         {
                           "name": "name",
                           "full_name": "wombat.v1.Bar.Nested.name",
+                          "json_name": "name",
                           "kind": "string",
                           "repeated": false,
                           "map_key": null,
@@ -2020,6 +2182,7 @@
                         {
                           "name": "is_nested",
                           "full_name": "wombat.v1.Bar.Nested.is_nested",
+                          "json_name": "isNested",
                           "kind": "bool",
                           "repeated": false,
                           "map_key": null,
@@ -2050,6 +2213,7 @@
           {
             "name": "bar",
             "full_name": "wombat.v1.RecursiveRequest.bar",
+            "json_name": "bar",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2063,6 +2227,7 @@
                 {
                   "name": "id",
                   "full_name": "wombat.v1.Bar.id",
+                  "json_name": "id",
                   "kind": "string",
                   "repeated": false,
                   "map_key": null,
@@ -2074,6 +2239,7 @@
                 {
                   "name": "names",
                   "full_name": "wombat.v1.Bar.names",
+                  "json_name": "names",
                   "kind": "message",
                   "repeated": true,
                   "map_key": null,
@@ -2087,6 +2253,7 @@
                       {
                         "name": "name",
                         "full_name": "wombat.v1.Bar.Nested.name",
+                        "json_name": "name",
                         "kind": "string",
                         "repeated": false,
                         "map_key": null,
@@ -2098,6 +2265,7 @@
                       {
                         "name": "is_nested",
                         "full_name": "wombat.v1.Bar.Nested.is_nested",
+                        "json_name": "isNested",
                         "kind": "bool",
                         "repeated": false,
                         "map_key": null,
@@ -2115,6 +2283,7 @@
           {
             "name": "self",
             "full_name": "wombat.v1.RecursiveRequest.self",
+            "json_name": "self",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2131,6 +2300,7 @@
           {
             "name": "tree",
             "full_name": "wombat.v1.RecursiveRequest.tree",
+            "json_name": "tree",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2144,6 +2314,7 @@
                 {
                   "name": "name",
                   "full_name": "wombat.v1.Tree.name",
+                  "json_name": "name",
                   "kind": "string",
                   "repeated": false,
                   "map_key": null,
@@ -2155,6 +2326,7 @@
                 {
                   "name": "children",
                   "full_name": "wombat.v1.Tree.children",
+                  "json_name": "children",
                   "kind": "message",
                   "repeated": true,
                   "map_key": null,
@@ -2167,6 +2339,18 @@
                     "fields": null,
                     "recursive": true
                   }
+                },
+                {
+                  "name": "display_name",
+                  "full_name": "wombat.v1.Tree.display_name",
+                  "json_name": "label",
+                  "kind": "string",
+                  "repeated": false,
+                  "map_key": null,
+                  "map_value": null,
+                  "oneof": null,
+                  "enum": null,
+                  "message": null
                 }
               ]
             }
@@ -2174,11 +2358,13 @@
           {
             "name": "forest",
             "full_name": "wombat.v1.RecursiveRequest.forest",
+            "json_name": "forest",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.RecursiveRequest.ForestEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -2190,6 +2376,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.RecursiveRequest.ForestEntry.value",
+              "json_name": "value",
               "kind": "message",
               "repeated": false,
               "map_key": null,
@@ -2203,6 +2390,7 @@
                   {
                     "name": "name",
                     "full_name": "wombat.v1.Tree.name",
+                    "json_name": "name",
                     "kind": "string",
                     "repeated": false,
                     "map_key": null,
@@ -2214,6 +2402,7 @@
                   {
                     "name": "children",
                     "full_name": "wombat.v1.Tree.children",
+                    "json_name": "children",
                     "kind": "message",
                     "repeated": true,
                     "map_key": null,
@@ -2226,6 +2415,18 @@
                       "fields": null,
                       "recursive": true
                     }
+                  },
+                  {
+                    "name": "display_name",
+                    "full_name": "wombat.v1.Tree.display_name",
+                    "json_name": "label",
+                    "kind": "string",
+                    "repeated": false,
+                    "map_key": null,
+                    "map_value": null,
+                    "oneof": null,
+                    "enum": null,
+                    "message": null
                   }
                 ]
               }
@@ -2254,6 +2455,7 @@
               {
                 "name": "baz",
                 "full_name": "wombat.v1.SingleOneofRequest.baz",
+                "json_name": "baz",
                 "kind": "message",
                 "repeated": false,
                 "map_key": null,
@@ -2282,6 +2484,7 @@
           {
             "name": "timestamp",
             "full_name": "wombat.v1.WellKnownRequest.timestamp",
+            "json_name": "timestamp",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2295,6 +2498,7 @@
                 {
                   "name": "seconds",
                   "full_name": "google.protobuf.Timestamp.seconds",
+                  "json_name": "seconds",
                   "kind": "int64",
                   "repeated": false,
                   "map_key": null,
@@ -2306,6 +2510,7 @@
                 {
                   "name": "nanos",
                   "full_name": "google.protobuf.Timestamp.nanos",
+                  "json_name": "nanos",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2320,6 +2525,7 @@
           {
             "name": "duration",
             "full_name": "wombat.v1.WellKnownRequest.duration",
+            "json_name": "duration",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2333,6 +2539,7 @@
                 {
                   "name": "seconds",
                   "full_name": "google.protobuf.Duration.seconds",
+                  "json_name": "seconds",
                   "kind": "int64",
                   "repeated": false,
                   "map_key": null,
@@ -2344,6 +2551,7 @@
                 {
                   "name": "nanos",
                   "full_name": "google.protobuf.Duration.nanos",
+                  "json_name": "nanos",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2358,6 +2566,7 @@
           {
             "name": "double_value",
             "full_name": "wombat.v1.WellKnownRequest.double_value",
+            "json_name": "doubleValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2371,6 +2580,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.DoubleValue.value",
+                  "json_name": "value",
                   "kind": "double",
                   "repeated": false,
                   "map_key": null,
@@ -2385,6 +2595,7 @@
           {
             "name": "float_value",
             "full_name": "wombat.v1.WellKnownRequest.float_value",
+            "json_name": "floatValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2398,6 +2609,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.FloatValue.value",
+                  "json_name": "value",
                   "kind": "float",
                   "repeated": false,
                   "map_key": null,
@@ -2412,6 +2624,7 @@
           {
             "name": "int64_value",
             "full_name": "wombat.v1.WellKnownRequest.int64_value",
+            "json_name": "int64Value",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2425,6 +2638,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.Int64Value.value",
+                  "json_name": "value",
                   "kind": "int64",
                   "repeated": false,
                   "map_key": null,
@@ -2439,6 +2653,7 @@
           {
             "name": "uint64_value",
             "full_name": "wombat.v1.WellKnownRequest.uint64_value",
+            "json_name": "uint64Value",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2452,6 +2667,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.UInt64Value.value",
+                  "json_name": "value",
                   "kind": "uint64",
                   "repeated": false,
                   "map_key": null,
@@ -2466,6 +2682,7 @@
           {
             "name": "int32_value",
             "full_name": "wombat.v1.WellKnownRequest.int32_value",
+            "json_name": "int32Value",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2479,6 +2696,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.Int32Value.value",
+                  "json_name": "value",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2493,6 +2711,7 @@
           {
             "name": "uint32_value",
             "full_name": "wombat.v1.WellKnownRequest.uint32_value",
+            "json_name": "uint32Value",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2506,6 +2725,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.UInt32Value.value",
+                  "json_name": "value",
                   "kind": "uint32",
                   "repeated": false,
                   "map_key": null,
@@ -2520,6 +2740,7 @@
           {
             "name": "bool_value",
             "full_name": "wombat.v1.WellKnownRequest.bool_value",
+            "json_name": "boolValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2533,6 +2754,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.BoolValue.value",
+                  "json_name": "value",
                   "kind": "bool",
                   "repeated": false,
                   "map_key": null,
@@ -2547,6 +2769,7 @@
           {
             "name": "string_value",
             "full_name": "wombat.v1.WellKnownRequest.string_value",
+            "json_name": "stringValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2560,6 +2783,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.StringValue.value",
+                  "json_name": "value",
                   "kind": "string",
                   "repeated": false,
                   "map_key": null,
@@ -2574,6 +2798,7 @@
           {
             "name": "bytes_value",
             "full_name": "wombat.v1.WellKnownRequest.bytes_value",
+            "json_name": "bytesValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2587,6 +2812,7 @@
                 {
                   "name": "value",
                   "full_name": "google.protobuf.BytesValue.value",
+                  "json_name": "value",
                   "kind": "bytes",
                   "repeated": false,
                   "map_key": null,
@@ -2601,6 +2827,7 @@
           {
             "name": "struct_value",
             "full_name": "wombat.v1.WellKnownRequest.struct_value",
+            "json_name": "structValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2628,6 +2855,7 @@
           {
             "name": "value",
             "full_name": "wombat.v1.WellKnownRequest.value",
+            "json_name": "value",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2655,6 +2883,7 @@
           {
             "name": "list_value",
             "full_name": "wombat.v1.WellKnownRequest.list_value",
+            "json_name": "listValue",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2682,6 +2911,7 @@
           {
             "name": "timestamps",
             "full_name": "wombat.v1.WellKnownRequest.timestamps",
+            "json_name": "timestamps",
             "kind": "message",
             "repeated": true,
             "map_key": null,
@@ -2695,6 +2925,7 @@
                 {
                   "name": "seconds",
                   "full_name": "google.protobuf.Timestamp.seconds",
+                  "json_name": "seconds",
                   "kind": "int64",
                   "repeated": false,
                   "map_key": null,
@@ -2706,6 +2937,7 @@
                 {
                   "name": "nanos",
                   "full_name": "google.protobuf.Timestamp.nanos",
+                  "json_name": "nanos",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2720,11 +2952,13 @@
           {
             "name": "timestamp_map",
             "full_name": "wombat.v1.WellKnownRequest.timestamp_map",
+            "json_name": "timestampMap",
             "kind": "map",
             "repeated": false,
             "map_key": {
               "name": "key",
               "full_name": "wombat.v1.WellKnownRequest.TimestampMapEntry.key",
+              "json_name": "key",
               "kind": "string",
               "repeated": false,
               "map_key": null,
@@ -2736,6 +2970,7 @@
             "map_value": {
               "name": "value",
               "full_name": "wombat.v1.WellKnownRequest.TimestampMapEntry.value",
+              "json_name": "value",
               "kind": "message",
               "repeated": false,
               "map_key": null,
@@ -2749,6 +2984,7 @@
                   {
                     "name": "seconds",
                     "full_name": "google.protobuf.Timestamp.seconds",
+                    "json_name": "seconds",
                     "kind": "int64",
                     "repeated": false,
                     "map_key": null,
@@ -2760,6 +2996,7 @@
                   {
                     "name": "nanos",
                     "full_name": "google.protobuf.Timestamp.nanos",
+                    "json_name": "nanos",
                     "kind": "int32",
                     "repeated": false,
                     "map_key": null,
@@ -2787,6 +3024,7 @@
           {
             "name": "latitude",
             "full_name": "wombat.v1.Point.latitude",
+            "json_name": "latitude",
             "kind": "int32",
             "repeated": false,
             "map_key": null,
@@ -2798,6 +3036,7 @@
           {
             "name": "longitude",
             "full_name": "wombat.v1.Point.longitude",
+            "json_name": "longitude",
             "kind": "int32",
             "repeated": false,
             "map_key": null,
@@ -2818,6 +3057,7 @@
           {
             "name": "lo",
             "full_name": "wombat.v1.Rectangle.lo",
+            "json_name": "lo",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2831,6 +3071,7 @@
                 {
                   "name": "latitude",
                   "full_name": "wombat.v1.Point.latitude",
+                  "json_name": "latitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2842,6 +3083,7 @@
                 {
                   "name": "longitude",
                   "full_name": "wombat.v1.Point.longitude",
+                  "json_name": "longitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2856,6 +3098,7 @@
           {
             "name": "hi",
             "full_name": "wombat.v1.Rectangle.hi",
+            "json_name": "hi",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2869,6 +3112,7 @@
                 {
                   "name": "latitude",
                   "full_name": "wombat.v1.Point.latitude",
+                  "json_name": "latitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2880,6 +3124,7 @@
                 {
                   "name": "longitude",
                   "full_name": "wombat.v1.Point.longitude",
+                  "json_name": "longitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2903,6 +3148,7 @@
           {
             "name": "latitude",
             "full_name": "wombat.v1.Point.latitude",
+            "json_name": "latitude",
             "kind": "int32",
             "repeated": false,
             "map_key": null,
@@ -2914,6 +3160,7 @@
           {
             "name": "longitude",
             "full_name": "wombat.v1.Point.longitude",
+            "json_name": "longitude",
             "kind": "int32",
             "repeated": false,
             "map_key": null,
@@ -2934,6 +3181,7 @@
           {
             "name": "location",
             "full_name": "wombat.v1.RouteNote.location",
+            "json_name": "location",
             "kind": "message",
             "repeated": false,
             "map_key": null,
@@ -2947,6 +3195,7 @@
                 {
                   "name": "latitude",
                   "full_name": "wombat.v1.Point.latitude",
+                  "json_name": "latitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2958,6 +3207,7 @@
                 {
                   "name": "longitude",
                   "full_name": "wombat.v1.Point.longitude",
+                  "json_name": "longitude",
                   "kind": "int32",
                   "repeated": false,
                   "map_key": null,
@@ -2972,6 +3222,7 @@
           {
             "name": "message",
             "full_name": "wombat.v1.RouteNote.message",
+            "json_name": "message",
             "kind": "string",
             "repeated": false,
             "map_key": null,

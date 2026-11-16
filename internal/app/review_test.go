@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"wombat/internal/server"
 )
 
 // A client stream the server ends before the user closes it must end the
@@ -147,5 +149,43 @@ func TestConnectEmptyAddressNotSaved(t *testing.T) {
 	}
 	if a.currentWorkspaceID() != defaultWorkspaceKey && a.currentWorkspaceID() != "" {
 		t.Fatalf("current workspace = %s", a.currentWorkspaceID())
+	}
+}
+
+// The frontend checks JSON-edited field names against the JSON name the
+// backend accepts, including a custom json_name.
+func TestFieldJSONName(t *testing.T) {
+	m, err := messageViewFromDesc((&server.Tree{}).ProtoReflect().Descriptor(), &cyclicDetector{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := fieldByName(t, m, "display_name").JSONName; got != "label" {
+		t.Errorf("display_name json name = %q, want label", got)
+	}
+	if got := fieldByName(t, m, "children").JSONName; got != "children" {
+		t.Errorf("children json name = %q", got)
+	}
+}
+
+// Importing a command whose data has a field the method does not have
+// imports it, and says that the field is ignored.
+func TestImportUnknownFieldNotice(t *testing.T) {
+	a, rec := newConnectedAPI(t)
+
+	ok := `grpcurl -d '{"latitude":1}' -plaintext localhost:1 wombat.v1.RouteGuide/GetFeature`
+	if err := a.ImportCommand("grpcurl", ok); err != nil {
+		t.Fatal(err)
+	}
+	if n := rec.count(eventError); n != 0 {
+		t.Fatalf("got %d dialogs for valid data: %+v", n, rec.all(eventError))
+	}
+
+	typo := `grpcurl -d '{"latitude":1,"lattitude":2}' -plaintext localhost:1 wombat.v1.RouteGuide/GetFeature`
+	if err := a.ImportCommand("grpcurl", typo); err != nil {
+		t.Fatal(err)
+	}
+	errs := rec.all(eventError)
+	if len(errs) != 1 || !strings.Contains(errs[0].data[0].(errorMsg).Message, "lattitude") {
+		t.Fatalf("want one notice naming lattitude, got %+v", errs)
 	}
 }
