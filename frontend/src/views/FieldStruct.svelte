@@ -6,6 +6,7 @@
   import Checkbox from "../controls/Checkbox.svelte";
   import TextArea from "../controls/TextArea.svelte";
   import { unknownFields } from "./jsonCheck";
+  import { InvalidJSON } from "./invalidJSON";
 
   export let field;
   export let state;
@@ -39,6 +40,11 @@
       : "";
   };
 
+  const invalid = message =>
+    idx >= 0
+      ? `Invalid JSON, the request cannot be sent until it is fixed: ${message}`
+      : `Invalid JSON, not sent: ${message}`;
+
   // Show the value, and show it again when it is changed from outside, e.g.
   // when an item before this one is removed from a list.
   $: sync(state[val]);
@@ -49,6 +55,12 @@
       state[val] = cur;
     }
     written = cur;
+    if (cur instanceof InvalidJSON) {
+      v = cur.text;
+      error = invalid(cur.error);
+      warning = "";
+      return;
+    }
     v = cur === undefined ? undefined : JSON.stringify(cur);
     error = "";
     check(cur);
@@ -73,17 +85,16 @@
       error = "";
       check(parsed);
     } catch (e) {
-      // Not sent while it is invalid. (null would be sent: it is a valid
-      // google.protobuf.Value.)
-      set(undefined);
+      // Kept with its text; not sent while it is invalid. (null would be
+      // sent: it is a valid google.protobuf.Value.)
+      set(new InvalidJSON(v, e.message));
       warning = "";
-      error = idx >= 0
-        ? `Invalid JSON, the request cannot be sent until it is fixed: ${e.message}`
-        : `Invalid JSON, not sent: ${e.message}`;
+      error = invalid(e.message);
     }
   };
 
-  $: shown = state[val] !== undefined || error !== "";
+  // A list item or map value always has its text box.
+  $: shown = item || state[val] !== undefined;
 </script>
 
 <div class="msg-label">

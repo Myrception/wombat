@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- An invalid JSON list item lost its text and error when an item before it was removed, and Send failed with an
+  unclear error; Send now names the invalid item instead
+- The field-name check for recursive messages uses the real JSON names (including `json_name`) and skips
+  `google.protobuf.Any`
+- Importing a grpcurl command whose data has a field the method does not have says that the field is ignored
+
 ## [v0.6.0-rc3] - 2026-11-16
 
 ### Added

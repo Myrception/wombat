@@ -43,6 +43,7 @@ type servicesSelect []serviceSelect
 type fieldDesc struct {
 	Name     string       `json:"name"`
 	FullName string       `json:"full_name"`
+	JSONName string       `json:"json_name,omitempty"` // as protojson accepts it, besides Name
 	Kind     string       `json:"kind"`
 	Repeated bool         `json:"repeated"`
 	MapKey   *fieldDesc   `json:"map_key"`

@@ -866,6 +866,7 @@ func messageViewFromDesc(md protoreflect.MessageDescriptor, cd *cyclicDetector) 
 
 func setFieldDescBasics(fdesc *fieldDesc, fd protoreflect.FieldDescriptor) {
 	fdesc.Name = string(fd.Name())
+	fdesc.JSONName = fd.JSONName()
 	fdesc.Kind = fd.Kind().String()
 	fdesc.FullName = string(fd.FullName())
 	fdesc.Repeated = fd.IsList()
@@ -913,6 +914,7 @@ func fieldViewsFromDesc(fds protoreflect.FieldDescriptors, isOneof bool, cd *cyc
 					continue
 				}
 				fdesc.Name = string(oneof.Name())
+				fdesc.JSONName = "" // a oneof has no JSON name; its members do
 				fdesc.Kind = "oneof"
 				var err error
 				fdesc.Oneof, err = fieldViewsFromDesc(oneof.Fields(), true, cd)
@@ -1309,6 +1311,20 @@ func (a *api) ExportCommands(method string, stringJSON string, rawHeaders interf
 	}
 }
 
+// checkUnknownFields returns the error for the first field in the JSON data
+// that the method's request message does not have, or nil.
+func (a *api) checkUnknownFields(method, data string) error {
+	md, err := a.getMethodDesc(method)
+	if err != nil || strings.TrimSpace(data) == "" {
+		return nil
+	}
+	err = protojson.Unmarshal([]byte(data), dynamicpb.NewMessage(md.Input()))
+	if err != nil && strings.Contains(err.Error(), "unknown field") {
+		return err
+	}
+	return nil
+}
+
 func (a *api) ImportCommand(kind string, command string) (rerr error) {
 	defer func() {
 		if rerr != nil {
@@ -1326,7 +1342,18 @@ func (a *api) ImportCommand(kind string, command string) (rerr error) {
 		}
 
 		a.rt.LogInfo(fmt.Sprintf("importing grpcurl command for method: %s", args.Method))
-		return a.emitServicesSelect("/"+args.Method, args.Data, args.Metadata)
+		if err := a.emitServicesSelect("/"+args.Method, args.Data, args.Metadata); err != nil {
+			return err
+		}
+		// The form and Send ignore fields the method does not have, so a
+		// misspelled field in the command would go unnoticed.
+		if err := a.checkUnknownFields("/"+args.Method, args.Data); err != nil {
+			a.rt.Emit(eventError, errorMsg{
+				"Imported with ignored fields",
+				fmt.Sprintf("The request data has a field the method does not have, which is not sent: %v", err),
+			})
+		}
+		return nil
 	default:
 		return fmt.Errorf("unsupported command type: %s", kind)
 	}
